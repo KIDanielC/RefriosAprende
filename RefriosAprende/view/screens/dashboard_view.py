@@ -1,4 +1,4 @@
-"""Vista de Dashboard principal (post-login). Estructura base de Sidebar + contenido."""
+"""Vista de Dashboard principal (post-login). Sidebar + área de contenido dinámica."""
 import customtkinter as ctk
 
 from config.settings import (
@@ -19,6 +19,10 @@ from config.settings import (
     VENTANA_ANCHO,
 )
 from model.entities.usuario import Usuario
+from view.screens.usuarios_screen import UsuariosScreen
+
+_SECCION_DASHBOARD = "Dashboard"
+_SECCION_USUARIOS = "Gestión de Usuarios"
 
 
 class DashboardView(ctk.CTk):
@@ -28,24 +32,27 @@ class DashboardView(ctk.CTk):
         super().__init__()
         self._usuario = usuario
         self._al_cerrar_sesion = al_cerrar_sesion
+        self._botones_menu = {}
+        self._frame_seccion_actual = None
 
         self.title(f"{APP_NAME} - {usuario.nombre_completo}")
         self.geometry(f"{VENTANA_ANCHO}x{VENTANA_ALTO}")
-        self.minsize(1000, 640)
+        self.minsize(1100, 680)
         self.configure(fg_color=COLOR_FONDO_APP)
 
         self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure(0, weight=1)
 
         self._construir_sidebar()
-        self._construir_contenido()
+        self._construir_area_contenido()
+        self._mostrar_seccion(_SECCION_DASHBOARD)
 
     # ------------------------------------------------------------------
     def _opciones_menu(self):
         if self._usuario.es_administrador():
             return [
-                ("🏠", "Dashboard"),
-                ("👥", "Gestión de Usuarios"),
+                ("🏠", _SECCION_DASHBOARD),
+                ("👥", _SECCION_USUARIOS),
                 ("📚", "Gestión de Cursos"),
                 ("📄", "Gestión de Contenidos"),
                 ("📝", "Evaluaciones"),
@@ -53,7 +60,7 @@ class DashboardView(ctk.CTk):
                 ("⚙", "Configuración"),
             ]
         return [
-            ("🏠", "Dashboard"),
+            ("🏠", _SECCION_DASHBOARD),
             ("📚", "Cursos"),
             ("📝", "Evaluaciones"),
             ("🧪", "Simulaciones"),
@@ -87,7 +94,7 @@ class DashboardView(ctk.CTk):
         ).pack(padx=14, pady=6)
 
         for icono, opcion in self._opciones_menu():
-            ctk.CTkButton(
+            boton = ctk.CTkButton(
                 sidebar,
                 text=f"  {icono}   {opcion}",
                 anchor="w",
@@ -97,7 +104,10 @@ class DashboardView(ctk.CTk):
                 font=(FONT_FAMILY, 15),
                 height=46,
                 corner_radius=4,
-            ).pack(fill="x", padx=16, pady=3)
+                command=lambda nombre=opcion: self._mostrar_seccion(nombre),
+            )
+            boton.pack(fill="x", padx=16, pady=3)
+            self._botones_menu[opcion] = boton
 
         ctk.CTkButton(
             sidebar,
@@ -111,34 +121,63 @@ class DashboardView(ctk.CTk):
             command=self._manejar_cierre_sesion,
         ).pack(side="bottom", fill="x", padx=16, pady=22)
 
-    def _construir_contenido(self):
+    def _construir_area_contenido(self):
         contenido = ctk.CTkFrame(self, fg_color=COLOR_FONDO_APP, corner_radius=0)
         contenido.grid(row=0, column=1, sticky="nsew")
         contenido.grid_columnconfigure(0, weight=1)
         contenido.grid_rowconfigure(1, weight=1)
+        self._contenedor_principal = contenido
 
-        barra_superior = ctk.CTkFrame(
-            contenido, fg_color=COLOR_FONDO_PANEL, height=68, corner_radius=0,
-            border_width=0,
+        self._barra_superior = ctk.CTkFrame(
+            contenido, fg_color=COLOR_FONDO_PANEL, height=68, corner_radius=0, border_width=0
         )
-        barra_superior.grid(row=0, column=0, sticky="ew")
-        ctk.CTkLabel(
-            barra_superior,
-            text=f"Bienvenido, {self._usuario.nombre_completo}",
+        self._barra_superior.grid(row=0, column=0, sticky="ew")
+
+        self._etiqueta_titulo_seccion = ctk.CTkLabel(
+            self._barra_superior,
+            text=_SECCION_DASHBOARD,
             font=(FONT_FAMILY, 17, "bold"),
             text_color=COLOR_TEXTO_PRIMARIO,
-        ).pack(side="left", padx=28, pady=18)
+        )
+        self._etiqueta_titulo_seccion.pack(side="left", padx=28, pady=18)
 
-        indicador_estado = ctk.CTkLabel(
-            barra_superior,
+        ctk.CTkLabel(
+            self._barra_superior,
             text="● Sesión activa",
             font=(FONT_FAMILY, 13),
             text_color=COLOR_EXITO,
-        )
-        indicador_estado.pack(side="right", padx=28)
+        ).pack(side="right", padx=28)
 
-        area_tarjetas = ctk.CTkFrame(contenido, fg_color="transparent")
-        area_tarjetas.grid(row=1, column=0, sticky="nsew", padx=28, pady=28)
+        self._area_seccion = ctk.CTkFrame(contenido, fg_color=COLOR_FONDO_APP, corner_radius=0)
+        self._area_seccion.grid(row=1, column=0, sticky="nsew")
+        self._area_seccion.grid_columnconfigure(0, weight=1)
+        self._area_seccion.grid_rowconfigure(0, weight=1)
+
+    # ------------------------------------------------------------------
+    def _mostrar_seccion(self, nombre_seccion: str):
+        for nombre, boton in self._botones_menu.items():
+            boton.configure(fg_color=COLOR_FONDO_TARJETA_HOVER if nombre == nombre_seccion else "transparent")
+
+        self._etiqueta_titulo_seccion.configure(text=nombre_seccion)
+
+        if self._frame_seccion_actual is not None:
+            self._frame_seccion_actual.destroy()
+
+        if nombre_seccion == _SECCION_DASHBOARD:
+            self._frame_seccion_actual = self._construir_seccion_dashboard(self._area_seccion)
+        elif nombre_seccion == _SECCION_USUARIOS and self._usuario.es_administrador():
+            self._frame_seccion_actual = UsuariosScreen(self._area_seccion, usuario_sesion=self._usuario)
+        else:
+            self._frame_seccion_actual = self._construir_seccion_en_construccion(self._area_seccion, nombre_seccion)
+
+        self._frame_seccion_actual.grid(row=0, column=0, sticky="nsew")
+
+    def _construir_seccion_dashboard(self, contenedor):
+        frame = ctk.CTkFrame(contenedor, fg_color=COLOR_FONDO_APP, corner_radius=0)
+        frame.grid_columnconfigure((0, 1, 2), weight=1)
+
+        area_tarjetas = ctk.CTkFrame(frame, fg_color="transparent")
+        area_tarjetas.grid(row=0, column=0, columnspan=3, sticky="nsew", padx=28, pady=28)
         for indice in range(3):
             area_tarjetas.grid_columnconfigure(indice, weight=1)
 
@@ -164,6 +203,20 @@ class DashboardView(ctk.CTk):
             ctk.CTkLabel(
                 tarjeta, text=valor, font=(FONT_FAMILY, 30, "bold"), text_color=COLOR_AZUL_SECUNDARIO
             ).pack(anchor="w", padx=20)
+
+        return frame
+
+    def _construir_seccion_en_construccion(self, contenedor, nombre_seccion):
+        frame = ctk.CTkFrame(contenedor, fg_color=COLOR_FONDO_APP, corner_radius=0)
+        frame.grid_columnconfigure(0, weight=1)
+        frame.grid_rowconfigure(0, weight=1)
+        ctk.CTkLabel(
+            frame,
+            text=f"El módulo «{nombre_seccion}» se construirá en un sprint posterior.",
+            font=(FONT_FAMILY, 16),
+            text_color=COLOR_TEXTO_SECUNDARIO,
+        ).grid(row=0, column=0)
+        return frame
 
     # ------------------------------------------------------------------
     def _manejar_cierre_sesion(self):
