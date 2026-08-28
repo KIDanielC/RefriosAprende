@@ -30,18 +30,23 @@ from config.settings import (
 )
 from controller.curso_controller import CursoController
 from controller.evaluacion_controller import EvaluacionController
+from controller.inscripcion_controller import InscripcionController
 from controller.progreso_controller import ProgresoController
 from controller.usuario_controller import UsuarioController
 from model.dao.resultado_dao import ResultadoDAO
 from model.entities.usuario import Usuario
+from view.screens.configuracion_screen import ConfiguracionScreen
 from view.screens.cursos_screen import CursosScreen
 from view.screens.mi_progreso_screen import MiProgresoScreen
 from view.screens.mis_cursos_screen import MisCursosScreen
+from view.screens.reportes_screen import ReportesScreen
 from view.screens.usuarios_screen import UsuariosScreen
 
 _SECCION_DASHBOARD = "Dashboard"
 _SECCION_USUARIOS = "Gestión de Usuarios"
 _SECCION_CURSOS = "Gestión de Cursos"
+_SECCION_REPORTES = "Reportes"
+_SECCION_CONFIGURACION = "Configuración"
 _SECCION_MIS_CURSOS = "Cursos"
 _SECCION_MI_PROGRESO = "Mi Progreso"
 
@@ -76,8 +81,8 @@ class DashboardView(ctk.CTk):
                 ("👥", _SECCION_USUARIOS),
                 ("📚", _SECCION_CURSOS),
                 ("📝", "Evaluaciones"),
-                ("📊", "Reportes"),
-                ("⚙", "Configuración"),
+                ("📊", _SECCION_REPORTES),
+                ("⚙", _SECCION_CONFIGURACION),
             ]
         return [
             ("🏠", _SECCION_DASHBOARD),
@@ -219,6 +224,10 @@ class DashboardView(ctk.CTk):
             self._frame_seccion_actual = UsuariosScreen(self._area_seccion, usuario_sesion=self._usuario)
         elif nombre_seccion == _SECCION_CURSOS and self._usuario.es_administrador():
             self._frame_seccion_actual = CursosScreen(self._area_seccion, usuario_sesion=self._usuario)
+        elif nombre_seccion == _SECCION_REPORTES and self._usuario.es_administrador():
+            self._frame_seccion_actual = ReportesScreen(self._area_seccion, usuario_sesion=self._usuario)
+        elif nombre_seccion == _SECCION_CONFIGURACION and self._usuario.es_administrador():
+            self._frame_seccion_actual = ConfiguracionScreen(self._area_seccion, usuario_sesion=self._usuario)
         elif nombre_seccion == _SECCION_MIS_CURSOS and not self._usuario.es_administrador():
             self._frame_seccion_actual = MisCursosScreen(self._area_seccion, usuario_sesion=self._usuario)
         elif nombre_seccion == _SECCION_MI_PROGRESO and not self._usuario.es_administrador():
@@ -334,12 +343,15 @@ class DashboardView(ctk.CTk):
         return frame
 
     def _calcular_avance_por_curso(self):
-        curso_controlador = CursoController()
         progreso_controlador = ProgresoController()
-        cursos_activos = curso_controlador.listar_cursos_activos()
+
+        if self._usuario.es_administrador():
+            cursos = CursoController().listar_cursos_activos()
+        else:
+            cursos = InscripcionController().listar_cursos_matriculados(self._usuario.id_usuario)
 
         resultado = []
-        for curso in cursos_activos:
+        for curso in cursos:
             if self._usuario.es_administrador():
                 porcentajes = [
                     (progreso_controlador.obtener_progreso(u.id_usuario, curso.id_curso) or None)
@@ -361,15 +373,14 @@ class DashboardView(ctk.CTk):
                 ("Rol de sesión", self._usuario.nombre_rol.title()),
             ]
 
-        curso_controlador = CursoController()
         evaluacion_controlador = EvaluacionController()
         progreso_controlador = ProgresoController()
         resultado_dao = ResultadoDAO()
-        cursos_activos = curso_controlador.listar_cursos_activos()
+        cursos_matriculados = InscripcionController().listar_cursos_matriculados(self._usuario.id_usuario)
 
         cursos_completados = 0
         evaluaciones_aprobadas = 0
-        for curso in cursos_activos:
+        for curso in cursos_matriculados:
             progreso = progreso_controlador.obtener_progreso(self._usuario.id_usuario, curso.id_curso)
             if progreso and progreso.porcentaje_avance >= 100:
                 cursos_completados += 1
@@ -383,10 +394,8 @@ class DashboardView(ctk.CTk):
         ]
 
     def _calcular_tarjetas_dashboard(self):
-        curso_controlador = CursoController()
-        cursos_activos = curso_controlador.listar_cursos_activos()
-
         if self._usuario.es_administrador():
+            cursos_activos = CursoController().listar_cursos_activos()
             evaluacion_controlador = EvaluacionController()
             total_evaluaciones = sum(
                 1 for curso in cursos_activos if evaluacion_controlador.obtener_evaluacion_final(curso.id_curso) is not None
@@ -398,13 +407,14 @@ class DashboardView(ctk.CTk):
                 ("👥", "Aprendices registrados", str(total_aprendices)),
             ]
 
+        cursos_matriculados = InscripcionController().listar_cursos_matriculados(self._usuario.id_usuario)
         evaluacion_controlador = EvaluacionController()
         progreso_controlador = ProgresoController()
         resultado_dao = ResultadoDAO()
 
         evaluaciones_pendientes = 0
         porcentajes = []
-        for curso in cursos_activos:
+        for curso in cursos_matriculados:
             progreso = progreso_controlador.obtener_progreso(self._usuario.id_usuario, curso.id_curso)
             porcentajes.append(progreso.porcentaje_avance if progreso else 0.0)
 
@@ -415,7 +425,7 @@ class DashboardView(ctk.CTk):
         progreso_promedio = sum(porcentajes) / len(porcentajes) if porcentajes else 0.0
 
         return [
-            ("📚", "Cursos disponibles", str(len(cursos_activos))),
+            ("📚", "Mis cursos", str(len(cursos_matriculados))),
             ("📝", "Evaluaciones pendientes", str(evaluaciones_pendientes)),
             ("📈", "Progreso general", f"{progreso_promedio:.0f}%"),
         ]

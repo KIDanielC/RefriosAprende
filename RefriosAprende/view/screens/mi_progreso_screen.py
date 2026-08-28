@@ -13,7 +13,7 @@ from config.settings import (
     GROSOR_BORDE_SUTIL,
     RADIO_TARJETA,
 )
-from controller.curso_controller import CursoController
+from controller.inscripcion_controller import InscripcionController
 from controller.progreso_controller import ProgresoController
 from model.entities.progreso import COMPLETADO, EN_PROGRESO
 from model.entities.usuario import Usuario
@@ -36,7 +36,7 @@ class MiProgresoScreen(ctk.CTkFrame):
     def __init__(self, master, usuario_sesion: Usuario):
         super().__init__(master, fg_color=COLOR_FONDO_APP, corner_radius=0)
         self._usuario_sesion = usuario_sesion
-        self._curso_controlador = CursoController()
+        self._inscripcion_controlador = InscripcionController()
         self._progreso_controlador = ProgresoController()
 
         self.grid_columnconfigure(0, weight=1)
@@ -49,10 +49,10 @@ class MiProgresoScreen(ctk.CTkFrame):
         contenedor.grid(row=0, column=0, sticky="nsew", padx=24, pady=24)
         contenedor.grid_columnconfigure(0, weight=1)
 
-        cursos = self._curso_controlador.listar_cursos_activos()
+        cursos = self._inscripcion_controlador.listar_cursos_matriculados(self._usuario_sesion.id_usuario)
         if not cursos:
             ctk.CTkLabel(
-                contenedor, text="Todavía no hay cursos disponibles.", font=(FONT_FAMILY, 14), text_color=COLOR_TEXTO_SECUNDARIO,
+                contenedor, text="Todavía no estás matriculado en ningún curso.", font=(FONT_FAMILY, 14), text_color=COLOR_TEXTO_SECUNDARIO,
             ).grid(row=0, column=0, pady=20)
             return
 

@@ -17,7 +17,7 @@ from config.settings import (
     RADIO_BOTON,
     RADIO_TARJETA,
 )
-from controller.curso_controller import CursoController
+from controller.inscripcion_controller import InscripcionController
 from controller.progreso_controller import ProgresoController
 from model.entities.curso import Curso
 from view.screens.contenido_lector_screen import ContenidoLectorScreen
@@ -25,12 +25,12 @@ from view.screens.guia_aprendizaje_screen import GuiaAprendizajeWindow
 
 
 class MisCursosScreen(ctk.CTkFrame):
-    """Lista de cursos activos disponibles para el aprendiz."""
+    """Lista de cursos en los que el aprendiz está matriculado."""
 
     def __init__(self, master, usuario_sesion):
         super().__init__(master, fg_color=COLOR_FONDO_APP, corner_radius=0)
         self._usuario_sesion = usuario_sesion
-        self._controlador = CursoController()
+        self._controlador = InscripcionController()
         self._progreso_controlador = ProgresoController()
         self._frame_interno = None
 
@@ -48,10 +48,10 @@ class MisCursosScreen(ctk.CTkFrame):
         self._frame_interno.grid(row=0, column=0, sticky="nsew", padx=24, pady=24)
         self._frame_interno.grid_columnconfigure(0, weight=1)
 
-        cursos = self._controlador.listar_cursos_activos()
+        cursos = self._controlador.listar_cursos_matriculados(self._usuario_sesion.id_usuario)
         if not cursos:
             ctk.CTkLabel(
-                self._frame_interno, text="Todavía no hay cursos disponibles.",
+                self._frame_interno, text="Todavía no estás matriculado en ningún curso. Contacta a un administrador.",
                 font=(FONT_FAMILY, 14), text_color=COLOR_TEXTO_SECUNDARIO,
             ).grid(row=0, column=0, pady=20)
             return

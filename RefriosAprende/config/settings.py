@@ -6,6 +6,7 @@ DATABASE_PATH = os.path.join(BASE_DIR, "database", "refrios.db")
 SCHEMA_PATH = os.path.join(BASE_DIR, "database", "schema.sql")
 ICONS_DIR = os.path.join(BASE_DIR, "resources", "icons")
 IMAGES_DIR = os.path.join(BASE_DIR, "resources", "images")
+CONTENIDOS_DIR = os.path.join(BASE_DIR, "resources", "contenidos")
 
 APP_NAME = "Refrios Aprende"
 APP_VERSION = "0.1.0"

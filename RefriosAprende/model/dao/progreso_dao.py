@@ -35,6 +35,11 @@ class ProgresoDAO:
         cursor.execute(f"{_SELECT_BASE} WHERE id_usuario = ?", (id_usuario,))
         return [self._fila_a_entidad(fila) for fila in cursor.fetchall()]
 
+    def listar_por_curso(self, id_curso: int) -> list[Progreso]:
+        cursor = self._conexion.obtener_cursor()
+        cursor.execute(f"{_SELECT_BASE} WHERE id_curso = ?", (id_curso,))
+        return [self._fila_a_entidad(fila) for fila in cursor.fetchall()]
+
     def guardar(self, id_usuario: int, id_curso: int, porcentaje_avance: float, estado: str) -> Progreso:
         cursor = self._conexion.obtener_cursor()
         cursor.execute(

@@ -50,6 +50,33 @@ class ConexionBD:
             """
         )
 
+        self._migrar_matricula_desde_progreso()
+
+    def _migrar_matricula_desde_progreso(self):
+        """La matrícula (tabla inscripciones) se agregó después de que ya existían cursos con
+        aprendices avanzando en ellos. Para no dejarlos "fuera" del curso que ya venían tomando,
+        se matricula automáticamente a todo usuario que ya tenga registro de progreso en un curso.
+        Se ejecuta una sola vez (registrada en migraciones_aplicadas) para no revivir matrículas
+        que el administrador haya quitado manualmente después."""
+        self._conexion.execute(
+            "CREATE TABLE IF NOT EXISTS migraciones_aplicadas (nombre TEXT PRIMARY KEY)"
+        )
+        ya_aplicada = self._conexion.execute(
+            "SELECT 1 FROM migraciones_aplicadas WHERE nombre = 'matricula_desde_progreso'"
+        ).fetchone()
+        if ya_aplicada:
+            return
+
+        self._conexion.execute(
+            """
+            INSERT OR IGNORE INTO inscripciones (id_usuario, id_curso)
+            SELECT id_usuario, id_curso FROM progreso
+            """
+        )
+        self._conexion.execute(
+            "INSERT INTO migraciones_aplicadas (nombre) VALUES ('matricula_desde_progreso')"
+        )
+
     def _reconstruir_evaluaciones_si_falta_cascada(self):
         """La primera version de la migracion agrego id_contenido sin ON DELETE CASCADE.
         Si detecta ese caso, reconstruye la tabla preservando los datos existentes."""
