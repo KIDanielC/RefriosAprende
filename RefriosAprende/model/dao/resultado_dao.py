@@ -32,6 +32,11 @@ class ResultadoDAO:
         )
         return [self._fila_a_entidad(fila) for fila in cursor.fetchall()]
 
+    def listar_por_evaluacion(self, id_evaluacion: int) -> list[Resultado]:
+        cursor = self._conexion.obtener_cursor()
+        cursor.execute(f"{_SELECT_BASE} WHERE id_evaluacion = ? ORDER BY fecha_intento", (id_evaluacion,))
+        return [self._fila_a_entidad(fila) for fila in cursor.fetchall()]
+
     def existe_aprobado(self, id_usuario: int, id_evaluacion: int) -> bool:
         cursor = self._conexion.obtener_cursor()
         cursor.execute(

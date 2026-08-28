@@ -1,8 +1,14 @@
 """Pantalla del Aprendiz: lectura de contenidos de un curso, acceso al cuestionario de
 validación por contenido, a la evaluación final del curso y a sus simulaciones."""
+import os
+import subprocess
+import sys
+
 import customtkinter as ctk
+from PIL import Image
 
 from config.settings import (
+    BASE_DIR,
     COLOR_ACENTO_ALTERNO,
     COLOR_ACENTO_PRIMARIO,
     COLOR_ACENTO_SECUNDARIO,
@@ -14,7 +20,7 @@ from config.settings import (
     COLOR_TEXTO_SECUNDARIO,
     FONT_FAMILY,
 )
-from controller.contenido_controller import ContenidoController
+from controller.contenido_controller import TIPO_IMAGEN, TIPO_PDF, ContenidoController
 from controller.evaluacion_controller import EvaluacionController
 from controller.progreso_controller import ProgresoController
 from controller.simulacion_controller import SimulacionController
@@ -40,6 +46,7 @@ class ContenidoLectorScreen(ctk.CTkFrame):
         self._evaluacion_controlador = EvaluacionController()
         self._simulacion_controlador = SimulacionController()
         self._progreso_controlador = ProgresoController()
+        self._imagenes_cargadas = []  # referencias vivas: evita que el GC libere las CTkImage en pantalla
 
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(2, weight=1)
@@ -91,10 +98,28 @@ class ContenidoLectorScreen(ctk.CTkFrame):
             text_color=COLOR_TEXTO_PRIMARIO, anchor="w",
         ).grid(row=0, column=0, sticky="ew", padx=18, pady=(14, 8))
 
-        ctk.CTkLabel(
-            tarjeta, text=contenido.contenido_texto, font=(FONT_FAMILY, 13), text_color=COLOR_TEXTO_SECUNDARIO,
-            anchor="w", justify="left", wraplength=760,
-        ).grid(row=1, column=0, sticky="ew", padx=18, pady=(0, 12))
+        fila_siguiente = 1
+        if contenido.contenido_texto:
+            ctk.CTkLabel(
+                tarjeta, text=contenido.contenido_texto, font=(FONT_FAMILY, 13), text_color=COLOR_TEXTO_SECUNDARIO,
+                anchor="w", justify="left", wraplength=760,
+            ).grid(row=fila_siguiente, column=0, sticky="ew", padx=18, pady=(0, 12))
+            fila_siguiente += 1
+
+        if contenido.tipo_contenido == TIPO_IMAGEN:
+            widget_imagen = self._construir_imagen(tarjeta, contenido)
+            if widget_imagen is not None:
+                widget_imagen.grid(row=fila_siguiente, column=0, sticky="w", padx=18, pady=(0, 12))
+                fila_siguiente += 1
+
+        if contenido.tipo_contenido == TIPO_PDF:
+            ctk.CTkButton(
+                tarjeta, text="📄  Abrir PDF", height=34, corner_radius=4,
+                fg_color=COLOR_ACENTO_PRIMARIO, hover_color=COLOR_ACENTO_SECUNDARIO,
+                text_color="#FFFFFF", font=(FONT_FAMILY, 12, "bold"),
+                command=lambda c=contenido: self._abrir_pdf(c),
+            ).grid(row=fila_siguiente, column=0, sticky="w", padx=18, pady=(0, 12))
+            fila_siguiente += 1
 
         total_preguntas = len(self._validacion_controlador.listar_preguntas(contenido))
         if total_preguntas > 0:
@@ -103,7 +128,7 @@ class ContenidoLectorScreen(ctk.CTkFrame):
                 fg_color=COLOR_FONDO_TARJETA_HOVER, border_width=1, border_color=COLOR_ACENTO_ALTERNO,
                 text_color=COLOR_ACENTO_ALTERNO, font=(FONT_FAMILY, 12, "bold"),
                 command=lambda c=contenido: self._abrir_quiz(c),
-            ).grid(row=2, column=0, sticky="w", padx=18, pady=(0, 14))
+            ).grid(row=fila_siguiente, column=0, sticky="w", padx=18, pady=(0, 14))
 
     def _construir_pie_evaluacion(self):
         pie = ctk.CTkFrame(self, fg_color=COLOR_FONDO_TARJETA, corner_radius=4, border_width=1, border_color=COLOR_BORDE_SUTIL)
@@ -137,6 +162,36 @@ class ContenidoLectorScreen(ctk.CTkFrame):
             ).grid(row=0, column=1, padx=8, pady=16, sticky="w")
 
     # ------------------------------------------------------------------
+    def _construir_imagen(self, tarjeta, contenido: Contenido):
+        ruta_absoluta = os.path.join(BASE_DIR, contenido.ruta_archivo)
+        if not os.path.isfile(ruta_absoluta):
+            return None
+
+        with Image.open(ruta_absoluta) as archivo_imagen:
+            imagen_pil = archivo_imagen.copy()  # copia en memoria: libera el archivo en disco de inmediato
+
+        ancho_maximo = 700
+        if imagen_pil.width > ancho_maximo:
+            alto_proporcional = int(imagen_pil.height * (ancho_maximo / imagen_pil.width))
+            tamano = (ancho_maximo, alto_proporcional)
+        else:
+            tamano = (imagen_pil.width, imagen_pil.height)
+
+        imagen_ctk = ctk.CTkImage(light_image=imagen_pil, dark_image=imagen_pil, size=tamano)
+        self._imagenes_cargadas.append(imagen_ctk)
+        return ctk.CTkLabel(tarjeta, image=imagen_ctk, text="")
+
+    def _abrir_pdf(self, contenido: Contenido):
+        ruta_absoluta = os.path.join(BASE_DIR, contenido.ruta_archivo)
+        if not os.path.isfile(ruta_absoluta):
+            return
+        if sys.platform.startswith("win"):
+            os.startfile(ruta_absoluta)
+        elif sys.platform == "darwin":
+            subprocess.run(["open", ruta_absoluta], check=False)
+        else:
+            subprocess.run(["xdg-open", ruta_absoluta], check=False)
+
     def _abrir_quiz(self, contenido: Contenido):
         ResponderQuizWindow(self, contenido=contenido)
 

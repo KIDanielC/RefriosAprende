@@ -62,6 +62,21 @@ CREATE TABLE IF NOT EXISTS guias_aprendizaje (
 );
 
 -- ---------------------------------------------------------
+-- INSCRIPCIONES (matricula: que aprendiz esta asignado a que curso)
+-- ---------------------------------------------------------
+CREATE TABLE IF NOT EXISTS inscripciones (
+    id_inscripcion      INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_usuario          INTEGER NOT NULL,
+    id_curso             INTEGER NOT NULL,
+    fecha_inscripcion   TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
+    UNIQUE (id_usuario, id_curso),
+    FOREIGN KEY (id_usuario) REFERENCES usuarios (id_usuario)
+        ON UPDATE CASCADE ON DELETE CASCADE,
+    FOREIGN KEY (id_curso) REFERENCES cursos (id_curso)
+        ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+-- ---------------------------------------------------------
 -- CONTENIDOS (unidades de un curso)
 -- ---------------------------------------------------------
 CREATE TABLE IF NOT EXISTS contenidos (
@@ -190,6 +205,8 @@ CREATE INDEX IF NOT EXISTS idx_opciones_pregunta ON opciones (id_pregunta);
 CREATE INDEX IF NOT EXISTS idx_resultados_usuario ON resultados (id_usuario);
 CREATE INDEX IF NOT EXISTS idx_progreso_usuario ON progreso (id_usuario);
 CREATE INDEX IF NOT EXISTS idx_contenidos_vistos_contenido ON contenidos_vistos (id_contenido);
+CREATE INDEX IF NOT EXISTS idx_inscripciones_curso ON inscripciones (id_curso);
+CREATE INDEX IF NOT EXISTS idx_inscripciones_usuario ON inscripciones (id_usuario);
 
 -- Una sola evaluacion final (CUESTIONARIO) por curso; las SIMULACION no tienen este limite.
 CREATE UNIQUE INDEX IF NOT EXISTS idx_evaluaciones_final_unica_por_curso

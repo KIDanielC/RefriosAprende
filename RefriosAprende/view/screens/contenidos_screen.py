@@ -1,4 +1,6 @@
-"""Pantalla de gestión de contenidos (tipo TEXTO) de un curso específico."""
+"""Pantalla de gestión de contenidos (tipo TEXTO o PDF) de un curso específico."""
+from tkinter import filedialog
+
 import customtkinter as ctk
 
 from config.settings import (
@@ -14,7 +16,13 @@ from config.settings import (
     COLOR_TEXTO_SECUNDARIO,
     FONT_FAMILY,
 )
-from controller.contenido_controller import ContenidoController, DatosContenidoInvalidosError
+from controller.contenido_controller import (
+    TIPO_IMAGEN,
+    TIPO_PDF,
+    TIPO_TEXTO,
+    ContenidoController,
+    DatosContenidoInvalidosError,
+)
 from model.entities.contenido import Contenido
 from model.entities.curso import Curso
 from view.screens.preguntas_validacion_screen import PreguntasValidacionWindow
@@ -105,7 +113,17 @@ class ContenidosScreen(ctk.CTkFrame):
             anchor="w",
         ).grid(row=0, column=1, sticky="w")
 
-        extracto = contenido.contenido_texto[:160] + ("…" if len(contenido.contenido_texto) > 160 else "")
+        if contenido.tipo_contenido == TIPO_PDF:
+            ctk.CTkLabel(
+                encabezado, text="📄 PDF", font=(FONT_FAMILY, 11, "bold"), text_color=COLOR_ACENTO_PRIMARIO,
+            ).grid(row=0, column=2, padx=(10, 0))
+        elif contenido.tipo_contenido == TIPO_IMAGEN:
+            ctk.CTkLabel(
+                encabezado, text="🖼 Imagen", font=(FONT_FAMILY, 11, "bold"), text_color=COLOR_ACENTO_ALTERNO,
+            ).grid(row=0, column=2, padx=(10, 0))
+
+        texto = contenido.contenido_texto or ""
+        extracto = texto[:160] + ("…" if len(texto) > 160 else "") if texto else "Sin descripción."
         ctk.CTkLabel(
             tarjeta, text=extracto, font=(FONT_FAMILY, 12), text_color=COLOR_TEXTO_SECUNDARIO,
             anchor="w", justify="left", wraplength=800,
@@ -152,7 +170,9 @@ class ContenidosScreen(ctk.CTkFrame):
 
 
 class FormularioContenido(ctk.CTkToplevel):
-    """Formulario modal para crear o editar un contenido de tipo texto."""
+    """Formulario modal para crear un contenido (Texto, PDF o Imagen) o editar uno existente.
+
+    El tipo de contenido no se puede cambiar una vez creado (solo aplica al crear)."""
 
     def __init__(self, master, controlador: ContenidoController, id_curso: int, al_guardar, contenido_existente: Contenido = None):
         super().__init__(master)
@@ -160,11 +180,13 @@ class FormularioContenido(ctk.CTkToplevel):
         self._id_curso = id_curso
         self._al_guardar = al_guardar
         self._contenido_existente = contenido_existente
+        self._ruta_archivo_seleccionado = None
+        self._tipo_seleccionado = contenido_existente.tipo_contenido if contenido_existente else TIPO_TEXTO
 
         self.title("Editar contenido" if contenido_existente else "Nuevo contenido")
         self.configure(fg_color=COLOR_FONDO_TARJETA)
         self.geometry("560x560")
-        self.minsize(560, 560)
+        self.minsize(560, 480)
         self.resizable(False, True)
         self.transient(master)
         self.grab_set()
@@ -179,6 +201,19 @@ class FormularioContenido(ctk.CTkToplevel):
             font=(FONT_FAMILY, 18, "bold"), text_color=COLOR_TEXTO_PRIMARIO,
         ).pack(padx=28, pady=(24, 16), anchor="w")
 
+        if not self._contenido_existente:
+            ctk.CTkLabel(
+                self, text="Tipo de contenido", font=(FONT_FAMILY, 12), text_color=COLOR_TEXTO_SECUNDARIO
+            ).pack(padx=28, pady=(0, 2), anchor="w")
+            self._selector_tipo = ctk.CTkSegmentedButton(
+                self, values=["Texto", "PDF", "Imagen"], command=self._al_cambiar_tipo,
+                fg_color=COLOR_FONDO_APP, selected_color=COLOR_ACENTO_PRIMARIO,
+                selected_hover_color=COLOR_ACENTO_SECUNDARIO, unselected_color=COLOR_FONDO_APP,
+                text_color=COLOR_TEXTO_PRIMARIO, font=(FONT_FAMILY, 13, "bold"),
+            )
+            self._selector_tipo.set("Texto")
+            self._selector_tipo.pack(padx=28, pady=(0, 12), anchor="w")
+
         ctk.CTkLabel(
             self, text="Título", font=(FONT_FAMILY, 12), text_color=COLOR_TEXTO_SECUNDARIO
         ).pack(padx=28, pady=(0, 2), anchor="w")
@@ -188,15 +223,9 @@ class FormularioContenido(ctk.CTkToplevel):
         )
         self._campo_titulo.pack(padx=28, pady=(0, 10))
 
-        ctk.CTkLabel(
-            self, text="Contenido", font=(FONT_FAMILY, 12), text_color=COLOR_TEXTO_SECUNDARIO
-        ).pack(padx=28, pady=(0, 2), anchor="w")
-        self._campo_texto = ctk.CTkTextbox(
-            self, width=500, height=260, corner_radius=4, fg_color=COLOR_FONDO_APP,
-            border_color=COLOR_BORDE_SUTIL, border_width=1, text_color=COLOR_TEXTO_PRIMARIO,
-            font=(FONT_FAMILY, 13),
-        )
-        self._campo_texto.pack(padx=28, pady=(0, 4))
+        self._area_dinamica = ctk.CTkFrame(self, fg_color="transparent")
+        self._area_dinamica.pack(padx=28, pady=(0, 4), fill="x")
+        self._construir_area_texto()
 
         self._etiqueta_error = ctk.CTkLabel(
             self, text="", font=(FONT_FAMILY, 12), text_color=COLOR_ERROR, wraplength=500
@@ -209,9 +238,86 @@ class FormularioContenido(ctk.CTkToplevel):
             font=(FONT_FAMILY, 14, "bold"), command=self._guardar,
         ).pack(padx=28, pady=(16, 24))
 
+    def _al_cambiar_tipo(self, valor: str):
+        self._tipo_seleccionado = {"PDF": TIPO_PDF, "Imagen": TIPO_IMAGEN}.get(valor, TIPO_TEXTO)
+        for hijo in self._area_dinamica.winfo_children():
+            hijo.destroy()
+        if self._tipo_seleccionado == TIPO_PDF:
+            self._construir_area_archivo("Archivo PDF", "Elegir PDF…", [("Archivos PDF", "*.pdf")])
+        elif self._tipo_seleccionado == TIPO_IMAGEN:
+            self._construir_area_archivo(
+                "Archivo de imagen", "Elegir imagen…",
+                [("Imágenes", "*.png *.jpg *.jpeg *.gif *.bmp")],
+            )
+        else:
+            self._construir_area_texto()
+
+    def _construir_area_texto(self):
+        ctk.CTkLabel(
+            self._area_dinamica, text="Contenido", font=(FONT_FAMILY, 12), text_color=COLOR_TEXTO_SECUNDARIO
+        ).pack(pady=(0, 2), anchor="w")
+        self._campo_texto = ctk.CTkTextbox(
+            self._area_dinamica, width=500, height=220, corner_radius=4, fg_color=COLOR_FONDO_APP,
+            border_color=COLOR_BORDE_SUTIL, border_width=1, text_color=COLOR_TEXTO_PRIMARIO,
+            font=(FONT_FAMILY, 13),
+        )
+        self._campo_texto.pack()
+
+    def _construir_area_archivo(self, etiqueta_archivo: str, texto_boton: str, tipos_archivo: list):
+        ctk.CTkLabel(
+            self._area_dinamica, text="Descripción (opcional)", font=(FONT_FAMILY, 12), text_color=COLOR_TEXTO_SECUNDARIO
+        ).pack(pady=(0, 2), anchor="w")
+        self._campo_texto = ctk.CTkTextbox(
+            self._area_dinamica, width=500, height=100, corner_radius=4, fg_color=COLOR_FONDO_APP,
+            border_color=COLOR_BORDE_SUTIL, border_width=1, text_color=COLOR_TEXTO_PRIMARIO,
+            font=(FONT_FAMILY, 13),
+        )
+        self._campo_texto.pack(pady=(0, 10))
+
+        ctk.CTkLabel(
+            self._area_dinamica, text=etiqueta_archivo, font=(FONT_FAMILY, 12), text_color=COLOR_TEXTO_SECUNDARIO
+        ).pack(pady=(0, 2), anchor="w")
+        fila_archivo = ctk.CTkFrame(self._area_dinamica, fg_color="transparent")
+        fila_archivo.pack(fill="x")
+        self._etiqueta_archivo = ctk.CTkLabel(
+            fila_archivo, text="Ningún archivo seleccionado.", font=(FONT_FAMILY, 12), text_color=COLOR_TEXTO_SECUNDARIO,
+            anchor="w",
+        )
+        self._etiqueta_archivo.pack(side="left", padx=(0, 10))
+        ctk.CTkButton(
+            fila_archivo, text=texto_boton, width=140, height=32, corner_radius=4,
+            fg_color=COLOR_FONDO_TARJETA_HOVER, border_width=1, border_color=COLOR_ACENTO_PRIMARIO,
+            text_color=COLOR_TEXTO_PRIMARIO, font=(FONT_FAMILY, 12, "bold"),
+            command=lambda: self._elegir_archivo(tipos_archivo),
+        ).pack(side="left")
+
+    def _elegir_archivo(self, tipos_archivo: list):
+        ruta = filedialog.askopenfilename(title="Selecciona un archivo", filetypes=tipos_archivo)
+        if ruta:
+            self._ruta_archivo_seleccionado = ruta
+            self._etiqueta_archivo.configure(text=ruta.split("/")[-1].split("\\")[-1])
+
     def _precargar_datos(self, contenido: Contenido):
         self._campo_titulo.insert(0, contenido.titulo)
-        self._campo_texto.insert("1.0", contenido.contenido_texto)
+        if contenido.contenido_texto:
+            self._campo_texto.insert("1.0", contenido.contenido_texto)
+
+        if contenido.tipo_contenido == TIPO_PDF:
+            for hijo in self._area_dinamica.winfo_children():
+                hijo.destroy()
+            self._construir_area_archivo("Archivo PDF", "Elegir PDF…", [("Archivos PDF", "*.pdf")])
+            if contenido.contenido_texto:
+                self._campo_texto.insert("1.0", contenido.contenido_texto)
+            self._etiqueta_archivo.configure(text="Archivo ya cargado (no se puede reemplazar aquí; elimina y crea de nuevo).")
+        elif contenido.tipo_contenido == TIPO_IMAGEN:
+            for hijo in self._area_dinamica.winfo_children():
+                hijo.destroy()
+            self._construir_area_archivo(
+                "Archivo de imagen", "Elegir imagen…", [("Imágenes", "*.png *.jpg *.jpeg *.gif *.bmp")],
+            )
+            if contenido.contenido_texto:
+                self._campo_texto.insert("1.0", contenido.contenido_texto)
+            self._etiqueta_archivo.configure(text="Archivo ya cargado (no se puede reemplazar aquí; elimina y crea de nuevo).")
 
     def _guardar(self):
         titulo = self._campo_titulo.get()
@@ -222,8 +328,12 @@ class FormularioContenido(ctk.CTkToplevel):
                 self._controlador.actualizar_contenido(
                     self._contenido_existente.id_contenido, titulo, texto, self._contenido_existente.orden
                 )
+            elif self._tipo_seleccionado == TIPO_PDF:
+                self._controlador.crear_contenido_pdf(self._id_curso, titulo, texto, self._ruta_archivo_seleccionado)
+            elif self._tipo_seleccionado == TIPO_IMAGEN:
+                self._controlador.crear_contenido_imagen(self._id_curso, titulo, texto, self._ruta_archivo_seleccionado)
             else:
-                self._controlador.crear_contenido(self._id_curso, titulo, texto)
+                self._controlador.crear_contenido_texto(self._id_curso, titulo, texto)
         except DatosContenidoInvalidosError as error:
             self._etiqueta_error.configure(text=str(error))
             return

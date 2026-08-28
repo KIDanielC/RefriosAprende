@@ -41,23 +41,28 @@ class ContenidoDAO:
         cursor.execute("SELECT COALESCE(MAX(orden), 0) + 1 AS siguiente FROM contenidos WHERE id_curso = ?", (id_curso,))
         return cursor.fetchone()["siguiente"]
 
-    def crear(self, id_curso: int, titulo: str, contenido_texto: str, orden: int) -> int:
+    def crear(
+        self, id_curso: int, titulo: str, tipo_contenido: str, ruta_archivo: str | None,
+        contenido_texto: str, orden: int,
+    ) -> int:
         cursor = self._conexion.obtener_cursor()
         cursor.execute(
             """
             INSERT INTO contenidos (id_curso, titulo, tipo_contenido, ruta_archivo, contenido_texto, orden)
-            VALUES (?, ?, 'TEXTO', NULL, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?)
             """,
-            (id_curso, titulo, contenido_texto, orden),
+            (id_curso, titulo, tipo_contenido, ruta_archivo, contenido_texto, orden),
         )
         self._conexion.confirmar()
         return cursor.lastrowid
 
-    def actualizar(self, id_contenido: int, titulo: str, contenido_texto: str, orden: int) -> None:
+    def actualizar(
+        self, id_contenido: int, titulo: str, ruta_archivo: str | None, contenido_texto: str, orden: int,
+    ) -> None:
         cursor = self._conexion.obtener_cursor()
         cursor.execute(
-            "UPDATE contenidos SET titulo = ?, contenido_texto = ?, orden = ? WHERE id_contenido = ?",
-            (titulo, contenido_texto, orden, id_contenido),
+            "UPDATE contenidos SET titulo = ?, ruta_archivo = ?, contenido_texto = ?, orden = ? WHERE id_contenido = ?",
+            (titulo, ruta_archivo, contenido_texto, orden, id_contenido),
         )
         self._conexion.confirmar()
 
