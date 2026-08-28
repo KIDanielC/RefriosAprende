@@ -45,6 +45,23 @@ CREATE TABLE IF NOT EXISTS cursos (
 );
 
 -- ---------------------------------------------------------
+-- GUIAS DE APRENDIZAJE (una por curso: objetivos, competencias, actividades)
+-- ---------------------------------------------------------
+CREATE TABLE IF NOT EXISTS guias_aprendizaje (
+    id_guia                 INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_curso                INTEGER NOT NULL UNIQUE,
+    objetivo_general        TEXT,
+    objetivos_especificos   TEXT,
+    competencias            TEXT,
+    actividades              TEXT,
+    criterios_evaluacion    TEXT,
+    duracion_horas          INTEGER,
+    fecha_actualizacion     TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
+    FOREIGN KEY (id_curso) REFERENCES cursos (id_curso)
+        ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+-- ---------------------------------------------------------
 -- CONTENIDOS (unidades de un curso)
 -- ---------------------------------------------------------
 CREATE TABLE IF NOT EXISTS contenidos (
@@ -150,6 +167,20 @@ CREATE TABLE IF NOT EXISTS simulaciones (
 );
 
 -- ---------------------------------------------------------
+-- CONTENIDOS_VISTOS (seguimiento de lectura, base del calculo de progreso)
+-- ---------------------------------------------------------
+CREATE TABLE IF NOT EXISTS contenidos_vistos (
+    id_usuario      INTEGER NOT NULL,
+    id_contenido    INTEGER NOT NULL,
+    fecha_visto     TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
+    PRIMARY KEY (id_usuario, id_contenido),
+    FOREIGN KEY (id_usuario) REFERENCES usuarios (id_usuario)
+        ON UPDATE CASCADE ON DELETE CASCADE,
+    FOREIGN KEY (id_contenido) REFERENCES contenidos (id_contenido)
+        ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+-- ---------------------------------------------------------
 -- Índices de apoyo
 -- ---------------------------------------------------------
 CREATE INDEX IF NOT EXISTS idx_usuarios_rol ON usuarios (id_rol);
@@ -158,6 +189,12 @@ CREATE INDEX IF NOT EXISTS idx_preguntas_evaluacion ON preguntas (id_evaluacion)
 CREATE INDEX IF NOT EXISTS idx_opciones_pregunta ON opciones (id_pregunta);
 CREATE INDEX IF NOT EXISTS idx_resultados_usuario ON resultados (id_usuario);
 CREATE INDEX IF NOT EXISTS idx_progreso_usuario ON progreso (id_usuario);
+CREATE INDEX IF NOT EXISTS idx_contenidos_vistos_contenido ON contenidos_vistos (id_contenido);
+
+-- Una sola evaluacion final (CUESTIONARIO) por curso; las SIMULACION no tienen este limite.
+CREATE UNIQUE INDEX IF NOT EXISTS idx_evaluaciones_final_unica_por_curso
+    ON evaluaciones (id_curso)
+    WHERE id_contenido IS NULL AND tipo_evaluacion = 'CUESTIONARIO';
 
 -- ---------------------------------------------------------
 -- Datos semilla: roles fijos del sistema

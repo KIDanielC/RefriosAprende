@@ -1,4 +1,5 @@
-"""Pantalla del Aprendiz: lectura de contenidos de un curso y acceso al cuestionario de validación."""
+"""Pantalla del Aprendiz: lectura de contenidos de un curso, acceso al cuestionario de
+validación por contenido, a la evaluación final del curso y a sus simulaciones."""
 import customtkinter as ctk
 
 from config.settings import (
@@ -14,27 +15,38 @@ from config.settings import (
     FONT_FAMILY,
 )
 from controller.contenido_controller import ContenidoController
+from controller.evaluacion_controller import EvaluacionController
+from controller.progreso_controller import ProgresoController
+from controller.simulacion_controller import SimulacionController
 from controller.validacion_controller import ValidacionController
 from model.entities.contenido import Contenido
 from model.entities.curso import Curso
+from model.entities.usuario import Usuario
+from view.screens.presentar_evaluacion_screen import PresentarEvaluacionWindow
+from view.screens.presentar_simulacion_screen import ListaSimulacionesWindow
 from view.screens.responder_quiz_screen import ResponderQuizWindow
 
 
 class ContenidoLectorScreen(ctk.CTkFrame):
-    """Lista los contenidos de un curso en modo lectura, con acceso al cuestionario de validación."""
+    """Lista los contenidos de un curso en modo lectura y da acceso a evaluación/simulaciones."""
 
-    def __init__(self, master, curso: Curso, al_volver):
+    def __init__(self, master, curso: Curso, usuario_sesion: Usuario, al_volver):
         super().__init__(master, fg_color=COLOR_FONDO_APP, corner_radius=0)
         self._curso = curso
+        self._usuario_sesion = usuario_sesion
         self._al_volver = al_volver
         self._controlador = ContenidoController()
         self._validacion_controlador = ValidacionController()
+        self._evaluacion_controlador = EvaluacionController()
+        self._simulacion_controlador = SimulacionController()
+        self._progreso_controlador = ProgresoController()
 
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(2, weight=1)
 
         self._construir_encabezado()
         self._construir_lista()
+        self._construir_pie_evaluacion()
 
     # ------------------------------------------------------------------
     def _construir_encabezado(self):
@@ -50,7 +62,7 @@ class ContenidoLectorScreen(ctk.CTkFrame):
 
     def _construir_lista(self):
         contenedor = ctk.CTkScrollableFrame(self, fg_color="transparent")
-        contenedor.grid(row=2, column=0, sticky="nsew", padx=24, pady=(0, 24))
+        contenedor.grid(row=2, column=0, sticky="nsew", padx=24, pady=(0, 12))
         contenedor.grid_columnconfigure(0, weight=1)
 
         contenidos = self._controlador.listar_por_curso(self._curso.id_curso)
@@ -63,6 +75,8 @@ class ContenidoLectorScreen(ctk.CTkFrame):
 
         for indice, contenido in enumerate(contenidos):
             self._construir_tarjeta_contenido(contenedor, indice, contenido)
+            # Ver el contenido en esta pantalla cuenta como "leído" para el seguimiento.
+            self._progreso_controlador.registrar_contenido_visto(self._usuario_sesion.id_usuario, contenido)
 
     def _construir_tarjeta_contenido(self, contenedor, fila: int, contenido: Contenido):
         tarjeta = ctk.CTkFrame(
@@ -91,6 +105,44 @@ class ContenidoLectorScreen(ctk.CTkFrame):
                 command=lambda c=contenido: self._abrir_quiz(c),
             ).grid(row=2, column=0, sticky="w", padx=18, pady=(0, 14))
 
+    def _construir_pie_evaluacion(self):
+        pie = ctk.CTkFrame(self, fg_color=COLOR_FONDO_TARJETA, corner_radius=4, border_width=1, border_color=COLOR_BORDE_SUTIL)
+        pie.grid(row=3, column=0, sticky="ew", padx=24, pady=(0, 24))
+        pie.grid_columnconfigure(2, weight=1)
+
+        ctk.CTkLabel(
+            pie, text="¿Ya estudiaste todo el curso?", font=(FONT_FAMILY, 13, "bold"), text_color=COLOR_TEXTO_PRIMARIO,
+        ).grid(row=0, column=0, padx=(18, 12), pady=16, sticky="w")
+
+        evaluacion_final = self._evaluacion_controlador.obtener_evaluacion_final(self._curso.id_curso)
+        if evaluacion_final is not None:
+            ctk.CTkButton(
+                pie, text="Presentar evaluación final", height=36, corner_radius=4,
+                fg_color=COLOR_ACENTO_PRIMARIO, hover_color=COLOR_ACENTO_SECUNDARIO,
+                font=(FONT_FAMILY, 12, "bold"), command=self._abrir_evaluacion_final,
+            ).grid(row=0, column=1, padx=8, pady=16)
+
+        casos = self._simulacion_controlador.listar_casos_por_curso(self._curso.id_curso)
+        if casos:
+            ctk.CTkButton(
+                pie, text=f"Practicar simulaciones ({len(casos)})", height=36, corner_radius=4,
+                fg_color=COLOR_FONDO_TARJETA_HOVER, border_width=1, border_color=COLOR_ACENTO_ALTERNO,
+                text_color=COLOR_ACENTO_ALTERNO, font=(FONT_FAMILY, 12, "bold"), command=self._abrir_simulaciones,
+            ).grid(row=0, column=2, padx=8, pady=16, sticky="w")
+
+        if evaluacion_final is None and not casos:
+            ctk.CTkLabel(
+                pie, text="Este curso todavía no tiene evaluación final ni simulaciones publicadas.",
+                font=(FONT_FAMILY, 12), text_color=COLOR_TEXTO_SECUNDARIO,
+            ).grid(row=0, column=1, padx=8, pady=16, sticky="w")
+
     # ------------------------------------------------------------------
     def _abrir_quiz(self, contenido: Contenido):
         ResponderQuizWindow(self, contenido=contenido)
+
+    def _abrir_evaluacion_final(self):
+        evaluacion_final = self._evaluacion_controlador.obtener_evaluacion_final(self._curso.id_curso)
+        PresentarEvaluacionWindow(self, evaluacion=evaluacion_final, usuario_sesion=self._usuario_sesion)
+
+    def _abrir_simulaciones(self):
+        ListaSimulacionesWindow(self, curso=self._curso, usuario_sesion=self._usuario_sesion)

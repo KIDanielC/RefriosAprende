@@ -21,6 +21,9 @@ from config.settings import (
 from controller.curso_controller import CursoController, DatosCursoInvalidosError
 from model.entities.curso import Curso
 from view.screens.contenidos_screen import ContenidosScreen
+from view.screens.evaluacion_final_screen import EvaluacionFinalWindow
+from view.screens.guia_aprendizaje_screen import GuiaAprendizajeWindow
+from view.screens.simulaciones_screen import SimulacionesWindow
 
 
 class CursosScreen(ctk.CTkFrame):
@@ -86,13 +89,37 @@ class CursosScreen(ctk.CTkFrame):
         barra = ctk.CTkFrame(contenedor, fg_color="transparent")
         barra.grid(row=1, column=0, sticky="ew", padx=28, pady=(0, 12))
 
+        self._boton_guia = ctk.CTkButton(
+            barra, text="Guía de aprendizaje", width=170, height=34, corner_radius=4,
+            fg_color=COLOR_FONDO_TARJETA, hover_color=COLOR_FONDO_TARJETA_HOVER,
+            border_width=1, border_color=COLOR_ACENTO_ALTERNO, text_color=COLOR_TEXTO_PRIMARIO,
+            font=(FONT_FAMILY, 12, "bold"), state="disabled", command=self._abrir_guia_aprendizaje,
+        )
+        self._boton_guia.pack(side="left", padx=(0, 8))
+
         self._boton_contenidos = ctk.CTkButton(
-            barra, text="Gestionar contenidos", width=180, height=34, corner_radius=4,
+            barra, text="Gestionar contenidos", width=170, height=34, corner_radius=4,
             fg_color=COLOR_FONDO_TARJETA, hover_color=COLOR_FONDO_TARJETA_HOVER,
             border_width=1, border_color=COLOR_ACENTO_ALTERNO, text_color=COLOR_TEXTO_PRIMARIO,
             font=(FONT_FAMILY, 12, "bold"), state="disabled", command=self._ir_a_contenidos,
         )
-        self._boton_contenidos.pack(side="left", padx=(0, 8))
+        self._boton_contenidos.pack(side="left", padx=8)
+
+        self._boton_evaluacion = ctk.CTkButton(
+            barra, text="Evaluación final", width=150, height=34, corner_radius=4,
+            fg_color=COLOR_FONDO_TARJETA, hover_color=COLOR_FONDO_TARJETA_HOVER,
+            border_width=1, border_color=COLOR_ACENTO_PRIMARIO, text_color=COLOR_TEXTO_PRIMARIO,
+            font=(FONT_FAMILY, 12, "bold"), state="disabled", command=self._abrir_evaluacion_final,
+        )
+        self._boton_evaluacion.pack(side="left", padx=8)
+
+        self._boton_simulaciones = ctk.CTkButton(
+            barra, text="Simulaciones", width=140, height=34, corner_radius=4,
+            fg_color=COLOR_FONDO_TARJETA, hover_color=COLOR_FONDO_TARJETA_HOVER,
+            border_width=1, border_color=COLOR_ACENTO_PRIMARIO, text_color=COLOR_TEXTO_PRIMARIO,
+            font=(FONT_FAMILY, 12, "bold"), state="disabled", command=self._abrir_simulaciones,
+        )
+        self._boton_simulaciones.pack(side="left", padx=8)
 
         self._boton_editar = ctk.CTkButton(
             barra, text="Editar", width=110, height=34, corner_radius=4,
@@ -180,7 +207,10 @@ class CursosScreen(ctk.CTkFrame):
 
     def _actualizar_estado_botones(self):
         estado = "normal" if self._curso_seleccionado else "disabled"
+        self._boton_guia.configure(state=estado)
         self._boton_contenidos.configure(state=estado)
+        self._boton_evaluacion.configure(state=estado)
+        self._boton_simulaciones.configure(state=estado)
         self._boton_editar.configure(state=estado)
         self._boton_eliminar.configure(state=estado)
         self._etiqueta_mensaje.configure(text="")
@@ -189,6 +219,18 @@ class CursosScreen(ctk.CTkFrame):
     def _ir_a_contenidos(self):
         if self._curso_seleccionado is not None:
             self._mostrar_contenidos(self._curso_seleccionado)
+
+    def _abrir_guia_aprendizaje(self):
+        if self._curso_seleccionado is not None:
+            GuiaAprendizajeWindow(self, curso=self._curso_seleccionado, solo_lectura=False)
+
+    def _abrir_evaluacion_final(self):
+        if self._curso_seleccionado is not None:
+            EvaluacionFinalWindow(self, curso=self._curso_seleccionado)
+
+    def _abrir_simulaciones(self):
+        if self._curso_seleccionado is not None:
+            SimulacionesWindow(self, curso=self._curso_seleccionado)
 
     def _eliminar_curso(self):
         if self._curso_seleccionado is None:
