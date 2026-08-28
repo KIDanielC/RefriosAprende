@@ -1,25 +1,25 @@
 """Vista de inicio de sesión. No contiene lógica de negocio."""
-import os
-import tkinter as tk
-
 import customtkinter as ctk
-from PIL import Image, ImageTk
 
 from config.settings import (
     APP_NAME,
-    COLOR_AZUL_OSCURO,
+    COLOR_ACENTO_GLOW,
+    COLOR_ACENTO_PRIMARIO,
+    COLOR_ACENTO_SECUNDARIO,
     COLOR_BORDE_SUTIL,
     COLOR_ERROR,
     COLOR_FONDO_APP,
-    COLOR_FONDO_PANEL,
     COLOR_FONDO_TARJETA,
-    COLOR_ACENTO_PRIMARIO,
-    COLOR_ACENTO_SECUNDARIO,
-    COLOR_NEGRO,
+    COLOR_NAV_BORDE,
+    COLOR_NAV_FONDO,
+    COLOR_NAV_TEXTO,
+    COLOR_NAV_TEXTO_SECUNDARIO,
     COLOR_TEXTO_PRIMARIO,
     COLOR_TEXTO_SECUNDARIO,
     FONT_FAMILY,
-    IMAGES_DIR,
+    GROSOR_BORDE_SUTIL,
+    RADIO_BOTON,
+    RADIO_TARJETA,
     VENTANA_ALTO,
     VENTANA_ANCHO,
 )
@@ -52,65 +52,61 @@ class LoginView(ctk.CTk):
 
     # ------------------------------------------------------------------
     def _construir_panel_marca(self):
-        """Usa un Canvas (no widgets apilados) para poder dibujar la imagen de fondo
-        y el texto realmente superpuestos, sin ninguna caja opaca entre ambos —
-        Tkinter no permite transparencia real entre widgets normales, solo en un Canvas."""
-        panel = ctk.CTkFrame(self, fg_color=COLOR_FONDO_PANEL, corner_radius=0)
+        panel = ctk.CTkFrame(self, fg_color=COLOR_NAV_FONDO, corner_radius=0)
         panel.grid(row=0, column=0, sticky="nsew")
+        panel.grid_rowconfigure(0, weight=1)
+        panel.grid_rowconfigure(2, weight=0)
+        panel.grid_columnconfigure(0, weight=1)
 
-        lienzo = tk.Canvas(panel, bg=COLOR_FONDO_PANEL, highlightthickness=0, bd=0)
-        lienzo.place(relx=0, rely=0, relwidth=1, relheight=1)
+        contenido = ctk.CTkFrame(panel, fg_color="transparent")
+        contenido.grid(row=0, column=0, sticky="nsew", padx=56, pady=(60, 20))
+        contenido.grid_rowconfigure(0, weight=1)
 
-        id_imagen = self._preparar_imagen_fondo(lienzo)
+        cuerpo = ctk.CTkFrame(contenido, fg_color="transparent")
+        cuerpo.pack(anchor="w", fill="x")
 
-        lineas = [
-            ("❄", (FONT_FAMILY, 40), COLOR_AZUL_OSCURO, -170),
-            ("REFRIOS", (FONT_FAMILY, 52, "bold"), COLOR_NEGRO, -100),
-            ("APRENDE", (FONT_FAMILY, 52, "bold"), COLOR_AZUL_OSCURO, -30),
-            ("Plataforma de gestión de capacitaciones", (FONT_FAMILY, 17), COLOR_NEGRO, 45),
-            ("Diagnóstico y mantenimiento de A/C automotriz", (FONT_FAMILY, 15), COLOR_AZUL_OSCURO, 78),
-        ]
-        # Halo blanco detrás de cada línea: mantiene el texto legible sin importar
-        # qué tan clara u oscura sea la zona de la foto original sobre la que caiga.
-        ids_halo = [
-            [
-                lienzo.create_text(0, 0, text=texto, font=fuente, fill=COLOR_FONDO_PANEL, anchor="center")
-                for _ in range(8)
-            ]
-            for texto, fuente, _color, _y in lineas
-        ]
-        ids_texto = [
-            (lienzo.create_text(0, 0, text=texto, font=fuente, fill=color, anchor="center"), y_offset)
-            for texto, fuente, color, y_offset in lineas
-        ]
+        insignia = ctk.CTkFrame(cuerpo, fg_color=COLOR_ACENTO_PRIMARIO, corner_radius=13, width=52, height=52)
+        insignia.pack(anchor="w")
+        insignia.pack_propagate(False)
+        ctk.CTkLabel(insignia, text="RA", font=(FONT_FAMILY, 20, "bold"), text_color="#FFFFFF").pack(expand=True)
 
-        _DESPLAZAMIENTOS_HALO = [(-2, 0), (2, 0), (0, -2), (0, 2), (-2, -2), (2, -2), (-2, 2), (2, 2)]
+        ctk.CTkLabel(
+            cuerpo,
+            text="Formación técnica que\nse mide, no se supone.",
+            font=(FONT_FAMILY, 30, "bold"),
+            text_color=COLOR_NAV_TEXTO,
+            justify="left",
+            anchor="w",
+        ).pack(anchor="w", pady=(26, 14))
 
-        def _recentrar(_evento=None):
-            centro_x, centro_y = lienzo.winfo_width() // 2, lienzo.winfo_height() // 2
-            if id_imagen is not None:
-                lienzo.coords(id_imagen, centro_x, centro_y)
-            for indice, (id_item, y_offset) in enumerate(ids_texto):
-                lienzo.coords(id_item, centro_x, centro_y + y_offset)
-                for id_halo, (dx, dy) in zip(ids_halo[indice], _DESPLAZAMIENTOS_HALO):
-                    lienzo.coords(id_halo, centro_x + dx, centro_y + y_offset + dy)
+        ctk.CTkLabel(
+            cuerpo,
+            text=(
+                "Cursos, evaluaciones y simulaciones de diagnóstico para el\n"
+                "equipo técnico de Refrios — con seguimiento de avance\n"
+                "en tiempo real."
+            ),
+            font=(FONT_FAMILY, 13.5),
+            text_color=COLOR_NAV_TEXTO_SECUNDARIO,
+            justify="left",
+            anchor="w",
+        ).pack(anchor="w")
 
-        lienzo.bind("<Configure>", _recentrar)
-
-        # Doble línea de acento vertical estilo "circuito" (glow futurista), encima del lienzo
-        acento_glow = ctk.CTkFrame(panel, fg_color=COLOR_ACENTO_SECUNDARIO, width=1, corner_radius=0)
-        acento_glow.place(relx=1.0, rely=0, relheight=1.0, anchor="ne", x=-4)
-        acento = ctk.CTkFrame(panel, fg_color=COLOR_ACENTO_PRIMARIO, width=4, corner_radius=0)
-        acento.place(relx=1.0, rely=0, relheight=1.0, anchor="ne")
-
-    def _preparar_imagen_fondo(self, lienzo: tk.Canvas):
-        ruta_fondo = os.path.join(IMAGES_DIR, "fondo_login.png")
-        if not os.path.isfile(ruta_fondo):
-            return None
-
-        imagen_pil = Image.open(ruta_fondo)
-        self._foto_fondo_marca = ImageTk.PhotoImage(imagen_pil)  # referencia viva: evita que el GC la elimine
-        return lienzo.create_image(0, 0, image=self._foto_fondo_marca, anchor="center")
+        pie = ctk.CTkFrame(panel, fg_color="transparent")
+        pie.grid(row=1, column=0, sticky="ew", padx=56, pady=(10, 44))
+        separador = ctk.CTkFrame(pie, fg_color=COLOR_NAV_BORDE, height=1, corner_radius=0)
+        separador.pack(fill="x", pady=(0, 18))
+        fila_stats = ctk.CTkFrame(pie, fg_color="transparent")
+        fila_stats.pack(anchor="w")
+        for valor, etiqueta in (("18", "Cursos activos"), ("92%", "Aprobación"), ("236", "Aprendices")):
+            estadistica = ctk.CTkFrame(fila_stats, fg_color="transparent")
+            estadistica.pack(side="left", padx=(0, 34))
+            ctk.CTkLabel(
+                estadistica, text=valor, font=(FONT_FAMILY, 20, "bold"), text_color=COLOR_ACENTO_GLOW, anchor="w",
+            ).pack(anchor="w")
+            ctk.CTkLabel(
+                estadistica, text=etiqueta, font=(FONT_FAMILY, 10.5), text_color=COLOR_NAV_TEXTO_SECUNDARIO, anchor="w",
+            ).pack(anchor="w")
 
     def _construir_panel_formulario(self):
         panel = ctk.CTkFrame(self, fg_color=COLOR_FONDO_APP, corner_radius=0)
@@ -121,21 +117,21 @@ class LoginView(ctk.CTk):
         tarjeta = ctk.CTkFrame(
             panel,
             fg_color=COLOR_FONDO_TARJETA,
-            corner_radius=4,
+            corner_radius=RADIO_TARJETA + 4,
             width=440,
-            border_width=2,
-            border_color=COLOR_ACENTO_PRIMARIO,
+            border_width=GROSOR_BORDE_SUTIL,
+            border_color=COLOR_BORDE_SUTIL,
         )
         tarjeta.grid(row=0, column=0)
         tarjeta.grid_columnconfigure(0, weight=1)
 
         ctk.CTkLabel(
-            tarjeta, text="Iniciar sesión", font=(FONT_FAMILY, 28, "bold"), text_color=COLOR_TEXTO_PRIMARIO
+            tarjeta, text="Bienvenido de nuevo", font=(FONT_FAMILY, 24, "bold"), text_color=COLOR_TEXTO_PRIMARIO
         ).grid(row=0, column=0, padx=44, pady=(40, 8), sticky="w")
         ctk.CTkLabel(
             tarjeta,
-            text="Ingresa tus credenciales para continuar",
-            font=(FONT_FAMILY, 15),
+            text="Ingresa tus credenciales para continuar tu formación.",
+            font=(FONT_FAMILY, 13.5),
             text_color=COLOR_TEXTO_SECUNDARIO,
         ).grid(row=1, column=0, padx=44, pady=(0, 28), sticky="w")
 
@@ -144,10 +140,10 @@ class LoginView(ctk.CTk):
             placeholder_text="Usuario",
             width=350,
             height=48,
-            corner_radius=4,
+            corner_radius=RADIO_BOTON,
             fg_color=COLOR_FONDO_APP,
             border_color=COLOR_BORDE_SUTIL,
-            border_width=1,
+            border_width=GROSOR_BORDE_SUTIL,
             text_color=COLOR_TEXTO_PRIMARIO,
             font=(FONT_FAMILY, 15),
         )
@@ -159,10 +155,10 @@ class LoginView(ctk.CTk):
             show="•",
             width=350,
             height=48,
-            corner_radius=4,
+            corner_radius=RADIO_BOTON,
             fg_color=COLOR_FONDO_APP,
             border_color=COLOR_BORDE_SUTIL,
-            border_width=1,
+            border_width=GROSOR_BORDE_SUTIL,
             text_color=COLOR_TEXTO_PRIMARIO,
             font=(FONT_FAMILY, 15),
         )
@@ -176,13 +172,13 @@ class LoginView(ctk.CTk):
 
         self._boton_ingresar = ctk.CTkButton(
             tarjeta,
-            text="INGRESAR",
+            text="Iniciar sesión",
             width=350,
             height=50,
-            corner_radius=4,
+            corner_radius=RADIO_BOTON,
             fg_color=COLOR_ACENTO_PRIMARIO,
             hover_color=COLOR_ACENTO_SECUNDARIO,
-            text_color=COLOR_TEXTO_PRIMARIO,
+            text_color="#FFFFFF",
             font=(FONT_FAMILY, 16, "bold"),
             command=self._manejar_inicio_sesion,
         )
@@ -190,7 +186,7 @@ class LoginView(ctk.CTk):
 
         ctk.CTkLabel(
             tarjeta,
-            text="Acceso exclusivo para personal autorizado de Refrios",
+            text="¿Olvidaste tu contraseña? Contacta a un administrador.",
             font=(FONT_FAMILY, 12),
             text_color=COLOR_TEXTO_SECUNDARIO,
         ).grid(row=6, column=0, padx=44, pady=(0, 32))
