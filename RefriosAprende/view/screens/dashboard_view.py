@@ -3,26 +3,35 @@ import customtkinter as ctk
 
 from config.settings import (
     APP_NAME,
-    COLOR_AMARILLO,
-    COLOR_AZUL_PRIMARIO,
-    COLOR_AZUL_SECUNDARIO,
+    COLOR_ACENTO_ALTERNO,
+    COLOR_ACENTO_PRIMARIO,
+    COLOR_ACENTO_SECUNDARIO,
     COLOR_ERROR,
     COLOR_EXITO,
     COLOR_FONDO_APP,
     COLOR_FONDO_PANEL,
     COLOR_FONDO_TARJETA,
     COLOR_FONDO_TARJETA_HOVER,
+    COLOR_NAV_FONDO,
+    COLOR_NAV_FONDO_HOVER,
+    COLOR_NAV_TEXTO,
     COLOR_TEXTO_PRIMARIO,
     COLOR_TEXTO_SECUNDARIO,
     FONT_FAMILY,
     VENTANA_ALTO,
     VENTANA_ANCHO,
 )
+from controller.curso_controller import CursoController
 from model.entities.usuario import Usuario
+from view.screens.cursos_screen import CursosScreen
+from view.screens.mis_cursos_screen import MisCursosScreen
 from view.screens.usuarios_screen import UsuariosScreen
 
 _SECCION_DASHBOARD = "Dashboard"
 _SECCION_USUARIOS = "Gestión de Usuarios"
+_SECCION_CURSOS = "Gestión de Cursos"
+_SECCION_CONTENIDOS = "Gestión de Contenidos"
+_SECCION_MIS_CURSOS = "Cursos"
 
 
 class DashboardView(ctk.CTk):
@@ -53,15 +62,15 @@ class DashboardView(ctk.CTk):
             return [
                 ("🏠", _SECCION_DASHBOARD),
                 ("👥", _SECCION_USUARIOS),
-                ("📚", "Gestión de Cursos"),
-                ("📄", "Gestión de Contenidos"),
+                ("📚", _SECCION_CURSOS),
+                ("📄", _SECCION_CONTENIDOS),
                 ("📝", "Evaluaciones"),
                 ("📊", "Reportes"),
                 ("⚙", "Configuración"),
             ]
         return [
             ("🏠", _SECCION_DASHBOARD),
-            ("📚", "Cursos"),
+            ("📚", _SECCION_MIS_CURSOS),
             ("📝", "Evaluaciones"),
             ("🧪", "Simulaciones"),
             ("📈", "Mi Progreso"),
@@ -69,28 +78,28 @@ class DashboardView(ctk.CTk):
         ]
 
     def _construir_sidebar(self):
-        sidebar = ctk.CTkFrame(self, fg_color=COLOR_FONDO_PANEL, corner_radius=0, width=270)
+        sidebar = ctk.CTkFrame(self, fg_color=COLOR_NAV_FONDO, corner_radius=0, width=270)
         sidebar.grid(row=0, column=0, sticky="nsw")
         sidebar.grid_propagate(False)
 
-        acento_glow = ctk.CTkFrame(sidebar, fg_color=COLOR_AZUL_SECUNDARIO, width=1, corner_radius=0)
+        acento_glow = ctk.CTkFrame(sidebar, fg_color=COLOR_ACENTO_SECUNDARIO, width=1, corner_radius=0)
         acento_glow.place(relx=1.0, rely=0, relheight=1.0, anchor="ne", x=-3)
-        acento = ctk.CTkFrame(sidebar, fg_color=COLOR_AZUL_PRIMARIO, width=3, corner_radius=0)
+        acento = ctk.CTkFrame(sidebar, fg_color=COLOR_ACENTO_PRIMARIO, width=3, corner_radius=0)
         acento.place(relx=1.0, rely=0, relheight=1.0, anchor="ne")
 
         ctk.CTkLabel(
-            sidebar, text="❄ Refrios Aprende", font=(FONT_FAMILY, 20, "bold"), text_color=COLOR_TEXTO_PRIMARIO
+            sidebar, text="❄ Refrios Aprende", font=(FONT_FAMILY, 20, "bold"), text_color=COLOR_NAV_TEXTO
         ).pack(pady=(30, 6), padx=24, anchor="w")
 
         insignia = ctk.CTkFrame(
-            sidebar, fg_color=COLOR_FONDO_TARJETA, corner_radius=4, border_width=1, border_color=COLOR_AMARILLO
+            sidebar, fg_color=COLOR_NAV_FONDO_HOVER, corner_radius=4, border_width=1, border_color=COLOR_ACENTO_ALTERNO
         )
         insignia.pack(padx=24, pady=(2, 28), anchor="w")
         ctk.CTkLabel(
             insignia,
             text=self._usuario.nombre_rol.title(),
             font=(FONT_FAMILY, 13, "bold"),
-            text_color=COLOR_AMARILLO,
+            text_color=COLOR_ACENTO_ALTERNO,
         ).pack(padx=14, pady=6)
 
         for icono, opcion in self._opciones_menu():
@@ -99,8 +108,8 @@ class DashboardView(ctk.CTk):
                 text=f"  {icono}   {opcion}",
                 anchor="w",
                 fg_color="transparent",
-                hover_color=COLOR_FONDO_TARJETA_HOVER,
-                text_color=COLOR_TEXTO_PRIMARIO,
+                hover_color=COLOR_NAV_FONDO_HOVER,
+                text_color=COLOR_NAV_TEXTO,
                 font=(FONT_FAMILY, 15),
                 height=46,
                 corner_radius=4,
@@ -156,7 +165,7 @@ class DashboardView(ctk.CTk):
     # ------------------------------------------------------------------
     def _mostrar_seccion(self, nombre_seccion: str):
         for nombre, boton in self._botones_menu.items():
-            boton.configure(fg_color=COLOR_FONDO_TARJETA_HOVER if nombre == nombre_seccion else "transparent")
+            boton.configure(fg_color=COLOR_NAV_FONDO_HOVER if nombre == nombre_seccion else "transparent")
 
         self._etiqueta_titulo_seccion.configure(text=nombre_seccion)
 
@@ -167,6 +176,10 @@ class DashboardView(ctk.CTk):
             self._frame_seccion_actual = self._construir_seccion_dashboard(self._area_seccion)
         elif nombre_seccion == _SECCION_USUARIOS and self._usuario.es_administrador():
             self._frame_seccion_actual = UsuariosScreen(self._area_seccion, usuario_sesion=self._usuario)
+        elif nombre_seccion in (_SECCION_CURSOS, _SECCION_CONTENIDOS) and self._usuario.es_administrador():
+            self._frame_seccion_actual = CursosScreen(self._area_seccion, usuario_sesion=self._usuario)
+        elif nombre_seccion == _SECCION_MIS_CURSOS and not self._usuario.es_administrador():
+            self._frame_seccion_actual = MisCursosScreen(self._area_seccion, usuario_sesion=self._usuario)
         else:
             self._frame_seccion_actual = self._construir_seccion_en_construccion(self._area_seccion, nombre_seccion)
 
@@ -181,8 +194,9 @@ class DashboardView(ctk.CTk):
         for indice in range(3):
             area_tarjetas.grid_columnconfigure(indice, weight=1)
 
+        total_cursos_activos = CursoController().contar_cursos_activos()
         tarjetas = [
-            ("📚", "Cursos disponibles", "—"),
+            ("📚", "Cursos disponibles", str(total_cursos_activos)),
             ("📝", "Evaluaciones pendientes", "—"),
             ("📈", "Progreso general", "—"),
         ]
@@ -193,7 +207,7 @@ class DashboardView(ctk.CTk):
                 corner_radius=4,
                 height=130,
                 border_width=2,
-                border_color=COLOR_AZUL_PRIMARIO,
+                border_color=COLOR_ACENTO_PRIMARIO,
             )
             tarjeta.grid(row=0, column=indice, padx=10, sticky="ew")
             ctk.CTkLabel(tarjeta, text=icono, font=(FONT_FAMILY, 24)).pack(anchor="w", padx=20, pady=(18, 0))
@@ -201,7 +215,7 @@ class DashboardView(ctk.CTk):
                 tarjeta, text=titulo, font=(FONT_FAMILY, 14), text_color=COLOR_TEXTO_SECUNDARIO
             ).pack(anchor="w", padx=20, pady=(6, 4))
             ctk.CTkLabel(
-                tarjeta, text=valor, font=(FONT_FAMILY, 30, "bold"), text_color=COLOR_AZUL_SECUNDARIO
+                tarjeta, text=valor, font=(FONT_FAMILY, 30, "bold"), text_color=COLOR_ACENTO_SECUNDARIO
             ).pack(anchor="w", padx=20)
 
         return frame

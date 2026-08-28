@@ -3,3 +3,4 @@ __pycache__/
 .venv/
 venv/
 RefriosAprende/database/refrios.db
+RefriosAprende/resources/images/Logo_Interfaz.png
