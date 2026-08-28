@@ -4,7 +4,7 @@ import customtkinter as ctk
 from view.screens.dashboard_view import DashboardView
 from view.screens.login_view import LoginView
 
-ctk.set_appearance_mode("dark")
+ctk.set_appearance_mode("light")
 ctk.set_default_color_theme("blue")
 
 

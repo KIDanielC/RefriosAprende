@@ -62,14 +62,19 @@ CREATE TABLE IF NOT EXISTS contenidos (
 -- ---------------------------------------------------------
 -- EVALUACIONES
 -- ---------------------------------------------------------
+-- id_contenido NULL  -> evaluacion final del curso completo (Sprint 3)
+-- id_contenido NO NULL -> cuestionario corto de validacion de un contenido puntual (Sprint 2)
 CREATE TABLE IF NOT EXISTS evaluaciones (
     id_evaluacion       INTEGER PRIMARY KEY AUTOINCREMENT,
     id_curso            INTEGER NOT NULL,
+    id_contenido        INTEGER,
     titulo              TEXT NOT NULL,
     tipo_evaluacion     TEXT NOT NULL DEFAULT 'CUESTIONARIO' CHECK (tipo_evaluacion IN ('CUESTIONARIO', 'SIMULACION')),
     nota_minima_aprobar REAL NOT NULL DEFAULT 3.0,
     intentos_permitidos INTEGER NOT NULL DEFAULT 1,
     FOREIGN KEY (id_curso) REFERENCES cursos (id_curso)
+        ON UPDATE CASCADE ON DELETE CASCADE,
+    FOREIGN KEY (id_contenido) REFERENCES contenidos (id_contenido)
         ON UPDATE CASCADE ON DELETE CASCADE
 );
 

@@ -10,31 +10,42 @@ IMAGES_DIR = os.path.join(BASE_DIR, "resources", "images")
 APP_NAME = "Refrios Aprende"
 APP_VERSION = "0.1.0"
 
-# Paleta institucional (Azul / Amarillo / Blanco) reinterpretada en clave oscura/futurista.
-# Se conservan azul y amarillo como colores de marca exigidos por el proyecto de grado,
-# pero aplicados sobre fondos oscuros con acentos tipo "glow" en vez de superficies blancas planas.
-COLOR_FONDO_APP = "#0A0E17"          # fondo general (casi negro, tinte azulado)
-COLOR_FONDO_PANEL = "#0F1521"        # paneles grandes (sidebar, panel de marca)
-COLOR_FONDO_TARJETA = "#161D2E"      # tarjetas / cards
-COLOR_FONDO_TARJETA_HOVER = "#1D2740"
-COLOR_BORDE_SUTIL = "#242E45"
+# Paleta "HUD de diagnóstico" en clave clara: sin colores corporativos. El contenido
+# (formularios, tablas, dashboard) va en blanco/gris muy claro con texto oscuro.
+# La navegación (sidebar del Dashboard y panel de marca del Login) usa su PROPIA
+# paleta oscura — así queda visualmente diferenciada y el logo/los íconos no se lavan
+# contra un fondo blanco.
+COLOR_FONDO_APP = "#F3F5F9"          # fondo general del contenido (blanco con tinte azulado)
+COLOR_FONDO_PANEL = "#FFFFFF"        # paneles de contenido
+COLOR_FONDO_TARJETA = "#FFFFFF"      # tarjetas / cards
+COLOR_FONDO_TARJETA_HOVER = "#E9EDF4"
+COLOR_BORDE_SUTIL = "#D8DEE8"
 
-COLOR_AZUL_PRIMARIO = "#1E5FE0"      # azul institucional, versión eléctrica
-COLOR_AZUL_SECUNDARIO = "#3B82F6"
-COLOR_AZUL_GLOW = "#4F8FFF"
-COLOR_AMARILLO = "#FFC93C"           # amarillo institucional, versión neón suave
-COLOR_AMARILLO_GLOW = "#FFD966"
+COLOR_ACENTO_PRIMARIO = "#0089A3"    # cian: acciones, bordes activos
+COLOR_ACENTO_SECUNDARIO = "#00ACC6"  # cian claro: hover, énfasis suave
+COLOR_ACENTO_GLOW = "#4FD6E8"
+COLOR_ACENTO_ALTERNO = "#E5187E"     # magenta: alertas, insignias, hallazgos importantes
+COLOR_ACENTO_ALTERNO_GLOW = "#FF4FA0"
 
 COLOR_BLANCO = "#FFFFFF"
-COLOR_TEXTO_PRIMARIO = "#E8ECF4"     # texto principal sobre fondo oscuro
-COLOR_TEXTO_SECUNDARIO = "#8B94A8"   # texto secundario / labels
-COLOR_GRIS_CLARO = COLOR_FONDO_APP   # alias retrocompatible
-COLOR_GRIS_TEXTO = COLOR_TEXTO_SECUNDARIO
+COLOR_TEXTO_PRIMARIO = "#12161F"     # texto principal sobre fondo claro
+COLOR_TEXTO_SECUNDARIO = "#5A6577"   # texto secundario / labels
 
-COLOR_ERROR = "#FF5C5C"
-COLOR_EXITO = "#3DDC97"
+COLOR_ERROR = "#D6293E"
+COLOR_EXITO = "#1D9A6C"
 
-FONT_FAMILY = "Segoe UI Variable Display"
+# Navegación (sidebar del Dashboard): paleta oscura propia, independiente del contenido.
+COLOR_NAV_FONDO = "#10141C"
+COLOR_NAV_FONDO_HOVER = "#1D2432"
+COLOR_NAV_BORDE = "#262E3D"
+COLOR_NAV_TEXTO = "#F3F5F9"
+COLOR_NAV_TEXTO_SECUNDARIO = "#98A2B5"
+
+# Texto sobre la foto del panel de marca del Login (fondo claro, imagen sin editar).
+COLOR_NEGRO = "#0A0A0A"
+COLOR_AZUL_OSCURO = "#0B2C4A"
+
+FONT_FAMILY = "Century Gothic"
 FONT_FAMILY_MONO = "Consolas"
 
 VENTANA_ANCHO = 1200

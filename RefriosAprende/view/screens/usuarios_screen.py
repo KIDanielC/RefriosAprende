@@ -5,9 +5,9 @@ from tkinter import ttk
 import customtkinter as ctk
 
 from config.settings import (
-    COLOR_AMARILLO,
-    COLOR_AZUL_PRIMARIO,
-    COLOR_AZUL_SECUNDARIO,
+    COLOR_ACENTO_ALTERNO,
+    COLOR_ACENTO_PRIMARIO,
+    COLOR_ACENTO_SECUNDARIO,
     COLOR_BORDE_SUTIL,
     COLOR_ERROR,
     COLOR_FONDO_APP,
@@ -67,8 +67,8 @@ class UsuariosScreen(ctk.CTkFrame):
             text="+  Nuevo usuario",
             height=40,
             corner_radius=4,
-            fg_color=COLOR_AZUL_PRIMARIO,
-            hover_color=COLOR_AZUL_SECUNDARIO,
+            fg_color=COLOR_ACENTO_PRIMARIO,
+            hover_color=COLOR_ACENTO_SECUNDARIO,
             font=(FONT_FAMILY, 13, "bold"),
             command=self._abrir_formulario_creacion,
         ).grid(row=0, column=2, sticky="e")
@@ -86,8 +86,9 @@ class UsuariosScreen(ctk.CTkFrame):
             fg_color=COLOR_FONDO_TARJETA,
             hover_color=COLOR_FONDO_TARJETA_HOVER,
             border_width=1,
-            border_color=COLOR_AZUL_SECUNDARIO,
-            font=(FONT_FAMILY, 12),
+            border_color=COLOR_ACENTO_SECUNDARIO,
+            text_color=COLOR_TEXTO_PRIMARIO,
+            font=(FONT_FAMILY, 12, "bold"),
             state="disabled",
             command=self._abrir_formulario_edicion,
         )
@@ -102,8 +103,9 @@ class UsuariosScreen(ctk.CTkFrame):
             fg_color=COLOR_FONDO_TARJETA,
             hover_color=COLOR_FONDO_TARJETA_HOVER,
             border_width=1,
-            border_color=COLOR_AMARILLO,
-            font=(FONT_FAMILY, 12),
+            border_color=COLOR_ACENTO_ALTERNO,
+            text_color=COLOR_TEXTO_PRIMARIO,
+            font=(FONT_FAMILY, 12, "bold"),
             state="disabled",
             command=self._cambiar_estado_usuario,
         )
@@ -118,8 +120,9 @@ class UsuariosScreen(ctk.CTkFrame):
             fg_color=COLOR_FONDO_TARJETA,
             hover_color=COLOR_FONDO_TARJETA_HOVER,
             border_width=1,
-            border_color=COLOR_AZUL_SECUNDARIO,
-            font=(FONT_FAMILY, 12),
+            border_color=COLOR_ACENTO_SECUNDARIO,
+            text_color=COLOR_TEXTO_PRIMARIO,
+            font=(FONT_FAMILY, 12, "bold"),
             state="disabled",
             command=self._abrir_formulario_contrasena,
         )
@@ -132,11 +135,11 @@ class UsuariosScreen(ctk.CTkFrame):
             height=34,
             corner_radius=4,
             fg_color=COLOR_FONDO_TARJETA,
-            hover_color="#3A1414",
+            hover_color="#FBE1E4",
             border_width=1,
             border_color=COLOR_ERROR,
             text_color=COLOR_ERROR,
-            font=(FONT_FAMILY, 12),
+            font=(FONT_FAMILY, 12, "bold"),
             state="disabled",
             command=self._eliminar_usuario,
         )
@@ -176,7 +179,7 @@ class UsuariosScreen(ctk.CTkFrame):
         )
         estilo.map(
             "Usuarios.Treeview",
-            background=[("selected", COLOR_AZUL_PRIMARIO)],
+            background=[("selected", COLOR_ACENTO_PRIMARIO)],
             foreground=[("selected", COLOR_TEXTO_PRIMARIO)],
         )
 
@@ -381,7 +384,7 @@ class FormularioUsuario(ctk.CTkToplevel):
         self._combo_rol = ctk.CTkComboBox(
             self, values=nombres_roles, width=380, height=40, corner_radius=4,
             fg_color=COLOR_FONDO_APP, border_color=COLOR_BORDE_SUTIL, text_color=COLOR_TEXTO_PRIMARIO,
-            button_color=COLOR_AZUL_PRIMARIO, button_hover_color=COLOR_AZUL_SECUNDARIO,
+            button_color=COLOR_ACENTO_PRIMARIO, button_hover_color=COLOR_ACENTO_SECUNDARIO,
             dropdown_fg_color=COLOR_FONDO_TARJETA,
         )
         self._combo_rol.set(nombres_roles[0] if nombres_roles else "")
@@ -394,7 +397,7 @@ class FormularioUsuario(ctk.CTkToplevel):
 
         ctk.CTkButton(
             self, text="Guardar", width=380, height=44, corner_radius=4,
-            fg_color=COLOR_AZUL_PRIMARIO, hover_color=COLOR_AZUL_SECUNDARIO,
+            fg_color=COLOR_ACENTO_PRIMARIO, hover_color=COLOR_ACENTO_SECUNDARIO,
             font=(FONT_FAMILY, 14, "bold"), command=self._guardar,
         ).pack(padx=28, pady=(16, 24))
 
@@ -490,7 +493,7 @@ class FormularioContrasena(ctk.CTkToplevel):
 
         ctk.CTkButton(
             self, text="Guardar", width=340, height=42, corner_radius=4,
-            fg_color=COLOR_AZUL_PRIMARIO, hover_color=COLOR_AZUL_SECUNDARIO,
+            fg_color=COLOR_ACENTO_PRIMARIO, hover_color=COLOR_ACENTO_SECUNDARIO,
             font=(FONT_FAMILY, 13, "bold"), command=self._guardar,
         ).pack(padx=26, pady=(18, 20))
 
