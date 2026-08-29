@@ -47,6 +47,7 @@ class ContenidoLectorScreen(ctk.CTkFrame):
         self._simulacion_controlador = SimulacionController()
         self._progreso_controlador = ProgresoController()
         self._imagenes_cargadas = []  # referencias vivas: evita que el GC libere las CTkImage en pantalla
+        self._casillas_visto = {}
 
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(2, weight=1)
@@ -63,9 +64,21 @@ class ContenidoLectorScreen(ctk.CTkFrame):
             command=self._al_volver,
         ).grid(row=0, column=0, sticky="w", padx=24, pady=(24, 4))
 
+        fila_titulo = ctk.CTkFrame(self, fg_color="transparent")
+        fila_titulo.grid(row=1, column=0, sticky="ew", padx=24, pady=(4, 12))
         ctk.CTkLabel(
-            self, text=self._curso.nombre_curso, font=(FONT_FAMILY, 20, "bold"), text_color=COLOR_TEXTO_PRIMARIO,
-        ).grid(row=1, column=0, sticky="w", padx=24, pady=(4, 12))
+            fila_titulo, text=self._curso.nombre_curso, font=(FONT_FAMILY, 20, "bold"), text_color=COLOR_TEXTO_PRIMARIO,
+        ).pack(side="left")
+        self._etiqueta_progreso = ctk.CTkLabel(
+            fila_titulo, text="", font=(FONT_FAMILY, 12, "bold"), text_color=COLOR_ACENTO_PRIMARIO,
+        )
+        self._etiqueta_progreso.pack(side="left", padx=(14, 0))
+        self._actualizar_etiqueta_progreso()
+
+    def _actualizar_etiqueta_progreso(self):
+        progreso = self._progreso_controlador.obtener_progreso(self._usuario_sesion.id_usuario, self._curso.id_curso)
+        porcentaje = progreso.porcentaje_avance if progreso else 0.0
+        self._etiqueta_progreso.configure(text=f"· {porcentaje:.0f}% completado")
 
     def _construir_lista(self):
         contenedor = ctk.CTkScrollableFrame(self, fg_color="transparent")
@@ -82,8 +95,6 @@ class ContenidoLectorScreen(ctk.CTkFrame):
 
         for indice, contenido in enumerate(contenidos):
             self._construir_tarjeta_contenido(contenedor, indice, contenido)
-            # Ver el contenido en esta pantalla cuenta como "leído" para el seguimiento.
-            self._progreso_controlador.registrar_contenido_visto(self._usuario_sesion.id_usuario, contenido)
 
     def _construir_tarjeta_contenido(self, contenedor, fila: int, contenido: Contenido):
         tarjeta = ctk.CTkFrame(
@@ -93,10 +104,25 @@ class ContenidoLectorScreen(ctk.CTkFrame):
         tarjeta.grid(row=fila, column=0, sticky="ew", pady=6)
         tarjeta.grid_columnconfigure(0, weight=1)
 
+        encabezado = ctk.CTkFrame(tarjeta, fg_color="transparent")
+        encabezado.grid(row=0, column=0, sticky="ew", padx=18, pady=(14, 8))
+        encabezado.grid_columnconfigure(0, weight=1)
+
         ctk.CTkLabel(
-            tarjeta, text=f"{contenido.orden}. {contenido.titulo}", font=(FONT_FAMILY, 15, "bold"),
+            encabezado, text=f"{contenido.orden}. {contenido.titulo}", font=(FONT_FAMILY, 15, "bold"),
             text_color=COLOR_TEXTO_PRIMARIO, anchor="w",
-        ).grid(row=0, column=0, sticky="ew", padx=18, pady=(14, 8))
+        ).grid(row=0, column=0, sticky="w")
+
+        casilla_vista = ctk.CTkCheckBox(
+            encabezado, text="Ya lo vi", font=(FONT_FAMILY, 12, "bold"), text_color=COLOR_TEXTO_SECUNDARIO,
+            fg_color=COLOR_ACENTO_PRIMARIO, hover_color=COLOR_ACENTO_SECUNDARIO, border_color=COLOR_BORDE_SUTIL,
+            checkmark_color="#FFFFFF", width=20, height=20,
+            command=lambda c=contenido: self._alternar_visto(c),
+        )
+        if self._progreso_controlador.ya_visto(self._usuario_sesion.id_usuario, contenido):
+            casilla_vista.select()
+        casilla_vista.grid(row=0, column=1, sticky="e")
+        self._casillas_visto[contenido.id_contenido] = casilla_vista
 
         fila_siguiente = 1
         if contenido.contenido_texto:
@@ -162,6 +188,14 @@ class ContenidoLectorScreen(ctk.CTkFrame):
             ).grid(row=0, column=1, padx=8, pady=16, sticky="w")
 
     # ------------------------------------------------------------------
+    def _alternar_visto(self, contenido: Contenido):
+        casilla = self._casillas_visto[contenido.id_contenido]
+        if casilla.get():
+            self._progreso_controlador.registrar_contenido_visto(self._usuario_sesion.id_usuario, contenido)
+        else:
+            self._progreso_controlador.desregistrar_contenido_visto(self._usuario_sesion.id_usuario, contenido)
+        self._actualizar_etiqueta_progreso()
+
     def _construir_imagen(self, tarjeta, contenido: Contenido):
         ruta_absoluta = os.path.join(BASE_DIR, contenido.ruta_archivo)
         if not os.path.isfile(ruta_absoluta):

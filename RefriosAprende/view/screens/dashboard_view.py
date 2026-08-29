@@ -340,7 +340,74 @@ class DashboardView(ctk.CTk):
             ).pack(side="right")
         ctk.CTkFrame(panel_estado, fg_color="transparent", height=14).pack()
 
+        panel_historial = ctk.CTkFrame(
+            frame, fg_color=COLOR_FONDO_TARJETA, corner_radius=RADIO_TARJETA,
+            border_width=GROSOR_BORDE_SUTIL, border_color=COLOR_BORDE_SUTIL,
+        )
+        panel_historial.grid(row=3, column=0, sticky="nsew", padx=24, pady=(0, 24))
+        ctk.CTkLabel(
+            panel_historial, text="Progreso acumulado en el tiempo", font=(FONT_FAMILY, 14, "bold"),
+            text_color=COLOR_TEXTO_PRIMARIO, anchor="w",
+        ).pack(anchor="w", padx=20, pady=(18, 2))
+        ctk.CTkLabel(
+            panel_historial,
+            text="% de contenidos vistos acumulados, día a día"
+            + ("" if self._usuario.es_administrador() else " en tus cursos"),
+            font=(FONT_FAMILY, 11.5), text_color=COLOR_TEXTO_SECUNDARIO, anchor="w",
+        ).pack(anchor="w", padx=20, pady=(0, 10))
+        self._construir_grafica_historial(panel_historial)
+
         return frame
+
+    def _construir_grafica_historial(self, contenedor):
+        progreso_controlador = ProgresoController()
+        if self._usuario.es_administrador():
+            serie = progreso_controlador.historial_progreso_general()
+        else:
+            serie = progreso_controlador.historial_progreso_aprendiz(self._usuario.id_usuario)
+
+        if not serie:
+            ctk.CTkLabel(
+                contenedor, text="Todavía no hay suficiente actividad registrada para graficar.",
+                font=(FONT_FAMILY, 12), text_color=COLOR_TEXTO_SECUNDARIO,
+            ).pack(anchor="w", padx=20, pady=(0, 20))
+            return
+
+        from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+        from matplotlib.figure import Figure
+
+        fechas = [punto[0][5:] for punto in serie]  # MM-DD, más compacto en el eje
+        valores = [punto[1] for punto in serie]
+
+        figura = Figure(figsize=(6, 2.6), dpi=100, facecolor=COLOR_FONDO_TARJETA)
+        eje = figura.add_subplot(111)
+        eje.set_facecolor(COLOR_FONDO_TARJETA)
+
+        eje.plot(
+            fechas, valores, color=COLOR_ACENTO_PRIMARIO, linewidth=2.4, marker="o", markersize=4,
+            markerfacecolor=COLOR_ACENTO_GLOW, markeredgecolor=COLOR_ACENTO_GLOW,
+        )
+        eje.fill_between(fechas, valores, 0, color=COLOR_ACENTO_PRIMARIO, alpha=0.12)
+
+        eje.set_ylim(0, 100)
+        eje.set_ylabel("% acumulado", color=COLOR_TEXTO_SECUNDARIO, fontsize=9)
+        eje.tick_params(colors=COLOR_TEXTO_SECUNDARIO, labelsize=8)
+        for lado in ("top", "right"):
+            eje.spines[lado].set_visible(False)
+        for lado in ("bottom", "left"):
+            eje.spines[lado].set_color(COLOR_BORDE_SUTIL)
+        eje.grid(axis="y", color=COLOR_BORDE_SUTIL, linewidth=0.6, alpha=0.5)
+
+        if len(fechas) > 10:
+            paso = max(1, len(fechas) // 10)
+            eje.set_xticks(range(0, len(fechas), paso))
+            eje.set_xticklabels([fechas[i] for i in range(0, len(fechas), paso)])
+
+        figura.tight_layout()
+
+        lienzo = FigureCanvasTkAgg(figura, master=contenedor)
+        lienzo.draw()
+        lienzo.get_tk_widget().pack(fill="x", padx=14, pady=(0, 16))
 
     def _calcular_avance_por_curso(self):
         progreso_controlador = ProgresoController()

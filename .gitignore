@@ -2,6 +2,7 @@ __pycache__/
 *.pyc
 .venv/
 venv/
+.pytest_cache/
 RefriosAprende/database/refrios.db
 RefriosAprende/resources/images/Logo_Interfaz.png
 RefriosAprende/resources/contenidos/
