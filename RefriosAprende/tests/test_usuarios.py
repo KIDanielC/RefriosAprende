@@ -1,6 +1,7 @@
 import pytest
 
-from controller.usuario_controller import DatosInvalidosError, UsuarioController
+from controller.curso_controller import CursoController
+from controller.usuario_controller import DatosInvalidosError, UltimoAdministradorError, UsuarioController
 
 
 def test_crear_usuario_valido(id_rol_aprendiz):
@@ -56,3 +57,41 @@ def test_eliminar_usuario(aprendiz):
     uc = UsuarioController()
     uc.eliminar_usuario(aprendiz.id_usuario)
     assert all(u.id_usuario != aprendiz.id_usuario for u in uc.listar_usuarios())
+
+
+def test_no_se_puede_desactivar_al_ultimo_administrador(admin):
+    uc = UsuarioController()
+    with pytest.raises(UltimoAdministradorError):
+        uc.actualizar_usuario(
+            admin.id_usuario, admin.nombre_completo, admin.documento, admin.correo, admin.id_rol, activo=False
+        )
+
+
+def test_no_se_puede_eliminar_al_ultimo_administrador(admin):
+    uc = UsuarioController()
+    with pytest.raises(UltimoAdministradorError):
+        uc.eliminar_usuario(admin.id_usuario)
+
+
+def test_se_puede_desactivar_administrador_si_hay_otro_activo(admin, id_rol_admin):
+    uc = UsuarioController()
+    otro_admin = uc.crear_usuario(
+        "Otro Admin", "1000000099", "otro.admin@refrios.local", "otro.admin", "clave123", id_rol_admin
+    )
+    actualizado = uc.actualizar_usuario(
+        admin.id_usuario, admin.nombre_completo, admin.documento, admin.correo, admin.id_rol, activo=False
+    )
+    assert actualizado.activo is False
+    assert otro_admin.activo is True
+
+
+def test_no_se_puede_eliminar_usuario_instructor_de_un_curso(admin, id_rol_admin):
+    uc = UsuarioController()
+    cc = CursoController()
+    otro_admin = uc.crear_usuario(
+        "Instructor de Prueba", "1000000098", "instructor.prueba@refrios.local", "instructor.prueba", "clave123", id_rol_admin
+    )
+    cc.crear_curso("Curso con instructor", "Descripción del curso de prueba", otro_admin.id_usuario)
+
+    with pytest.raises(DatosInvalidosError):
+        uc.eliminar_usuario(otro_admin.id_usuario)

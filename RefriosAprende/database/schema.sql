@@ -31,17 +31,43 @@ CREATE TABLE IF NOT EXISTS usuarios (
 );
 
 -- ---------------------------------------------------------
+-- CATEGORIAS (agrupacion tematica de cursos: electrico, compresores, fugas...)
+-- ---------------------------------------------------------
+CREATE TABLE IF NOT EXISTS categorias (
+    id_categoria    INTEGER PRIMARY KEY AUTOINCREMENT,
+    nombre_categoria TEXT NOT NULL UNIQUE
+);
+
+-- ---------------------------------------------------------
 -- CURSOS
 -- ---------------------------------------------------------
 CREATE TABLE IF NOT EXISTS cursos (
-    id_curso        INTEGER PRIMARY KEY AUTOINCREMENT,
-    nombre_curso    TEXT NOT NULL,
-    descripcion     TEXT,
-    id_instructor   INTEGER NOT NULL,
-    estado          TEXT NOT NULL DEFAULT 'ACTIVO' CHECK (estado IN ('ACTIVO', 'INACTIVO')),
-    fecha_creacion  TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
+    id_curso                INTEGER PRIMARY KEY AUTOINCREMENT,
+    nombre_curso            TEXT NOT NULL,
+    descripcion             TEXT,
+    id_instructor           INTEGER NOT NULL,
+    id_categoria            INTEGER,
+    estado                  TEXT NOT NULL DEFAULT 'BORRADOR' CHECK (estado IN ('BORRADOR', 'ACTIVO', 'INACTIVO')),
+    aprendizaje_secuencial  INTEGER NOT NULL DEFAULT 0 CHECK (aprendizaje_secuencial IN (0, 1)),
+    fecha_creacion          TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
     FOREIGN KEY (id_instructor) REFERENCES usuarios (id_usuario)
-        ON UPDATE CASCADE ON DELETE RESTRICT
+        ON UPDATE CASCADE ON DELETE RESTRICT,
+    FOREIGN KEY (id_categoria) REFERENCES categorias (id_categoria)
+        ON UPDATE CASCADE ON DELETE SET NULL
+);
+
+-- ---------------------------------------------------------
+-- PRERREQUISITOS entre cursos (un curso puede exigir haber completado otros)
+-- ---------------------------------------------------------
+CREATE TABLE IF NOT EXISTS cursos_prerrequisitos (
+    id_curso                INTEGER NOT NULL,
+    id_curso_prerrequisito  INTEGER NOT NULL,
+    PRIMARY KEY (id_curso, id_curso_prerrequisito),
+    CHECK (id_curso != id_curso_prerrequisito),
+    FOREIGN KEY (id_curso) REFERENCES cursos (id_curso)
+        ON UPDATE CASCADE ON DELETE CASCADE,
+    FOREIGN KEY (id_curso_prerrequisito) REFERENCES cursos (id_curso)
+        ON UPDATE CASCADE ON DELETE CASCADE
 );
 
 -- ---------------------------------------------------------
@@ -207,6 +233,11 @@ CREATE INDEX IF NOT EXISTS idx_progreso_usuario ON progreso (id_usuario);
 CREATE INDEX IF NOT EXISTS idx_contenidos_vistos_contenido ON contenidos_vistos (id_contenido);
 CREATE INDEX IF NOT EXISTS idx_inscripciones_curso ON inscripciones (id_curso);
 CREATE INDEX IF NOT EXISTS idx_inscripciones_usuario ON inscripciones (id_usuario);
+CREATE INDEX IF NOT EXISTS idx_progreso_usuario_curso ON progreso (id_usuario, id_curso);
+CREATE INDEX IF NOT EXISTS idx_resultados_evaluacion ON resultados (id_evaluacion);
+CREATE INDEX IF NOT EXISTS idx_cursos_prerrequisitos_prerrequisito ON cursos_prerrequisitos (id_curso_prerrequisito);
+-- idx_cursos_categoria se crea en la migración (connection.py), no aquí: en bases ya
+-- existentes la columna cursos.id_categoria todavía no existe cuando este script corre.
 
 -- Una sola evaluacion final (CUESTIONARIO) por curso; las SIMULACION no tienen este limite.
 CREATE UNIQUE INDEX IF NOT EXISTS idx_evaluaciones_final_unica_por_curso

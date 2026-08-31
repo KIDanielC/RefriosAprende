@@ -31,6 +31,11 @@ def test_flujo_completo_aprendiz_aprueba_el_curso(admin, aprendiz):
         [("Entre 25 y 45 PSI", True), ("Entre 100 y 150 PSI", False)],
     )
 
+    # 1.b El curso nace en BORRADOR; el administrador lo publica cuando ya tiene contenido listo.
+    curso = curso_controlador.actualizar_curso(
+        curso.id_curso, curso.nombre_curso, curso.descripcion, admin.id_usuario, "ACTIVO"
+    )
+
     # 2. Antes de matricular, el aprendiz no debe ver el curso.
     assert curso.id_curso not in [c.id_curso for c in inscripcion_controlador.listar_cursos_matriculados(aprendiz.id_usuario)]
 

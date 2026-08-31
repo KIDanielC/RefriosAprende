@@ -1,4 +1,5 @@
 """Controlador de gestión de contenidos de un curso (tipo TEXTO, PDF o IMAGEN)."""
+import logging
 import os
 import shutil
 import uuid
@@ -6,6 +7,8 @@ import uuid
 from config.settings import CONTENIDOS_DIR
 from model.dao.contenido_dao import ContenidoDAO
 from model.entities.contenido import Contenido
+
+_logger = logging.getLogger(__name__)
 
 TIPO_TEXTO = "TEXTO"
 TIPO_PDF = "PDF"
@@ -108,4 +111,4 @@ class ContenidoController:
             try:
                 os.remove(ruta_absoluta)
             except OSError:
-                pass
+                _logger.warning("No se pudo eliminar el archivo físico del contenido: %s", ruta_absoluta, exc_info=True)

@@ -33,6 +33,16 @@ class ProgresoController:
     def ya_visto(self, id_usuario: int, contenido) -> bool:
         return self._contenido_visto_dao.fue_visto(id_usuario, contenido.id_contenido)
 
+    def contenido_bloqueado(self, id_usuario: int, contenido, curso) -> bool:
+        """Si el curso tiene aprendizaje secuencial activado, un contenido está bloqueado
+        hasta que el aprendiz haya visto todos los contenidos de orden anterior."""
+        if not curso.aprendizaje_secuencial:
+            return False
+        anteriores = [
+            c for c in self._contenido_dao.listar_por_curso(curso.id_curso) if c.orden < contenido.orden
+        ]
+        return any(not self._contenido_visto_dao.fue_visto(id_usuario, c.id_contenido) for c in anteriores)
+
     def recalcular_progreso(self, id_usuario: int, id_curso: int) -> Progreso:
         total_contenidos = len(self._contenido_dao.listar_por_curso(id_curso))
         vistos = self._contenido_visto_dao.contar_vistos_de_curso(id_usuario, id_curso)
@@ -89,8 +99,10 @@ class ProgresoController:
         return self._acumular_por_fecha(fechas, total_posible)
 
     def _obtener_todos_los_cursos_con_matricula(self):
+        # Mismo criterio de "cursos" que ReporteController: solo cursos activos,
+        # para que el histórico de progreso y los reportes del administrador cuadren.
         from controller.curso_controller import CursoController
-        return CursoController().listar_cursos()
+        return CursoController().listar_cursos_activos()
 
     def _acumular_por_fecha(self, fechas: list[str], total_posible: int) -> list[tuple[str, float]]:
         if not fechas or total_posible == 0:

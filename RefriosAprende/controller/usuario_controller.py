@@ -2,15 +2,20 @@
 import re
 
 from model.dao.rol_dao import RolDAO
-from model.dao.usuario_dao import UsuarioDAO, UsuarioYaExisteError
+from model.dao.usuario_dao import UsuarioDAO, UsuarioReferenciadoError, UsuarioYaExisteError
 from model.entities.usuario import Usuario
 from utils.seguridad import generar_hash
 
 _PATRON_CORREO = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+_NOMBRE_ROL_ADMINISTRADOR = "ADMINISTRADOR"
 
 
 class DatosInvalidosError(Exception):
     """Los datos ingresados no cumplen las reglas de negocio."""
+
+
+class UltimoAdministradorError(Exception):
+    """No se puede desactivar/eliminar al único administrador activo del sistema."""
 
 
 class UsuarioController:
@@ -77,6 +82,15 @@ class UsuarioController:
         if self._rol_dao.obtener_por_id(id_rol) is None:
             raise DatosInvalidosError("El rol seleccionado no es válido.")
 
+        usuario_actual = self._usuario_dao.obtener_por_id(id_usuario)
+        deja_de_ser_admin_activo = usuario_actual is not None and usuario_actual.es_administrador() and usuario_actual.activo and (
+            not activo or id_rol != usuario_actual.id_rol
+        )
+        if deja_de_ser_admin_activo and self._es_ultimo_administrador_activo(id_usuario):
+            raise UltimoAdministradorError(
+                "No se puede desactivar ni cambiar de rol al único administrador activo del sistema."
+            )
+
         try:
             self._usuario_dao.actualizar(
                 id_usuario, nombre_completo.strip(), documento.strip(), correo.strip().lower(), id_rol, activo
@@ -92,4 +106,20 @@ class UsuarioController:
         self._usuario_dao.actualizar_contrasena(id_usuario, generar_hash(contrasena_nueva))
 
     def eliminar_usuario(self, id_usuario: int) -> None:
-        self._usuario_dao.eliminar(id_usuario)
+        usuario = self._usuario_dao.obtener_por_id(id_usuario)
+        if usuario is not None and usuario.es_administrador() and usuario.activo and self._es_ultimo_administrador_activo(id_usuario):
+            raise UltimoAdministradorError(
+                "No se puede eliminar al único administrador activo del sistema."
+            )
+        try:
+            self._usuario_dao.eliminar(id_usuario)
+        except UsuarioReferenciadoError as error:
+            raise DatosInvalidosError(str(error)) from error
+
+    def _es_ultimo_administrador_activo(self, id_usuario_excluido: int) -> bool:
+        """True si, al excluir a id_usuario_excluido, no queda ningún administrador activo."""
+        rol_admin = self._rol_dao.obtener_por_nombre(_NOMBRE_ROL_ADMINISTRADOR)
+        if rol_admin is None:
+            return False
+        total_admins_activos = self._usuario_dao.contar_activos_por_rol(rol_admin.id_rol)
+        return total_admins_activos <= 1

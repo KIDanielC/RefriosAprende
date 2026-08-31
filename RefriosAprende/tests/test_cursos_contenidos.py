@@ -17,7 +17,7 @@ from controller.curso_controller import CursoController, DatosCursoInvalidosErro
 def test_crear_curso_valido(admin):
     cc = CursoController()
     creado = cc.crear_curso("Curso Nuevo", "Descripción", admin.id_usuario)
-    assert creado.esta_activo()
+    assert creado.es_borrador()  # los cursos nuevos nacen como borrador, no publicados aun
     assert creado.nombre_instructor == admin.nombre_completo
 
 
@@ -31,6 +31,21 @@ def test_crear_curso_instructor_invalido():
     cc = CursoController()
     with pytest.raises(DatosCursoInvalidosError):
         cc.crear_curso("Curso Valido", "Descripción", id_instructor=99999)
+
+
+def test_publicar_curso_lo_activa(admin):
+    cc = CursoController()
+    creado = cc.crear_curso("Curso Nuevo", "Descripción", admin.id_usuario)
+    publicado = cc.actualizar_curso(creado.id_curso, creado.nombre_curso, creado.descripcion, admin.id_usuario, "ACTIVO")
+    assert publicado.esta_activo()
+    assert creado.id_curso in [c.id_curso for c in cc.listar_cursos_activos()]
+
+
+def test_curso_con_categoria_nueva_la_crea_automaticamente(admin):
+    cc = CursoController()
+    creado = cc.crear_curso("Curso Nuevo", "Descripción", admin.id_usuario, nombre_categoria="Compresores")
+    assert creado.nombre_categoria == "Compresores"
+    assert any(c.nombre_categoria == "Compresores" for c in cc.listar_categorias())
 
 
 def test_desactivar_curso_lo_saca_de_activos(curso, admin):

@@ -1,6 +1,10 @@
 import pytest
 
-from controller.simulacion_controller import DatosSimulacionInvalidosError, SimulacionController
+from controller.simulacion_controller import (
+    DatosSimulacionInvalidosError,
+    IntentosAgotadosError,
+    SimulacionController,
+)
 
 
 def test_crear_caso_simulacion(curso):
@@ -46,3 +50,22 @@ def test_presentar_caso_sin_preguntas_falla(curso, aprendiz):
     )
     with pytest.raises(DatosSimulacionInvalidosError):
         sc.presentar_caso(aprendiz.id_usuario, evaluacion, {})
+
+
+def test_presentar_caso_respeta_limite_de_intentos(curso, aprendiz):
+    sc = SimulacionController()
+    evaluacion, _simulacion = sc.crear_caso(
+        curso.id_curso, "Caso", "Escenario clinico detallado de al menos 15 caracteres.", "Diagnostico correcto"
+    )
+    pregunta = sc.crear_pregunta(
+        evaluacion.id_evaluacion, "¿Cual es el diagnostico?", [("Correcto", True), ("Incorrecto", False)]
+    )
+    id_opcion_correcta = pregunta.opcion_correcta().id_opcion
+    respuestas = {pregunta.id_pregunta: id_opcion_correcta}
+
+    for _ in range(evaluacion.intentos_permitidos):
+        sc.presentar_caso(aprendiz.id_usuario, evaluacion, respuestas)
+
+    assert sc.intentos_usados(aprendiz.id_usuario, evaluacion.id_evaluacion) == evaluacion.intentos_permitidos
+    with pytest.raises(IntentosAgotadosError):
+        sc.presentar_caso(aprendiz.id_usuario, evaluacion, respuestas)

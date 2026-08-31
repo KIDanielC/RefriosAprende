@@ -25,6 +25,10 @@ class DatosSimulacionInvalidosError(Exception):
     """Los datos del caso de simulación no cumplen las reglas de negocio."""
 
 
+class IntentosAgotadosError(Exception):
+    """El aprendiz ya usó todos los intentos permitidos para este caso."""
+
+
 class SimulacionController:
     def __init__(self):
         self._evaluacion_dao = EvaluacionDAO()
@@ -91,6 +95,9 @@ class SimulacionController:
         return len(self._resultado_dao.listar_por_usuario_y_evaluacion(id_usuario, id_evaluacion))
 
     def presentar_caso(self, id_usuario: int, evaluacion: Evaluacion, respuestas: dict[int, int]) -> Resultado:
+        if self.intentos_usados(id_usuario, evaluacion.id_evaluacion) >= evaluacion.intentos_permitidos:
+            raise IntentosAgotadosError("Ya usaste todos los intentos permitidos para este caso.")
+
         preguntas = self._pregunta_dao.listar_por_evaluacion(evaluacion.id_evaluacion)
         if not preguntas:
             raise DatosSimulacionInvalidosError("Este caso todavía no tiene preguntas de diagnóstico.")
@@ -99,7 +106,11 @@ class SimulacionController:
         for pregunta in preguntas:
             id_opcion_seleccionada = respuestas.get(pregunta.id_pregunta)
             opcion_correcta = pregunta.opcion_correcta()
-            if id_opcion_seleccionada is not None and opcion_correcta is not None and id_opcion_seleccionada == opcion_correcta.id_opcion:
+            if (
+                id_opcion_seleccionada is not None
+                and opcion_correcta is not None
+                and int(id_opcion_seleccionada) == int(opcion_correcta.id_opcion)
+            ):
                 correctas += 1
 
         nota_obtenida = round((correctas / len(preguntas)) * _NOTA_MAXIMA, 2)

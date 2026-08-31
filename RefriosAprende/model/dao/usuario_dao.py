@@ -16,6 +16,10 @@ class UsuarioYaExisteError(Exception):
     """Se lanza cuando el documento, correo o usuario ya están registrados."""
 
 
+class UsuarioReferenciadoError(Exception):
+    """Se lanza cuando el usuario no puede eliminarse porque otros registros dependen de él."""
+
+
 class UsuarioDAO:
     def __init__(self):
         self._conexion = ConexionBD()
@@ -112,5 +116,18 @@ class UsuarioDAO:
 
     def eliminar(self, id_usuario: int) -> None:
         cursor = self._conexion.obtener_cursor()
-        cursor.execute("DELETE FROM usuarios WHERE id_usuario = ?", (id_usuario,))
-        self._conexion.confirmar()
+        try:
+            cursor.execute("DELETE FROM usuarios WHERE id_usuario = ?", (id_usuario,))
+            self._conexion.confirmar()
+        except sqlite3.IntegrityError as error:
+            raise UsuarioReferenciadoError(
+                "No se puede eliminar: el usuario es instructor de uno o más cursos."
+            ) from error
+
+    def contar_activos_por_rol(self, id_rol: int) -> int:
+        cursor = self._conexion.obtener_cursor()
+        cursor.execute(
+            "SELECT COUNT(*) AS total FROM usuarios WHERE id_rol = ? AND activo = 1",
+            (id_rol,),
+        )
+        return cursor.fetchone()["total"]

@@ -16,7 +16,7 @@ from config.settings import (
     RADIO_BOTON,
     RADIO_TARJETA,
 )
-from controller.inscripcion_controller import InscripcionController
+from controller.inscripcion_controller import InscripcionController, PrerrequisitosIncompletosError
 from model.entities.curso import Curso
 
 
@@ -36,7 +36,6 @@ class MatriculaWindow(ctk.CTkToplevel):
         self.grab_set()
 
         self.grid_columnconfigure((0, 1), weight=1)
-        self.grid_rowconfigure(1, weight=1)
 
         self._construir_encabezado()
         self._construir_columnas()
@@ -47,11 +46,16 @@ class MatriculaWindow(ctk.CTkToplevel):
         ctk.CTkLabel(
             self, text=f"Matrícula de «{self._curso.nombre_curso}»", font=(FONT_FAMILY, 18, "bold"),
             text_color=COLOR_TEXTO_PRIMARIO,
-        ).grid(row=0, column=0, columnspan=2, sticky="w", padx=24, pady=(22, 12))
+        ).grid(row=0, column=0, columnspan=2, sticky="w", padx=24, pady=(22, 4))
+        self._etiqueta_error = ctk.CTkLabel(
+            self, text="", font=(FONT_FAMILY, 12), text_color=COLOR_ERROR, wraplength=680, justify="left",
+        )
+        self._etiqueta_error.grid(row=1, column=0, columnspan=2, sticky="w", padx=24, pady=(0, 8))
+        self.grid_rowconfigure(2, weight=1)
 
     def _construir_columnas(self):
         panel_matriculados = ctk.CTkFrame(self, fg_color="transparent")
-        panel_matriculados.grid(row=1, column=0, sticky="nsew", padx=(24, 12), pady=(0, 20))
+        panel_matriculados.grid(row=2, column=0, sticky="nsew", padx=(24, 12), pady=(0, 20))
         panel_matriculados.grid_columnconfigure(0, weight=1)
         panel_matriculados.grid_rowconfigure(1, weight=1)
 
@@ -67,7 +71,7 @@ class MatriculaWindow(ctk.CTkToplevel):
         self._lista_matriculados.grid_columnconfigure(0, weight=1)
 
         panel_disponibles = ctk.CTkFrame(self, fg_color="transparent")
-        panel_disponibles.grid(row=1, column=1, sticky="nsew", padx=(12, 24), pady=(0, 20))
+        panel_disponibles.grid(row=2, column=1, sticky="nsew", padx=(12, 24), pady=(0, 20))
         panel_disponibles.grid_columnconfigure(0, weight=1)
         panel_disponibles.grid_rowconfigure(1, weight=1)
 
@@ -131,7 +135,12 @@ class MatriculaWindow(ctk.CTkToplevel):
 
     # ------------------------------------------------------------------
     def _matricular(self, aprendiz):
-        self._controlador.matricular(aprendiz.id_usuario, self._curso.id_curso)
+        try:
+            self._controlador.matricular(aprendiz.id_usuario, self._curso.id_curso)
+        except PrerrequisitosIncompletosError as error:
+            self._etiqueta_error.configure(text=str(error))
+            return
+        self._etiqueta_error.configure(text="")
         self._refrescar()
 
     def _desmatricular(self, aprendiz):

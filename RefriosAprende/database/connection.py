@@ -51,6 +51,8 @@ class ConexionBD:
         )
 
         self._migrar_matricula_desde_progreso()
+        self._migrar_cursos_borrador_categoria_secuencial()
+        self._conexion.execute("CREATE INDEX IF NOT EXISTS idx_cursos_categoria ON cursos (id_categoria)")
 
     def _migrar_matricula_desde_progreso(self):
         """La matrícula (tabla inscripciones) se agregó después de que ya existían cursos con
@@ -109,6 +111,41 @@ class ConexionBD:
             FROM evaluaciones;
             DROP TABLE evaluaciones;
             ALTER TABLE evaluaciones_nueva RENAME TO evaluaciones;
+            """
+        )
+
+    def _migrar_cursos_borrador_categoria_secuencial(self):
+        """La primera version de 'cursos' solo aceptaba estado ACTIVO/INACTIVO y no tenia
+        columnas de categoria ni aprendizaje secuencial. Si detecta ese caso, reconstruye la
+        tabla preservando los datos existentes (los cursos ya creados siguen ACTIVO/INACTIVO
+        como estaban; nada de esto los mueve a BORRADOR retroactivamente)."""
+        columnas_cursos = {fila["name"] for fila in self._conexion.execute("PRAGMA table_info(cursos)")}
+        if "aprendizaje_secuencial" in columnas_cursos:
+            return
+
+        self._conexion.executescript(
+            """
+            DROP TABLE IF EXISTS cursos_nueva;
+            CREATE TABLE cursos_nueva (
+                id_curso                INTEGER PRIMARY KEY AUTOINCREMENT,
+                nombre_curso            TEXT NOT NULL,
+                descripcion             TEXT,
+                id_instructor           INTEGER NOT NULL,
+                id_categoria            INTEGER,
+                estado                  TEXT NOT NULL DEFAULT 'BORRADOR' CHECK (estado IN ('BORRADOR', 'ACTIVO', 'INACTIVO')),
+                aprendizaje_secuencial  INTEGER NOT NULL DEFAULT 0 CHECK (aprendizaje_secuencial IN (0, 1)),
+                fecha_creacion          TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
+                FOREIGN KEY (id_instructor) REFERENCES usuarios (id_usuario)
+                    ON UPDATE CASCADE ON DELETE RESTRICT,
+                FOREIGN KEY (id_categoria) REFERENCES categorias (id_categoria)
+                    ON UPDATE CASCADE ON DELETE SET NULL
+            );
+            INSERT INTO cursos_nueva
+                (id_curso, nombre_curso, descripcion, id_instructor, estado, fecha_creacion)
+            SELECT id_curso, nombre_curso, descripcion, id_instructor, estado, fecha_creacion
+            FROM cursos;
+            DROP TABLE cursos;
+            ALTER TABLE cursos_nueva RENAME TO cursos;
             """
         )
 

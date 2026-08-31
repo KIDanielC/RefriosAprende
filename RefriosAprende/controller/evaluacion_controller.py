@@ -99,7 +99,11 @@ class EvaluacionController:
         for pregunta in preguntas:
             id_opcion_seleccionada = respuestas.get(pregunta.id_pregunta)
             opcion_correcta = pregunta.opcion_correcta()
-            if id_opcion_seleccionada is not None and opcion_correcta is not None and id_opcion_seleccionada == opcion_correcta.id_opcion:
+            if (
+                id_opcion_seleccionada is not None
+                and opcion_correcta is not None
+                and int(id_opcion_seleccionada) == int(opcion_correcta.id_opcion)
+            ):
                 correctas += 1
 
         nota_obtenida = round((correctas / len(preguntas)) * _NOTA_MAXIMA, 2)

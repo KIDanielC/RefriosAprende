@@ -5,10 +5,12 @@ from database.connection import ConexionBD
 from model.entities.curso import Curso
 
 _SELECT_BASE = """
-    SELECT c.id_curso, c.nombre_curso, c.descripcion, c.id_instructor,
-           c.estado, c.fecha_creacion, u.nombre_completo AS nombre_instructor
+    SELECT c.id_curso, c.nombre_curso, c.descripcion, c.id_instructor, c.id_categoria,
+           c.estado, c.aprendizaje_secuencial, c.fecha_creacion,
+           u.nombre_completo AS nombre_instructor, cat.nombre_categoria
     FROM cursos c
     INNER JOIN usuarios u ON u.id_usuario = c.id_instructor
+    LEFT JOIN categorias cat ON cat.id_categoria = c.id_categoria
 """
 
 
@@ -25,6 +27,9 @@ class CursoDAO:
             estado=fila["estado"],
             fecha_creacion=fila["fecha_creacion"],
             nombre_instructor=fila["nombre_instructor"],
+            id_categoria=fila["id_categoria"],
+            nombre_categoria=fila["nombre_categoria"],
+            aprendizaje_secuencial=fila["aprendizaje_secuencial"],
         )
 
     def obtener_por_id(self, id_curso: int) -> Curso | None:
@@ -43,26 +48,34 @@ class CursoDAO:
         cursor.execute("SELECT COUNT(*) AS total FROM cursos WHERE estado = 'ACTIVO'")
         return cursor.fetchone()["total"]
 
-    def crear(self, nombre_curso: str, descripcion: str, id_instructor: int) -> int:
+    def crear(
+        self, nombre_curso: str, descripcion: str, id_instructor: int,
+        id_categoria: int = None, aprendizaje_secuencial: bool = False,
+    ) -> int:
         cursor = self._conexion.obtener_cursor()
         cursor.execute(
-            "INSERT INTO cursos (nombre_curso, descripcion, id_instructor) VALUES (?, ?, ?)",
-            (nombre_curso, descripcion, id_instructor),
+            """
+            INSERT INTO cursos (nombre_curso, descripcion, id_instructor, id_categoria, aprendizaje_secuencial, estado)
+            VALUES (?, ?, ?, ?, ?, 'BORRADOR')
+            """,
+            (nombre_curso, descripcion, id_instructor, id_categoria, int(aprendizaje_secuencial)),
         )
         self._conexion.confirmar()
         return cursor.lastrowid
 
     def actualizar(
-        self, id_curso: int, nombre_curso: str, descripcion: str, id_instructor: int, estado: str
+        self, id_curso: int, nombre_curso: str, descripcion: str, id_instructor: int, estado: str,
+        id_categoria: int = None, aprendizaje_secuencial: bool = False,
     ) -> None:
         cursor = self._conexion.obtener_cursor()
         cursor.execute(
             """
             UPDATE cursos
-            SET nombre_curso = ?, descripcion = ?, id_instructor = ?, estado = ?
+            SET nombre_curso = ?, descripcion = ?, id_instructor = ?, estado = ?,
+                id_categoria = ?, aprendizaje_secuencial = ?
             WHERE id_curso = ?
             """,
-            (nombre_curso, descripcion, id_instructor, estado, id_curso),
+            (nombre_curso, descripcion, id_instructor, estado, id_categoria, int(aprendizaje_secuencial), id_curso),
         )
         self._conexion.confirmar()
 
