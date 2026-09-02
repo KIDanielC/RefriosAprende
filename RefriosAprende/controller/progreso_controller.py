@@ -80,6 +80,33 @@ class ProgresoController:
         fechas = self._contenido_visto_dao.listar_fechas_por_usuario(id_usuario)
         return self._acumular_por_fecha(fechas, total_posible)
 
+    def historial_cursos_completados_aprendiz(self, id_usuario: int) -> list[tuple[str, int]]:
+        """Serie (fecha, cursos completados acumulados) de un aprendiz. A diferencia del
+        porcentaje agregado de contenidos vistos, este es un conteo simple y directo: cuántos
+        cursos lleva terminados, día a día."""
+        fechas = self._progreso_dao.listar_fechas_completado_por_usuario(id_usuario)
+        if not fechas:
+            return []
+        conteo_por_fecha = {}
+        for fecha in fechas:
+            conteo_por_fecha[fecha] = conteo_por_fecha.get(fecha, 0) + 1
+        serie = []
+        acumulado = 0
+        for fecha in sorted(conteo_por_fecha.keys()):
+            acumulado += conteo_por_fecha[fecha]
+            serie.append((fecha, acumulado))
+        return serie
+
+    def distribucion_estado_cursos(self, id_usuario: int, cursos: list) -> dict:
+        """Cuenta, entre los cursos dados (normalmente los matriculados de un aprendiz),
+        cuántos están en cada estado de progreso: NO_INICIADO, EN_PROGRESO, COMPLETADO."""
+        conteo = {NO_INICIADO: 0, EN_PROGRESO: 0, COMPLETADO: 0}
+        for curso in cursos:
+            progreso = self._progreso_dao.obtener_por_usuario_y_curso(id_usuario, curso.id_curso)
+            estado = progreso.estado if progreso else NO_INICIADO
+            conteo[estado] = conteo.get(estado, 0) + 1
+        return conteo
+
     def historial_progreso_general(self) -> list[tuple[str, float]]:
         """Serie (fecha, % acumulado) de avance agregado de toda la plataforma, a partir de todos
         los contenidos vistos reales en el tiempo. El techo (100%) es la suma, por cada matrícula

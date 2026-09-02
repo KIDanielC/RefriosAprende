@@ -17,8 +17,11 @@ from config.settings import (
     COLOR_TEXTO_PRIMARIO,
     COLOR_TEXTO_SECUNDARIO,
     FONT_FAMILY,
+    GROSOR_BORDE_SUTIL,
+    RADIO_BOTON,
+    RADIO_TARJETA,
 )
-from controller.usuario_controller import DatosInvalidosError, UsuarioController
+from controller.usuario_controller import DatosInvalidosError, UltimoAdministradorError, UsuarioController
 from model.entities.usuario import Usuario
 
 
@@ -33,7 +36,7 @@ class UsuariosScreen(ctk.CTkFrame):
         self._texto_filtro = tk.StringVar()
 
         self.grid_columnconfigure(0, weight=1)
-        self.grid_rowconfigure(2, weight=1)
+        self.grid_rowconfigure(3, weight=1)
 
         self._construir_barra_herramientas()
         self._construir_barra_acciones()
@@ -42,50 +45,59 @@ class UsuariosScreen(ctk.CTkFrame):
 
     # ------------------------------------------------------------------
     def _construir_barra_herramientas(self):
+        encabezado = ctk.CTkFrame(self, fg_color="transparent")
+        encabezado.grid(row=0, column=0, sticky="ew", padx=28, pady=(24, 4))
+        encabezado.grid_columnconfigure(0, weight=1)
+
+        bloque_titulo = ctk.CTkFrame(encabezado, fg_color="transparent")
+        bloque_titulo.grid(row=0, column=0, sticky="w")
+        ctk.CTkLabel(
+            bloque_titulo, text="Gestión de Usuarios", font=(FONT_FAMILY, 20, "bold"), text_color=COLOR_TEXTO_PRIMARIO,
+        ).pack(anchor="w")
+        self._etiqueta_conteo = ctk.CTkLabel(
+            bloque_titulo, text="", font=(FONT_FAMILY, 12), text_color=COLOR_TEXTO_SECUNDARIO, anchor="w",
+        )
+        self._etiqueta_conteo.pack(anchor="w", pady=(2, 0))
+
+        ctk.CTkButton(
+            encabezado, text="+  Nuevo usuario", height=38, corner_radius=RADIO_BOTON,
+            fg_color=COLOR_ACENTO_PRIMARIO, hover_color=COLOR_ACENTO_SECUNDARIO, text_color="#FFFFFF",
+            font=(FONT_FAMILY, 13, "bold"), command=self._abrir_formulario_creacion,
+        ).grid(row=0, column=1, sticky="e")
+
         barra = ctk.CTkFrame(self, fg_color="transparent")
-        barra.grid(row=0, column=0, sticky="ew", padx=28, pady=(24, 12))
-        barra.grid_columnconfigure(1, weight=1)
+        barra.grid(row=1, column=0, sticky="ew", padx=28, pady=(14, 12))
+        barra.grid_columnconfigure(0, weight=1)
 
         campo_busqueda = ctk.CTkEntry(
             barra,
             textvariable=self._texto_filtro,
-            placeholder_text="Buscar por nombre, documento o usuario…",
-            width=340,
-            height=40,
-            corner_radius=4,
+            placeholder_text="🔍  Buscar por nombre, documento o usuario…",
+            width=360,
+            height=38,
+            corner_radius=RADIO_BOTON,
             fg_color=COLOR_FONDO_TARJETA,
             border_color=COLOR_BORDE_SUTIL,
-            border_width=1,
+            border_width=GROSOR_BORDE_SUTIL,
             text_color=COLOR_TEXTO_PRIMARIO,
             font=(FONT_FAMILY, 13),
         )
         campo_busqueda.grid(row=0, column=0, sticky="w")
         self._texto_filtro.trace_add("write", lambda *args: self._cargar_usuarios())
 
-        ctk.CTkButton(
-            barra,
-            text="+  Nuevo usuario",
-            height=40,
-            corner_radius=4,
-            fg_color=COLOR_ACENTO_PRIMARIO,
-            hover_color=COLOR_ACENTO_SECUNDARIO,
-            font=(FONT_FAMILY, 13, "bold"),
-            command=self._abrir_formulario_creacion,
-        ).grid(row=0, column=2, sticky="e")
-
     def _construir_barra_acciones(self):
         barra = ctk.CTkFrame(self, fg_color="transparent")
-        barra.grid(row=1, column=0, sticky="ew", padx=28, pady=(0, 12))
+        barra.grid(row=2, column=0, sticky="ew", padx=28, pady=(0, 12))
 
         self._boton_editar = ctk.CTkButton(
             barra,
             text="Editar",
-            width=120,
+            width=110,
             height=34,
-            corner_radius=4,
-            fg_color=COLOR_FONDO_TARJETA,
+            corner_radius=RADIO_BOTON,
+            fg_color="transparent",
             hover_color=COLOR_FONDO_TARJETA_HOVER,
-            border_width=1,
+            border_width=GROSOR_BORDE_SUTIL,
             border_color=COLOR_ACENTO_SECUNDARIO,
             text_color=COLOR_TEXTO_PRIMARIO,
             font=(FONT_FAMILY, 12, "bold"),
@@ -99,10 +111,10 @@ class UsuariosScreen(ctk.CTkFrame):
             text="Activar / Desactivar",
             width=160,
             height=34,
-            corner_radius=4,
-            fg_color=COLOR_FONDO_TARJETA,
+            corner_radius=RADIO_BOTON,
+            fg_color="transparent",
             hover_color=COLOR_FONDO_TARJETA_HOVER,
-            border_width=1,
+            border_width=GROSOR_BORDE_SUTIL,
             border_color=COLOR_ACENTO_ALTERNO,
             text_color=COLOR_TEXTO_PRIMARIO,
             font=(FONT_FAMILY, 12, "bold"),
@@ -116,10 +128,10 @@ class UsuariosScreen(ctk.CTkFrame):
             text="Restablecer contraseña",
             width=190,
             height=34,
-            corner_radius=4,
-            fg_color=COLOR_FONDO_TARJETA,
+            corner_radius=RADIO_BOTON,
+            fg_color="transparent",
             hover_color=COLOR_FONDO_TARJETA_HOVER,
-            border_width=1,
+            border_width=GROSOR_BORDE_SUTIL,
             border_color=COLOR_ACENTO_SECUNDARIO,
             text_color=COLOR_TEXTO_PRIMARIO,
             font=(FONT_FAMILY, 12, "bold"),
@@ -131,12 +143,12 @@ class UsuariosScreen(ctk.CTkFrame):
         self._boton_eliminar = ctk.CTkButton(
             barra,
             text="Eliminar",
-            width=120,
+            width=110,
             height=34,
-            corner_radius=4,
-            fg_color=COLOR_FONDO_TARJETA,
-            hover_color="#FBE1E4",
-            border_width=1,
+            corner_radius=RADIO_BOTON,
+            fg_color="transparent",
+            hover_color=COLOR_FONDO_TARJETA_HOVER,
+            border_width=GROSOR_BORDE_SUTIL,
             border_color=COLOR_ERROR,
             text_color=COLOR_ERROR,
             font=(FONT_FAMILY, 12, "bold"),
@@ -152,9 +164,10 @@ class UsuariosScreen(ctk.CTkFrame):
 
     def _construir_tabla(self):
         contenedor = ctk.CTkFrame(
-            self, fg_color=COLOR_FONDO_TARJETA, corner_radius=4, border_width=1, border_color=COLOR_BORDE_SUTIL
+            self, fg_color=COLOR_FONDO_TARJETA, corner_radius=RADIO_TARJETA,
+            border_width=GROSOR_BORDE_SUTIL, border_color=COLOR_BORDE_SUTIL,
         )
-        contenedor.grid(row=2, column=0, sticky="nsew", padx=28, pady=(0, 24))
+        contenedor.grid(row=3, column=0, sticky="nsew", padx=28, pady=(0, 24))
         contenedor.grid_columnconfigure(0, weight=1)
         contenedor.grid_rowconfigure(0, weight=1)
 
@@ -165,24 +178,23 @@ class UsuariosScreen(ctk.CTkFrame):
             background=COLOR_FONDO_TARJETA,
             fieldbackground=COLOR_FONDO_TARJETA,
             foreground=COLOR_TEXTO_PRIMARIO,
-            rowheight=34,
+            rowheight=38,
             borderwidth=0,
             font=(FONT_FAMILY, 12),
         )
         estilo.configure(
             "Usuarios.Treeview.Heading",
             background=COLOR_FONDO_PANEL,
-            foreground=COLOR_TEXTO_PRIMARIO,
-            font=(FONT_FAMILY, 12, "bold"),
+            foreground=COLOR_TEXTO_SECUNDARIO,
+            font=(FONT_FAMILY, 11, "bold"),
             borderwidth=0,
             relief="flat",
         )
         estilo.map(
             "Usuarios.Treeview",
-            background=[("selected", COLOR_ACENTO_PRIMARIO)],
+            background=[("selected", COLOR_FONDO_TARJETA_HOVER)],
             foreground=[("selected", COLOR_TEXTO_PRIMARIO)],
         )
-
         columnas = ("nombre", "documento", "correo", "usuario", "rol", "estado")
         self._tabla = ttk.Treeview(
             contenedor, columns=columnas, show="headings", style="Usuarios.Treeview", selectmode="browse"
@@ -197,8 +209,12 @@ class UsuariosScreen(ctk.CTkFrame):
         }
         anchos = {"nombre": 220, "documento": 110, "correo": 200, "usuario": 120, "rol": 130, "estado": 90}
         for columna in columnas:
-            self._tabla.heading(columna, text=titulos[columna])
+            self._tabla.heading(columna, text=titulos[columna].upper())
             self._tabla.column(columna, width=anchos[columna], anchor="w")
+
+        # Nota: ttk.Treeview solo permite un color de texto por FILA (no por celda), así que
+        # el color de un tag aplica a toda la fila. Se usa para atenuar usuarios inactivos.
+        self._tabla.tag_configure("inactivo", foreground=COLOR_TEXTO_SECUNDARIO)
 
         self._tabla.grid(row=0, column=0, sticky="nsew", padx=1, pady=1)
         self._tabla.bind("<<TreeviewSelect>>", self._al_seleccionar_fila)
@@ -213,7 +229,9 @@ class UsuariosScreen(ctk.CTkFrame):
         self._tabla.delete(*self._tabla.get_children())
         self._usuarios_por_fila = {}
 
+        total_usuarios = 0
         for usuario in self._controlador.listar_usuarios():
+            total_usuarios += 1
             texto_busqueda = f"{usuario.nombre_completo} {usuario.documento} {usuario.usuario}".lower()
             if filtro and filtro not in texto_busqueda:
                 continue
@@ -226,10 +244,14 @@ class UsuariosScreen(ctk.CTkFrame):
                     usuario.correo,
                     usuario.usuario,
                     usuario.nombre_rol.title(),
-                    "Activo" if usuario.activo else "Inactivo",
+                    "● Activo" if usuario.activo else "○ Inactivo",
                 ),
+                tags=() if usuario.activo else ("inactivo",),
             )
             self._usuarios_por_fila[fila_id] = usuario
+
+        plural = "s" if total_usuarios != 1 else ""
+        self._etiqueta_conteo.configure(text=f"{total_usuarios} usuario{plural} registrado{plural}")
 
         self._usuario_seleccionado = None
         self._actualizar_estado_botones()
@@ -256,14 +278,18 @@ class UsuariosScreen(ctk.CTkFrame):
             self._etiqueta_mensaje.configure(text="No puedes desactivar tu propio usuario.")
             return
 
-        self._controlador.actualizar_usuario(
-            usuario.id_usuario,
-            usuario.nombre_completo,
-            usuario.documento,
-            usuario.correo,
-            usuario.id_rol,
-            not usuario.activo,
-        )
+        try:
+            self._controlador.actualizar_usuario(
+                usuario.id_usuario,
+                usuario.nombre_completo,
+                usuario.documento,
+                usuario.correo,
+                usuario.id_rol,
+                not usuario.activo,
+            )
+        except UltimoAdministradorError as error:
+            self._etiqueta_mensaje.configure(text=str(error))
+            return
         self._cargar_usuarios()
 
     def _eliminar_usuario(self):
@@ -282,7 +308,11 @@ class UsuariosScreen(ctk.CTkFrame):
         )
 
     def _confirmar_eliminacion(self, id_usuario: int):
-        self._controlador.eliminar_usuario(id_usuario)
+        try:
+            self._controlador.eliminar_usuario(id_usuario)
+        except (UltimoAdministradorError, DatosInvalidosError) as error:
+            self._etiqueta_mensaje.configure(text=str(error))
+            return
         self._cargar_usuarios()
 
     # ------------------------------------------------------------------
@@ -314,25 +344,32 @@ class DialogoConfirmacion(ctk.CTkToplevel):
 
         self.title(titulo)
         self.configure(fg_color=COLOR_FONDO_TARJETA)
-        self.geometry("420x180")
-        self.resizable(False, False)
+        self.geometry("420x190")
+        self.minsize(420, 190)
+        self.resizable(True, True)
         self.transient(master)
         self.grab_set()
 
         ctk.CTkLabel(
-            self, text=mensaje, font=(FONT_FAMILY, 13), text_color=COLOR_TEXTO_PRIMARIO, wraplength=360, justify="left"
-        ).pack(padx=24, pady=(24, 20))
+            self, text=titulo, font=(FONT_FAMILY, 15, "bold"), text_color=COLOR_TEXTO_PRIMARIO,
+        ).pack(padx=24, pady=(24, 4), anchor="w")
+        ctk.CTkLabel(
+            self, text=mensaje, font=(FONT_FAMILY, 13), text_color=COLOR_TEXTO_SECUNDARIO, wraplength=360, justify="left"
+        ).pack(padx=24, pady=(0, 20), anchor="w")
 
         contenedor_botones = ctk.CTkFrame(self, fg_color="transparent")
         contenedor_botones.pack(pady=(0, 20))
 
         ctk.CTkButton(
-            contenedor_botones, text="Cancelar", width=110, fg_color=COLOR_FONDO_TARJETA_HOVER,
-            command=self.destroy,
+            contenedor_botones, text="Cancelar", width=110, height=38, corner_radius=RADIO_BOTON,
+            fg_color="transparent", hover_color=COLOR_FONDO_TARJETA_HOVER,
+            border_width=GROSOR_BORDE_SUTIL, border_color=COLOR_BORDE_SUTIL, text_color=COLOR_TEXTO_PRIMARIO,
+            font=(FONT_FAMILY, 13, "bold"), command=self.destroy,
         ).pack(side="left", padx=8)
         ctk.CTkButton(
-            contenedor_botones, text="Eliminar", width=110, fg_color=COLOR_ERROR, hover_color="#E14545",
-            command=self._confirmar,
+            contenedor_botones, text="Eliminar", width=110, height=38, corner_radius=RADIO_BOTON,
+            fg_color=COLOR_ERROR, hover_color="#D1435A", text_color="#FFFFFF",
+            font=(FONT_FAMILY, 13, "bold"), command=self._confirmar,
         ).pack(side="left", padx=8)
 
     def _confirmar(self):
@@ -354,7 +391,7 @@ class FormularioUsuario(ctk.CTkToplevel):
         self.configure(fg_color=COLOR_FONDO_TARJETA)
         self.geometry("480x700")
         self.minsize(480, 700)
-        self.resizable(False, True)
+        self.resizable(True, True)
         self.transient(master)
         self.grab_set()
 
@@ -381,14 +418,14 @@ class FormularioUsuario(ctk.CTkToplevel):
             self, text="Rol", font=(FONT_FAMILY, 12), text_color=COLOR_TEXTO_SECUNDARIO
         ).pack(padx=28, pady=(6, 2), anchor="w")
         nombres_roles = [rol.nombre_rol.title() for rol in self._roles]
-        self._combo_rol = ctk.CTkComboBox(
-            self, values=nombres_roles, width=380, height=40, corner_radius=4,
-            fg_color=COLOR_FONDO_APP, border_color=COLOR_BORDE_SUTIL, text_color=COLOR_TEXTO_PRIMARIO,
-            button_color=COLOR_ACENTO_PRIMARIO, button_hover_color=COLOR_ACENTO_SECUNDARIO,
-            dropdown_fg_color=COLOR_FONDO_TARJETA,
+        self._selector_rol = ctk.CTkSegmentedButton(
+            self, values=nombres_roles, width=380, height=40, corner_radius=RADIO_BOTON,
+            fg_color=COLOR_FONDO_APP, selected_color=COLOR_ACENTO_PRIMARIO,
+            selected_hover_color=COLOR_ACENTO_SECUNDARIO, unselected_color=COLOR_FONDO_APP,
+            text_color=COLOR_TEXTO_PRIMARIO, font=(FONT_FAMILY, 13, "bold"),
         )
-        self._combo_rol.set(nombres_roles[0] if nombres_roles else "")
-        self._combo_rol.pack(padx=28, pady=(0, 10))
+        self._selector_rol.set(nombres_roles[0] if nombres_roles else "")
+        self._selector_rol.pack(padx=28, pady=(0, 10))
 
         self._etiqueta_error = ctk.CTkLabel(
             self, text="", font=(FONT_FAMILY, 12), text_color=COLOR_ERROR, wraplength=380
@@ -396,8 +433,8 @@ class FormularioUsuario(ctk.CTkToplevel):
         self._etiqueta_error.pack(padx=28, pady=(6, 0))
 
         ctk.CTkButton(
-            self, text="Guardar", width=380, height=44, corner_radius=4,
-            fg_color=COLOR_ACENTO_PRIMARIO, hover_color=COLOR_ACENTO_SECUNDARIO,
+            self, text="Guardar", width=380, height=44, corner_radius=RADIO_BOTON,
+            fg_color=COLOR_ACENTO_PRIMARIO, hover_color=COLOR_ACENTO_SECUNDARIO, text_color="#FFFFFF",
             font=(FONT_FAMILY, 14, "bold"), command=self._guardar,
         ).pack(padx=28, pady=(16, 24))
 
@@ -406,8 +443,8 @@ class FormularioUsuario(ctk.CTkToplevel):
             self, text=etiqueta, font=(FONT_FAMILY, 12), text_color=COLOR_TEXTO_SECUNDARIO
         ).pack(padx=28, pady=(6, 2), anchor="w")
         campo = ctk.CTkEntry(
-            self, width=380, height=40, corner_radius=4, fg_color=COLOR_FONDO_APP,
-            border_color=COLOR_BORDE_SUTIL, text_color=COLOR_TEXTO_PRIMARIO,
+            self, width=380, height=40, corner_radius=RADIO_BOTON, fg_color=COLOR_FONDO_APP,
+            border_color=COLOR_BORDE_SUTIL, border_width=GROSOR_BORDE_SUTIL, text_color=COLOR_TEXTO_PRIMARIO,
             show="•" if oculto else "",
         )
         campo.pack(padx=28, pady=(0, 2))
@@ -419,11 +456,11 @@ class FormularioUsuario(ctk.CTkToplevel):
         self._campo_correo.insert(0, usuario.correo)
         self._campo_usuario.insert(0, usuario.usuario)
         self._campo_usuario.configure(state="disabled")
-        self._combo_rol.set(usuario.nombre_rol.title())
+        self._selector_rol.set(usuario.nombre_rol.title())
 
     def _guardar(self):
         rol_seleccionado = next(
-            (rol for rol in self._roles if rol.nombre_rol.title() == self._combo_rol.get()), None
+            (rol for rol in self._roles if rol.nombre_rol.title() == self._selector_rol.get()), None
         )
         if rol_seleccionado is None:
             self._etiqueta_error.configure(text="Selecciona un rol válido.")
@@ -467,7 +504,8 @@ class FormularioContrasena(ctk.CTkToplevel):
         self.title("Restablecer contraseña")
         self.configure(fg_color=COLOR_FONDO_TARJETA)
         self.geometry("400x260")
-        self.resizable(False, False)
+        self.minsize(400, 260)
+        self.resizable(True, True)
         self.transient(master)
         self.grab_set()
 
@@ -480,8 +518,8 @@ class FormularioContrasena(ctk.CTkToplevel):
         ).pack(padx=26, pady=(24, 16), anchor="w")
 
         self._campo_contrasena = ctk.CTkEntry(
-            self, width=340, height=42, corner_radius=4, fg_color=COLOR_FONDO_APP,
-            border_color=COLOR_BORDE_SUTIL, text_color=COLOR_TEXTO_PRIMARIO, show="•",
+            self, width=340, height=42, corner_radius=RADIO_BOTON, fg_color=COLOR_FONDO_APP,
+            border_color=COLOR_BORDE_SUTIL, border_width=GROSOR_BORDE_SUTIL, text_color=COLOR_TEXTO_PRIMARIO, show="•",
             placeholder_text="Mínimo 6 caracteres",
         )
         self._campo_contrasena.pack(padx=26)
@@ -492,8 +530,8 @@ class FormularioContrasena(ctk.CTkToplevel):
         self._etiqueta_error.pack(padx=26, pady=(6, 0))
 
         ctk.CTkButton(
-            self, text="Guardar", width=340, height=42, corner_radius=4,
-            fg_color=COLOR_ACENTO_PRIMARIO, hover_color=COLOR_ACENTO_SECUNDARIO,
+            self, text="Guardar", width=340, height=42, corner_radius=RADIO_BOTON,
+            fg_color=COLOR_ACENTO_PRIMARIO, hover_color=COLOR_ACENTO_SECUNDARIO, text_color="#FFFFFF",
             font=(FONT_FAMILY, 13, "bold"), command=self._guardar,
         ).pack(padx=26, pady=(18, 20))
 

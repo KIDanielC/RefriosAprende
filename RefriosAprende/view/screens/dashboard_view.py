@@ -37,6 +37,7 @@ from model.dao.resultado_dao import ResultadoDAO
 from model.entities.usuario import Usuario
 from view.screens.configuracion_screen import ConfiguracionScreen
 from view.screens.cursos_screen import CursosScreen
+from view.screens.evaluaciones_screen import EvaluacionesAdminScreen, EvaluacionesAprendizScreen, SimulacionesAprendizScreen
 from view.screens.mi_progreso_screen import MiProgresoScreen
 from view.screens.mis_cursos_screen import MisCursosScreen
 from view.screens.reportes_screen import ReportesScreen
@@ -232,6 +233,14 @@ class DashboardView(ctk.CTk):
             self._frame_seccion_actual = MisCursosScreen(self._area_seccion, usuario_sesion=self._usuario)
         elif nombre_seccion == _SECCION_MI_PROGRESO and not self._usuario.es_administrador():
             self._frame_seccion_actual = MiProgresoScreen(self._area_seccion, usuario_sesion=self._usuario)
+        elif nombre_seccion == "Evaluaciones" and self._usuario.es_administrador():
+            self._frame_seccion_actual = EvaluacionesAdminScreen(self._area_seccion, usuario_sesion=self._usuario)
+        elif nombre_seccion == "Evaluaciones" and not self._usuario.es_administrador():
+            self._frame_seccion_actual = EvaluacionesAprendizScreen(self._area_seccion, usuario_sesion=self._usuario)
+        elif nombre_seccion == "Simulaciones" and not self._usuario.es_administrador():
+            self._frame_seccion_actual = SimulacionesAprendizScreen(self._area_seccion, usuario_sesion=self._usuario)
+        elif nombre_seccion == "Mi Perfil" and not self._usuario.es_administrador():
+            self._frame_seccion_actual = ConfiguracionScreen(self._area_seccion, usuario_sesion=self._usuario)
         else:
             self._frame_seccion_actual = self._construir_seccion_en_construccion(self._area_seccion, nombre_seccion)
 
@@ -340,22 +349,56 @@ class DashboardView(ctk.CTk):
             ).pack(side="right")
         ctk.CTkFrame(panel_estado, fg_color="transparent", height=14).pack()
 
-        panel_historial = ctk.CTkFrame(
-            frame, fg_color=COLOR_FONDO_TARJETA, corner_radius=RADIO_TARJETA,
-            border_width=GROSOR_BORDE_SUTIL, border_color=COLOR_BORDE_SUTIL,
-        )
-        panel_historial.grid(row=3, column=0, sticky="nsew", padx=24, pady=(0, 24))
-        ctk.CTkLabel(
-            panel_historial, text="Progreso acumulado en el tiempo", font=(FONT_FAMILY, 14, "bold"),
-            text_color=COLOR_TEXTO_PRIMARIO, anchor="w",
-        ).pack(anchor="w", padx=20, pady=(18, 2))
-        ctk.CTkLabel(
-            panel_historial,
-            text="% de contenidos vistos acumulados, día a día"
-            + ("" if self._usuario.es_administrador() else " en tus cursos"),
-            font=(FONT_FAMILY, 11.5), text_color=COLOR_TEXTO_SECUNDARIO, anchor="w",
-        ).pack(anchor="w", padx=20, pady=(0, 10))
-        self._construir_grafica_historial(panel_historial)
+        if self._usuario.es_administrador():
+            panel_historial = ctk.CTkFrame(
+                frame, fg_color=COLOR_FONDO_TARJETA, corner_radius=RADIO_TARJETA,
+                border_width=GROSOR_BORDE_SUTIL, border_color=COLOR_BORDE_SUTIL,
+            )
+            panel_historial.grid(row=3, column=0, sticky="nsew", padx=24, pady=(0, 24))
+            ctk.CTkLabel(
+                panel_historial, text="Progreso acumulado en el tiempo", font=(FONT_FAMILY, 14, "bold"),
+                text_color=COLOR_TEXTO_PRIMARIO, anchor="w",
+            ).pack(anchor="w", padx=20, pady=(18, 2))
+            ctk.CTkLabel(
+                panel_historial, text="% de contenidos vistos acumulados, día a día",
+                font=(FONT_FAMILY, 11.5), text_color=COLOR_TEXTO_SECUNDARIO, anchor="w",
+            ).pack(anchor="w", padx=20, pady=(0, 10))
+            self._construir_grafica_historial(panel_historial)
+        else:
+            fila_inferior = ctk.CTkFrame(frame, fg_color="transparent")
+            fila_inferior.grid(row=3, column=0, sticky="nsew", padx=24, pady=(0, 24))
+            fila_inferior.grid_columnconfigure(0, weight=3)
+            fila_inferior.grid_columnconfigure(1, weight=2)
+
+            panel_completados = ctk.CTkFrame(
+                fila_inferior, fg_color=COLOR_FONDO_TARJETA, corner_radius=RADIO_TARJETA,
+                border_width=GROSOR_BORDE_SUTIL, border_color=COLOR_BORDE_SUTIL,
+            )
+            panel_completados.grid(row=0, column=0, sticky="nsew", padx=(0, 8))
+            ctk.CTkLabel(
+                panel_completados, text="Cursos completados en el tiempo", font=(FONT_FAMILY, 14, "bold"),
+                text_color=COLOR_TEXTO_PRIMARIO, anchor="w",
+            ).pack(anchor="w", padx=20, pady=(18, 2))
+            ctk.CTkLabel(
+                panel_completados, text="Cuántos cursos llevas terminados, acumulados día a día",
+                font=(FONT_FAMILY, 11.5), text_color=COLOR_TEXTO_SECUNDARIO, anchor="w",
+            ).pack(anchor="w", padx=20, pady=(0, 10))
+            self._construir_grafica_cursos_completados(panel_completados)
+
+            panel_distribucion = ctk.CTkFrame(
+                fila_inferior, fg_color=COLOR_FONDO_TARJETA, corner_radius=RADIO_TARJETA,
+                border_width=GROSOR_BORDE_SUTIL, border_color=COLOR_BORDE_SUTIL,
+            )
+            panel_distribucion.grid(row=0, column=1, sticky="nsew", padx=(8, 0))
+            ctk.CTkLabel(
+                panel_distribucion, text="Mis cursos por estado", font=(FONT_FAMILY, 14, "bold"),
+                text_color=COLOR_TEXTO_PRIMARIO, anchor="w",
+            ).pack(anchor="w", padx=20, pady=(18, 2))
+            ctk.CTkLabel(
+                panel_distribucion, text="De todos tus cursos matriculados",
+                font=(FONT_FAMILY, 11.5), text_color=COLOR_TEXTO_SECUNDARIO, anchor="w",
+            ).pack(anchor="w", padx=20, pady=(0, 10))
+            self._construir_grafica_distribucion_estado(panel_distribucion)
 
         return frame
 
@@ -405,6 +448,99 @@ class DashboardView(ctk.CTk):
 
         figura.tight_layout()
 
+        lienzo = FigureCanvasTkAgg(figura, master=contenedor)
+        lienzo.draw()
+        lienzo.get_tk_widget().pack(fill="x", padx=14, pady=(0, 16))
+
+    def _construir_grafica_cursos_completados(self, contenedor):
+        """Aprendiz: conteo simple y directo de cursos terminados, acumulado día a día —
+        más claro que un % agregado de contenidos vistos entre cursos heterogéneos."""
+        serie = ProgresoController().historial_cursos_completados_aprendiz(self._usuario.id_usuario)
+        if not serie:
+            ctk.CTkLabel(
+                contenedor, text="Todavía no has completado ningún curso.",
+                font=(FONT_FAMILY, 12), text_color=COLOR_TEXTO_SECUNDARIO,
+            ).pack(anchor="w", padx=20, pady=(0, 20))
+            return
+
+        from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+        from matplotlib.figure import Figure
+        from matplotlib.ticker import MaxNLocator
+
+        fechas = [punto[0][5:] for punto in serie]  # MM-DD, más compacto en el eje
+        valores = [punto[1] for punto in serie]
+
+        figura = Figure(figsize=(6, 2.6), dpi=100, facecolor=COLOR_FONDO_TARJETA)
+        eje = figura.add_subplot(111)
+        eje.set_facecolor(COLOR_FONDO_TARJETA)
+
+        eje.step(fechas, valores, where="post", color=COLOR_EXITO, linewidth=2.4)
+        eje.plot(fechas, valores, "o", color=COLOR_EXITO, markersize=5)
+        eje.fill_between(fechas, valores, 0, step="post", color=COLOR_EXITO, alpha=0.12)
+
+        eje.set_ylim(0, max(valores) + 1)
+        eje.yaxis.set_major_locator(MaxNLocator(integer=True))
+        eje.set_ylabel("cursos", color=COLOR_TEXTO_SECUNDARIO, fontsize=9)
+        eje.tick_params(colors=COLOR_TEXTO_SECUNDARIO, labelsize=8)
+        for lado in ("top", "right"):
+            eje.spines[lado].set_visible(False)
+        for lado in ("bottom", "left"):
+            eje.spines[lado].set_color(COLOR_BORDE_SUTIL)
+        eje.grid(axis="y", color=COLOR_BORDE_SUTIL, linewidth=0.6, alpha=0.5)
+
+        if len(fechas) > 10:
+            paso = max(1, len(fechas) // 10)
+            eje.set_xticks(range(0, len(fechas), paso))
+            eje.set_xticklabels([fechas[i] for i in range(0, len(fechas), paso)])
+
+        figura.tight_layout()
+
+        lienzo = FigureCanvasTkAgg(figura, master=contenedor)
+        lienzo.draw()
+        lienzo.get_tk_widget().pack(fill="x", padx=14, pady=(0, 16))
+
+    def _construir_grafica_distribucion_estado(self, contenedor):
+        """Aprendiz: cuántos de sus cursos matriculados están en cada estado de progreso."""
+        cursos = InscripcionController().listar_cursos_matriculados(self._usuario.id_usuario)
+        if not cursos:
+            ctk.CTkLabel(
+                contenedor, text="Todavía no estás matriculado en ningún curso.",
+                font=(FONT_FAMILY, 12), text_color=COLOR_TEXTO_SECUNDARIO,
+            ).pack(anchor="w", padx=20, pady=(0, 20))
+            return
+
+        conteo = ProgresoController().distribucion_estado_cursos(self._usuario.id_usuario, cursos)
+        etiquetas = {"NO_INICIADO": "No iniciado", "EN_PROGRESO": "En progreso", "COMPLETADO": "Completado"}
+        colores = {"NO_INICIADO": COLOR_TEXTO_SECUNDARIO, "EN_PROGRESO": COLOR_ACENTO_PRIMARIO, "COMPLETADO": COLOR_EXITO}
+        claves = ["NO_INICIADO", "EN_PROGRESO", "COMPLETADO"]
+
+        from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+        from matplotlib.figure import Figure
+
+        nombres = [etiquetas[c] for c in claves]
+        valores = [conteo.get(c, 0) for c in claves]
+        colores_barras = [colores[c] for c in claves]
+
+        figura = Figure(figsize=(4.2, 2.6), dpi=100, facecolor=COLOR_FONDO_TARJETA)
+        eje = figura.add_subplot(111)
+        eje.set_facecolor(COLOR_FONDO_TARJETA)
+
+        posiciones = range(len(nombres))
+        barras = eje.barh(list(posiciones), valores, color=colores_barras, height=0.55, zorder=3)
+        eje.bar_label(barras, labels=[str(v) for v in valores], padding=6, color=COLOR_TEXTO_PRIMARIO, fontsize=9)
+
+        eje.set_yticks(list(posiciones))
+        eje.set_yticklabels(nombres, color=COLOR_TEXTO_SECUNDARIO, fontsize=9)
+        eje.invert_yaxis()
+        eje.set_xlim(0, max(valores) + 1)
+        eje.tick_params(axis="x", colors=COLOR_TEXTO_SECUNDARIO, labelsize=8)
+        eje.tick_params(axis="y", length=0)
+        for lado in ("top", "right", "left"):
+            eje.spines[lado].set_visible(False)
+        eje.spines["bottom"].set_color(COLOR_BORDE_SUTIL)
+        eje.grid(axis="x", color=COLOR_BORDE_SUTIL, linewidth=0.6, alpha=0.6, zorder=0)
+
+        figura.tight_layout()
         lienzo = FigureCanvasTkAgg(figura, master=contenedor)
         lienzo.draw()
         lienzo.get_tk_widget().pack(fill="x", padx=14, pady=(0, 16))

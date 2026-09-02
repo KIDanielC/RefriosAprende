@@ -1,8 +1,12 @@
 """Vista de inicio de sesión. No contiene lógica de negocio."""
+import os
+
 import customtkinter as ctk
+from PIL import Image
 
 from config.settings import (
     APP_NAME,
+    IMAGES_DIR,
     COLOR_ACENTO_GLOW,
     COLOR_ACENTO_PRIMARIO,
     COLOR_ACENTO_SECUNDARIO,
@@ -51,6 +55,16 @@ class LoginView(ctk.CTk):
         self._construir_panel_formulario()
 
     # ------------------------------------------------------------------
+    def _cargar_imagen_manometro(self) -> ctk.CTkImage | None:
+        """Ilustración propia (manómetro de diagnóstico) generada por código, no una foto de
+        stock ni una imagen de IA: evita cualquier duda de licencia y no depende de internet."""
+        ruta = os.path.join(IMAGES_DIR, "manometro_login.png")
+        if not os.path.isfile(ruta):
+            return None
+        with Image.open(ruta) as archivo_imagen:
+            imagen_pil = archivo_imagen.copy()
+        return ctk.CTkImage(light_image=imagen_pil, dark_image=imagen_pil, size=(220, 220))
+
     def _construir_panel_marca(self):
         panel = ctk.CTkFrame(self, fg_color=COLOR_NAV_FONDO, corner_radius=0)
         panel.grid(row=0, column=0, sticky="nsew")
@@ -60,10 +74,17 @@ class LoginView(ctk.CTk):
 
         contenido = ctk.CTkFrame(panel, fg_color="transparent")
         contenido.grid(row=0, column=0, sticky="nsew", padx=56, pady=(60, 20))
+        contenido.grid_columnconfigure(0, weight=1)
         contenido.grid_rowconfigure(0, weight=1)
 
         cuerpo = ctk.CTkFrame(contenido, fg_color="transparent")
-        cuerpo.pack(anchor="w", fill="x")
+        cuerpo.grid(row=0, column=0, sticky="w")
+
+        self._imagen_manometro = self._cargar_imagen_manometro()
+        if self._imagen_manometro is not None:
+            ctk.CTkLabel(contenido, image=self._imagen_manometro, text="").grid(
+                row=0, column=1, sticky="e", padx=(20, 0)
+            )
 
         insignia = ctk.CTkFrame(cuerpo, fg_color=COLOR_ACENTO_PRIMARIO, corner_radius=13, width=52, height=52)
         insignia.pack(anchor="w")

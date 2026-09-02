@@ -40,6 +40,21 @@ class ProgresoDAO:
         cursor.execute(f"{_SELECT_BASE} WHERE id_curso = ?", (id_curso,))
         return [self._fila_a_entidad(fila) for fila in cursor.fetchall()]
 
+    def listar_fechas_completado_por_usuario(self, id_usuario: int) -> list[str]:
+        """Fecha (YYYY-MM-DD) en que cada curso pasó a COMPLETADO para este usuario,
+        ordenadas ascendente. Se aproxima con fecha_actualizacion: la última escritura de
+        una fila ya COMPLETADO es, en el flujo normal, el momento en que se completó."""
+        cursor = self._conexion.obtener_cursor()
+        cursor.execute(
+            """
+            SELECT date(fecha_actualizacion) AS fecha FROM progreso
+            WHERE id_usuario = ? AND estado = 'COMPLETADO'
+            ORDER BY fecha_actualizacion ASC
+            """,
+            (id_usuario,),
+        )
+        return [fila["fecha"] for fila in cursor.fetchall()]
+
     def guardar(self, id_usuario: int, id_curso: int, porcentaje_avance: float, estado: str) -> Progreso:
         cursor = self._conexion.obtener_cursor()
         cursor.execute(

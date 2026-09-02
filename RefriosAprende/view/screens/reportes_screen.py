@@ -2,6 +2,8 @@
 from tkinter import ttk
 
 import customtkinter as ctk
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 from config.settings import (
     COLOR_ACENTO_PRIMARIO,
@@ -39,6 +41,7 @@ class ReportesScreen(ctk.CTkFrame):
         contenedor.grid_columnconfigure(0, weight=1)
 
         self._construir_resumen(contenedor)
+        self._construir_grafica_progreso(contenedor)
         self._construir_detalle_cursos(contenedor)
 
     def _construir_resumen(self, contenedor):
@@ -78,6 +81,50 @@ class ReportesScreen(ctk.CTkFrame):
             text=f"Progreso promedio general: {resumen['progreso_promedio_general']:.0f}%",
             font=(FONT_FAMILY, 12, "bold"), text_color=COLOR_EXITO, anchor="w",
         ).pack(anchor="w", pady=(0, 4))
+
+    def _construir_grafica_progreso(self, contenedor):
+        filas = self._controlador.detalle_por_curso()
+        if not filas:
+            return
+
+        panel = ctk.CTkFrame(
+            contenedor, fg_color=COLOR_FONDO_TARJETA, corner_radius=RADIO_TARJETA,
+            border_width=GROSOR_BORDE_SUTIL, border_color=COLOR_BORDE_SUTIL,
+        )
+        panel.pack(fill="x", pady=(0, 20))
+        ctk.CTkLabel(
+            panel, text="Progreso promedio por curso", font=(FONT_FAMILY, 14, "bold"),
+            text_color=COLOR_TEXTO_PRIMARIO, anchor="w",
+        ).pack(anchor="w", padx=20, pady=(18, 4))
+
+        nombres = [fila["nombre_curso"] for fila in filas]
+        valores = [fila["progreso_promedio"] for fila in filas]
+        colores = [COLOR_EXITO if v >= 100 else COLOR_ACENTO_PRIMARIO for v in valores]
+
+        alto = max(2.0, 0.55 * len(nombres) + 0.6)
+        figura = Figure(figsize=(7.2, alto), dpi=100, facecolor=COLOR_FONDO_TARJETA)
+        eje = figura.add_subplot(111)
+        eje.set_facecolor(COLOR_FONDO_TARJETA)
+
+        posiciones = range(len(nombres))
+        barras = eje.barh(list(posiciones), valores, color=colores, height=0.55, zorder=3)
+        eje.bar_label(barras, labels=[f"{v:.0f}%" for v in valores], padding=6, color=COLOR_TEXTO_PRIMARIO, fontsize=9)
+
+        eje.set_yticks(list(posiciones))
+        eje.set_yticklabels(nombres, color=COLOR_TEXTO_SECUNDARIO, fontsize=9)
+        eje.invert_yaxis()
+        eje.set_xlim(0, 110)
+        eje.tick_params(axis="x", colors=COLOR_TEXTO_SECUNDARIO, labelsize=8)
+        eje.tick_params(axis="y", length=0)
+        for lado in ("top", "right", "left"):
+            eje.spines[lado].set_visible(False)
+        eje.spines["bottom"].set_color(COLOR_BORDE_SUTIL)
+        eje.grid(axis="x", color=COLOR_BORDE_SUTIL, linewidth=0.6, alpha=0.6, zorder=0)
+
+        figura.tight_layout()
+        lienzo = FigureCanvasTkAgg(figura, master=panel)
+        lienzo.draw()
+        lienzo.get_tk_widget().pack(fill="x", padx=14, pady=(0, 16))
 
     def _construir_detalle_cursos(self, contenedor):
         ctk.CTkLabel(
