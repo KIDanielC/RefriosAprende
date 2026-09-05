@@ -17,14 +17,11 @@ from config.settings import (
     COLOR_TEXTO_PRIMARIO,
     COLOR_TEXTO_SECUNDARIO,
     FONT_FAMILY,
+    RADIO_BOTON,
 )
 from controller.curso_controller import CursoController, DatosCursoInvalidosError
 from model.entities.curso import Curso
-from view.screens.contenidos_screen import ContenidosScreen
-from view.screens.evaluacion_final_screen import EvaluacionFinalWindow
-from view.screens.guia_aprendizaje_screen import GuiaAprendizajeWindow
-from view.screens.matricula_screen import MatriculaWindow
-from view.screens.simulaciones_screen import SimulacionesWindow
+from view.screens.gestionar_curso_screen import GestionarCursoWindow
 
 
 class CursosScreen(ctk.CTkFrame):
@@ -58,13 +55,6 @@ class CursosScreen(ctk.CTkFrame):
         self._construir_tabla(self._frame_interno)
         self._cargar_cursos()
 
-    def _mostrar_contenidos(self, curso: Curso):
-        if self._frame_interno is not None:
-            self._frame_interno.destroy()
-
-        self._frame_interno = ContenidosScreen(self, curso=curso, al_volver=self._mostrar_lista_cursos)
-        self._frame_interno.grid(row=0, column=0, sticky="nsew")
-
     # ------------------------------------------------------------------
     def _construir_barra_herramientas(self, contenedor):
         barra = ctk.CTkFrame(contenedor, fg_color="transparent")
@@ -90,45 +80,13 @@ class CursosScreen(ctk.CTkFrame):
         barra = ctk.CTkFrame(contenedor, fg_color="transparent")
         barra.grid(row=1, column=0, sticky="ew", padx=28, pady=(0, 12))
 
-        self._boton_estudiantes = ctk.CTkButton(
-            barra, text="Estudiantes", width=130, height=34, corner_radius=4,
-            fg_color=COLOR_FONDO_TARJETA, hover_color=COLOR_FONDO_TARJETA_HOVER,
-            border_width=1, border_color=COLOR_ACENTO_PRIMARIO, text_color=COLOR_TEXTO_PRIMARIO,
-            font=(FONT_FAMILY, 12, "bold"), state="disabled", command=self._abrir_matricula,
-        )
-        self._boton_estudiantes.pack(side="left", padx=(0, 8))
-
-        self._boton_guia = ctk.CTkButton(
-            barra, text="Guía de aprendizaje", width=170, height=34, corner_radius=4,
+        self._boton_gestionar = ctk.CTkButton(
+            barra, text="Gestionar curso", width=150, height=34, corner_radius=4,
             fg_color=COLOR_FONDO_TARJETA, hover_color=COLOR_FONDO_TARJETA_HOVER,
             border_width=1, border_color=COLOR_ACENTO_ALTERNO, text_color=COLOR_TEXTO_PRIMARIO,
-            font=(FONT_FAMILY, 12, "bold"), state="disabled", command=self._abrir_guia_aprendizaje,
+            font=(FONT_FAMILY, 12, "bold"), state="disabled", command=self._abrir_gestionar_curso,
         )
-        self._boton_guia.pack(side="left", padx=8)
-
-        self._boton_contenidos = ctk.CTkButton(
-            barra, text="Gestionar contenidos", width=170, height=34, corner_radius=4,
-            fg_color=COLOR_FONDO_TARJETA, hover_color=COLOR_FONDO_TARJETA_HOVER,
-            border_width=1, border_color=COLOR_ACENTO_ALTERNO, text_color=COLOR_TEXTO_PRIMARIO,
-            font=(FONT_FAMILY, 12, "bold"), state="disabled", command=self._ir_a_contenidos,
-        )
-        self._boton_contenidos.pack(side="left", padx=8)
-
-        self._boton_evaluacion = ctk.CTkButton(
-            barra, text="Evaluación final", width=150, height=34, corner_radius=4,
-            fg_color=COLOR_FONDO_TARJETA, hover_color=COLOR_FONDO_TARJETA_HOVER,
-            border_width=1, border_color=COLOR_ACENTO_PRIMARIO, text_color=COLOR_TEXTO_PRIMARIO,
-            font=(FONT_FAMILY, 12, "bold"), state="disabled", command=self._abrir_evaluacion_final,
-        )
-        self._boton_evaluacion.pack(side="left", padx=8)
-
-        self._boton_simulaciones = ctk.CTkButton(
-            barra, text="Simulaciones", width=140, height=34, corner_radius=4,
-            fg_color=COLOR_FONDO_TARJETA, hover_color=COLOR_FONDO_TARJETA_HOVER,
-            border_width=1, border_color=COLOR_ACENTO_PRIMARIO, text_color=COLOR_TEXTO_PRIMARIO,
-            font=(FONT_FAMILY, 12, "bold"), state="disabled", command=self._abrir_simulaciones,
-        )
-        self._boton_simulaciones.pack(side="left", padx=8)
+        self._boton_gestionar.pack(side="left", padx=(0, 8))
 
         self._boton_editar = ctk.CTkButton(
             barra, text="Editar", width=110, height=34, corner_radius=4,
@@ -140,7 +98,7 @@ class CursosScreen(ctk.CTkFrame):
 
         self._boton_eliminar = ctk.CTkButton(
             barra, text="Eliminar", width=110, height=34, corner_radius=4,
-            fg_color=COLOR_FONDO_TARJETA, hover_color="#FBE1E4",
+            fg_color=COLOR_FONDO_TARJETA, hover_color=COLOR_FONDO_TARJETA_HOVER,
             border_width=1, border_color=COLOR_ERROR, text_color=COLOR_ERROR, font=(FONT_FAMILY, 12, "bold"),
             state="disabled", command=self._eliminar_curso,
         )
@@ -171,10 +129,10 @@ class CursosScreen(ctk.CTkFrame):
             "Cursos.Treeview", background=[("selected", COLOR_ACENTO_PRIMARIO)], foreground=[("selected", COLOR_TEXTO_PRIMARIO)],
         )
 
-        columnas = ("nombre", "instructor", "estado", "fecha")
+        columnas = ("nombre", "categoria", "instructor", "estado", "fecha")
         self._tabla = ttk.Treeview(marco, columns=columnas, show="headings", style="Cursos.Treeview", selectmode="browse")
-        titulos = {"nombre": "Curso", "instructor": "Instructor", "estado": "Estado", "fecha": "Creado"}
-        anchos = {"nombre": 320, "instructor": 220, "estado": 100, "fecha": 160}
+        titulos = {"nombre": "Curso", "categoria": "Categoría", "instructor": "Instructor", "estado": "Estado", "fecha": "Creado"}
+        anchos = {"nombre": 280, "categoria": 140, "instructor": 200, "estado": 100, "fecha": 140}
         for columna in columnas:
             self._tabla.heading(columna, text=titulos[columna])
             self._tabla.column(columna, width=anchos[columna], anchor="w")
@@ -199,8 +157,9 @@ class CursosScreen(ctk.CTkFrame):
                 "", "end",
                 values=(
                     curso.nombre_curso,
+                    curso.nombre_categoria or "—",
                     curso.nombre_instructor,
-                    "Activo" if curso.esta_activo() else "Inactivo",
+                    curso.estado.capitalize(),
                     curso.fecha_creacion,
                 ),
             )
@@ -216,35 +175,15 @@ class CursosScreen(ctk.CTkFrame):
 
     def _actualizar_estado_botones(self):
         estado = "normal" if self._curso_seleccionado else "disabled"
-        self._boton_estudiantes.configure(state=estado)
-        self._boton_guia.configure(state=estado)
-        self._boton_contenidos.configure(state=estado)
-        self._boton_evaluacion.configure(state=estado)
-        self._boton_simulaciones.configure(state=estado)
+        self._boton_gestionar.configure(state=estado)
         self._boton_editar.configure(state=estado)
         self._boton_eliminar.configure(state=estado)
         self._etiqueta_mensaje.configure(text="")
 
     # ------------------------------------------------------------------
-    def _ir_a_contenidos(self):
+    def _abrir_gestionar_curso(self):
         if self._curso_seleccionado is not None:
-            self._mostrar_contenidos(self._curso_seleccionado)
-
-    def _abrir_matricula(self):
-        if self._curso_seleccionado is not None:
-            MatriculaWindow(self, curso=self._curso_seleccionado)
-
-    def _abrir_guia_aprendizaje(self):
-        if self._curso_seleccionado is not None:
-            GuiaAprendizajeWindow(self, curso=self._curso_seleccionado, solo_lectura=False)
-
-    def _abrir_evaluacion_final(self):
-        if self._curso_seleccionado is not None:
-            EvaluacionFinalWindow(self, curso=self._curso_seleccionado)
-
-    def _abrir_simulaciones(self):
-        if self._curso_seleccionado is not None:
-            SimulacionesWindow(self, curso=self._curso_seleccionado)
+            GestionarCursoWindow(self, curso=self._curso_seleccionado)
 
     def _eliminar_curso(self):
         if self._curso_seleccionado is None:
@@ -272,12 +211,14 @@ class FormularioCurso(ctk.CTkToplevel):
         self._al_guardar = al_guardar
         self._curso_existente = curso_existente
         self._instructores = controlador.listar_instructores()
+        self._otros_cursos = [c for c in controlador.listar_cursos() if not curso_existente or c.id_curso != curso_existente.id_curso]
+        self._casillas_prerrequisito = {}
 
         self.title("Editar curso" if curso_existente else "Nuevo curso")
         self.configure(fg_color=COLOR_FONDO_TARJETA)
-        self.geometry("480x600")
+        self.geometry("480x760")
         self.minsize(480, 600)
-        self.resizable(False, True)
+        self.resizable(True, True)
         self.transient(master)
         self.grab_set()
 
@@ -286,75 +227,144 @@ class FormularioCurso(ctk.CTkToplevel):
             self._precargar_datos(curso_existente)
 
     def _construir_formulario(self):
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(1, weight=1)
+
         ctk.CTkLabel(
             self, text="Editar curso" if self._curso_existente else "Nuevo curso",
             font=(FONT_FAMILY, 18, "bold"), text_color=COLOR_TEXTO_PRIMARIO,
-        ).pack(padx=28, pady=(24, 16), anchor="w")
+        ).grid(row=0, column=0, padx=28, pady=(24, 12), sticky="w")
 
-        self._campo_nombre = self._crear_campo("Nombre del curso")
+        cuerpo = ctk.CTkScrollableFrame(self, fg_color="transparent")
+        cuerpo.grid(row=1, column=0, sticky="nsew", padx=4)
+        cuerpo.grid_columnconfigure(0, weight=1)
+
+        self._campo_nombre = self._crear_campo(cuerpo, "Nombre del curso")
 
         ctk.CTkLabel(
-            self, text="Descripción", font=(FONT_FAMILY, 12), text_color=COLOR_TEXTO_SECUNDARIO
-        ).pack(padx=28, pady=(6, 2), anchor="w")
+            cuerpo, text="Descripción", font=(FONT_FAMILY, 12), text_color=COLOR_TEXTO_SECUNDARIO
+        ).pack(padx=24, pady=(6, 2), anchor="w")
         self._campo_descripcion = ctk.CTkTextbox(
-            self, width=380, height=110, corner_radius=4, fg_color=COLOR_FONDO_APP,
+            cuerpo, width=380, height=90, corner_radius=RADIO_BOTON, fg_color=COLOR_FONDO_APP,
             border_color=COLOR_BORDE_SUTIL, border_width=1, text_color=COLOR_TEXTO_PRIMARIO,
             font=(FONT_FAMILY, 13),
         )
-        self._campo_descripcion.pack(padx=28, pady=(0, 4))
+        self._campo_descripcion.pack(padx=24, pady=(0, 4))
 
         ctk.CTkLabel(
-            self, text="Instructor", font=(FONT_FAMILY, 12), text_color=COLOR_TEXTO_SECUNDARIO
-        ).pack(padx=28, pady=(6, 2), anchor="w")
+            cuerpo, text="Instructor", font=(FONT_FAMILY, 12), text_color=COLOR_TEXTO_SECUNDARIO
+        ).pack(padx=24, pady=(6, 2), anchor="w")
         nombres_instructores = [instructor.nombre_completo for instructor in self._instructores]
         self._combo_instructor = ctk.CTkComboBox(
-            self, values=nombres_instructores, width=380, height=40, corner_radius=4,
+            cuerpo, values=nombres_instructores, width=380, height=40, corner_radius=RADIO_BOTON,
             fg_color=COLOR_FONDO_APP, border_color=COLOR_BORDE_SUTIL, text_color=COLOR_TEXTO_PRIMARIO,
             button_color=COLOR_ACENTO_PRIMARIO, button_hover_color=COLOR_ACENTO_SECUNDARIO,
             dropdown_fg_color=COLOR_FONDO_TARJETA,
         )
         self._combo_instructor.set(nombres_instructores[0] if nombres_instructores else "")
-        self._combo_instructor.pack(padx=28, pady=(0, 10))
+        self._combo_instructor.pack(padx=24, pady=(0, 10))
+
+        ctk.CTkLabel(
+            cuerpo, text="Categoría", font=(FONT_FAMILY, 12), text_color=COLOR_TEXTO_SECUNDARIO
+        ).pack(padx=24, pady=(6, 2), anchor="w")
+        nombres_categorias = [c.nombre_categoria for c in self._controlador.listar_categorias()]
+        self._combo_categoria = ctk.CTkComboBox(
+            cuerpo, values=nombres_categorias, width=380, height=40, corner_radius=RADIO_BOTON,
+            fg_color=COLOR_FONDO_APP, border_color=COLOR_BORDE_SUTIL, text_color=COLOR_TEXTO_PRIMARIO,
+            button_color=COLOR_ACENTO_PRIMARIO, button_hover_color=COLOR_ACENTO_SECUNDARIO,
+            dropdown_fg_color=COLOR_FONDO_TARJETA,
+        )
+        self._combo_categoria.set("")
+        self._combo_categoria.pack(padx=24, pady=(0, 10))
+        ctk.CTkLabel(
+            cuerpo, text="Elige una existente o escribe el nombre de una categoría nueva.",
+            font=(FONT_FAMILY, 10.5), text_color=COLOR_TEXTO_SECUNDARIO,
+        ).pack(padx=24, pady=(0, 10), anchor="w")
+
+        self._casilla_secuencial = ctk.CTkCheckBox(
+            cuerpo, text="Aprendizaje secuencial (bloquea cada contenido hasta ver el anterior)",
+            font=(FONT_FAMILY, 12), text_color=COLOR_TEXTO_PRIMARIO,
+            fg_color=COLOR_ACENTO_PRIMARIO, hover_color=COLOR_ACENTO_SECUNDARIO,
+            border_color=COLOR_BORDE_SUTIL, checkmark_color="#FFFFFF",
+        )
+        self._casilla_secuencial.pack(padx=24, pady=(0, 12), anchor="w")
 
         if self._curso_existente:
             ctk.CTkLabel(
-                self, text="Estado", font=(FONT_FAMILY, 12), text_color=COLOR_TEXTO_SECUNDARIO
-            ).pack(padx=28, pady=(6, 2), anchor="w")
+                cuerpo, text="Estado", font=(FONT_FAMILY, 12), text_color=COLOR_TEXTO_SECUNDARIO
+            ).pack(padx=24, pady=(6, 2), anchor="w")
             self._combo_estado = ctk.CTkComboBox(
-                self, values=["ACTIVO", "INACTIVO"], width=380, height=40, corner_radius=4,
+                cuerpo, values=["BORRADOR", "ACTIVO", "INACTIVO"], width=380, height=40, corner_radius=RADIO_BOTON,
                 fg_color=COLOR_FONDO_APP, border_color=COLOR_BORDE_SUTIL, text_color=COLOR_TEXTO_PRIMARIO,
                 button_color=COLOR_ACENTO_PRIMARIO, button_hover_color=COLOR_ACENTO_SECUNDARIO,
                 dropdown_fg_color=COLOR_FONDO_TARJETA,
             )
-            self._combo_estado.pack(padx=28, pady=(0, 10))
+            self._combo_estado.pack(padx=24, pady=(0, 10))
+
+            ctk.CTkLabel(
+                cuerpo, text="Prerrequisitos (el aprendiz debe completar estos cursos antes)",
+                font=(FONT_FAMILY, 12), text_color=COLOR_TEXTO_SECUNDARIO,
+            ).pack(padx=24, pady=(6, 4), anchor="w")
+            if self._otros_cursos:
+                marco_prerrequisitos = ctk.CTkFrame(
+                    cuerpo, fg_color=COLOR_FONDO_APP, corner_radius=RADIO_BOTON,
+                    border_width=1, border_color=COLOR_BORDE_SUTIL,
+                )
+                marco_prerrequisitos.pack(padx=24, pady=(0, 10), fill="x")
+                for curso_otro in self._otros_cursos:
+                    casilla = ctk.CTkCheckBox(
+                        marco_prerrequisitos, text=curso_otro.nombre_curso, font=(FONT_FAMILY, 12),
+                        text_color=COLOR_TEXTO_PRIMARIO, fg_color=COLOR_ACENTO_PRIMARIO,
+                        hover_color=COLOR_ACENTO_SECUNDARIO, border_color=COLOR_BORDE_SUTIL,
+                        checkmark_color="#FFFFFF",
+                    )
+                    casilla.pack(padx=12, pady=6, anchor="w")
+                    self._casillas_prerrequisito[curso_otro.id_curso] = casilla
+            else:
+                ctk.CTkLabel(
+                    cuerpo, text="No hay otros cursos todavía.", font=(FONT_FAMILY, 11),
+                    text_color=COLOR_TEXTO_SECUNDARIO,
+                ).pack(padx=24, pady=(0, 10), anchor="w")
+        else:
+            ctk.CTkLabel(
+                cuerpo, text="El curso se creará como Borrador. Los prerrequisitos se configuran al editarlo.",
+                font=(FONT_FAMILY, 11), text_color=COLOR_TEXTO_SECUNDARIO, wraplength=380, justify="left",
+            ).pack(padx=24, pady=(0, 10), anchor="w")
 
         self._etiqueta_error = ctk.CTkLabel(
-            self, text="", font=(FONT_FAMILY, 12), text_color=COLOR_ERROR, wraplength=380
+            cuerpo, text="", font=(FONT_FAMILY, 12), text_color=COLOR_ERROR, wraplength=380
         )
-        self._etiqueta_error.pack(padx=28, pady=(6, 0))
+        self._etiqueta_error.pack(padx=24, pady=(6, 0))
 
         ctk.CTkButton(
-            self, text="Guardar", width=380, height=44, corner_radius=4,
-            fg_color=COLOR_ACENTO_PRIMARIO, hover_color=COLOR_ACENTO_SECUNDARIO,
+            cuerpo, text="Guardar", width=380, height=44, corner_radius=RADIO_BOTON,
+            fg_color=COLOR_ACENTO_PRIMARIO, hover_color=COLOR_ACENTO_SECUNDARIO, text_color="#FFFFFF",
             font=(FONT_FAMILY, 14, "bold"), command=self._guardar,
-        ).pack(padx=28, pady=(16, 24))
+        ).pack(padx=24, pady=(16, 24))
 
-    def _crear_campo(self, etiqueta: str) -> ctk.CTkEntry:
+    def _crear_campo(self, cuerpo, etiqueta: str) -> ctk.CTkEntry:
         ctk.CTkLabel(
-            self, text=etiqueta, font=(FONT_FAMILY, 12), text_color=COLOR_TEXTO_SECUNDARIO
-        ).pack(padx=28, pady=(6, 2), anchor="w")
+            cuerpo, text=etiqueta, font=(FONT_FAMILY, 12), text_color=COLOR_TEXTO_SECUNDARIO
+        ).pack(padx=24, pady=(6, 2), anchor="w")
         campo = ctk.CTkEntry(
-            self, width=380, height=40, corner_radius=4, fg_color=COLOR_FONDO_APP,
+            cuerpo, width=380, height=40, corner_radius=RADIO_BOTON, fg_color=COLOR_FONDO_APP,
             border_color=COLOR_BORDE_SUTIL, text_color=COLOR_TEXTO_PRIMARIO,
         )
-        campo.pack(padx=28, pady=(0, 2))
+        campo.pack(padx=24, pady=(0, 2))
         return campo
 
     def _precargar_datos(self, curso: Curso):
         self._campo_nombre.insert(0, curso.nombre_curso)
         self._campo_descripcion.insert("1.0", curso.descripcion or "")
         self._combo_instructor.set(curso.nombre_instructor)
+        self._combo_categoria.set(curso.nombre_categoria or "")
+        if curso.aprendizaje_secuencial:
+            self._casilla_secuencial.select()
         self._combo_estado.set(curso.estado)
+        ids_prerrequisitos = set(self._controlador.listar_ids_prerrequisitos(curso.id_curso))
+        for id_curso, casilla in self._casillas_prerrequisito.items():
+            if id_curso in ids_prerrequisitos:
+                casilla.select()
 
     def _guardar(self):
         instructor_seleccionado = next(
@@ -365,16 +375,24 @@ class FormularioCurso(ctk.CTkToplevel):
             return
 
         descripcion = self._campo_descripcion.get("1.0", "end").strip()
+        nombre_categoria = self._combo_categoria.get()
+        aprendizaje_secuencial = bool(self._casilla_secuencial.get())
 
         try:
             if self._curso_existente:
-                self._controlador.actualizar_curso(
+                curso_guardado = self._controlador.actualizar_curso(
                     self._curso_existente.id_curso, self._campo_nombre.get(), descripcion,
                     instructor_seleccionado.id_usuario, self._combo_estado.get(),
+                    nombre_categoria, aprendizaje_secuencial,
                 )
+                ids_seleccionados = [
+                    id_curso for id_curso, casilla in self._casillas_prerrequisito.items() if casilla.get()
+                ]
+                self._controlador.guardar_prerrequisitos(curso_guardado.id_curso, ids_seleccionados)
             else:
                 self._controlador.crear_curso(
-                    self._campo_nombre.get(), descripcion, instructor_seleccionado.id_usuario
+                    self._campo_nombre.get(), descripcion, instructor_seleccionado.id_usuario,
+                    nombre_categoria, aprendizaje_secuencial,
                 )
         except DatosCursoInvalidosError as error:
             self._etiqueta_error.configure(text=str(error))

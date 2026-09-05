@@ -1,4 +1,6 @@
-"""Entidad Guía de Aprendizaje: objetivos, competencias y actividades de un curso."""
+"""Entidad Guía de Aprendizaje: documento pedagógico completo de un curso, organizado según
+la metodología aprender -> practicar -> simular -> evaluar. Una guía por curso, compartida por
+todos los aprendices matriculados."""
 
 
 class GuiaAprendizaje:
@@ -9,8 +11,15 @@ class GuiaAprendizaje:
         objetivo_general: str,
         objetivos_especificos: str,
         competencias: str,
-        actividades: str,
+        introduccion: str,
+        conocimientos_previos: str,
+        procedimiento_paso_a_paso: str,
+        normas_seguridad: str,
+        ejemplos_practicos: str,
+        actividades_interactivas: str,
         criterios_evaluacion: str,
+        glosario: str,
+        referencias: str,
         duracion_horas: int,
         fecha_actualizacion: str,
     ):
@@ -19,8 +28,15 @@ class GuiaAprendizaje:
         self.objetivo_general = objetivo_general
         self.objetivos_especificos = objetivos_especificos
         self.competencias = competencias
-        self.actividades = actividades
+        self.introduccion = introduccion
+        self.conocimientos_previos = conocimientos_previos
+        self.procedimiento_paso_a_paso = procedimiento_paso_a_paso
+        self.normas_seguridad = normas_seguridad
+        self.ejemplos_practicos = ejemplos_practicos
+        self.actividades_interactivas = actividades_interactivas
         self.criterios_evaluacion = criterios_evaluacion
+        self.glosario = glosario
+        self.referencias = referencias
         self.duracion_horas = duracion_horas
         self.fecha_actualizacion = fecha_actualizacion
 

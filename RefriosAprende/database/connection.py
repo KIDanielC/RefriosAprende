@@ -53,6 +53,8 @@ class ConexionBD:
         self._migrar_matricula_desde_progreso()
         self._migrar_cursos_borrador_categoria_secuencial()
         self._conexion.execute("CREATE INDEX IF NOT EXISTS idx_cursos_categoria ON cursos (id_categoria)")
+        self._migrar_guia_aprendizaje_secciones_ampliadas()
+        self._migrar_guia_aprendizaje_quitar_retroalimentar_reforzar_registrar()
 
     def _migrar_matricula_desde_progreso(self):
         """La matrícula (tabla inscripciones) se agregó después de que ya existían cursos con
@@ -146,6 +148,99 @@ class ConexionBD:
             FROM cursos;
             DROP TABLE cursos;
             ALTER TABLE cursos_nueva RENAME TO cursos;
+            """
+        )
+
+    def _migrar_guia_aprendizaje_secciones_ampliadas(self):
+        """La primera version de 'guias_aprendizaje' solo tenia objetivos, competencias,
+        actividades (texto libre generico) y criterios_evaluacion. Se reconstruye la tabla para
+        cubrir la metodologia completa (aprender/practicar/simular/evaluar/retroalimentar/
+        reforzar/registrar) y se migra el contenido de la columna 'actividades' (ya no existe)
+        hacia 'actividades_interactivas', la seccion mas cercana semanticamente."""
+        columnas_guia = {fila["name"] for fila in self._conexion.execute("PRAGMA table_info(guias_aprendizaje)")}
+        if "actividades_interactivas" in columnas_guia:
+            return
+
+        self._conexion.executescript(
+            """
+            DROP TABLE IF EXISTS guias_aprendizaje_nueva;
+            CREATE TABLE guias_aprendizaje_nueva (
+                id_guia                     INTEGER PRIMARY KEY AUTOINCREMENT,
+                id_curso                    INTEGER NOT NULL UNIQUE,
+                objetivo_general            TEXT,
+                objetivos_especificos       TEXT,
+                competencias                TEXT,
+                introduccion                TEXT,
+                conocimientos_previos       TEXT,
+                procedimiento_paso_a_paso   TEXT,
+                normas_seguridad            TEXT,
+                ejemplos_practicos          TEXT,
+                actividades_interactivas    TEXT,
+                criterios_evaluacion        TEXT,
+                retroalimentacion           TEXT,
+                actividades_refuerzo        TEXT,
+                evidencias_aprendizaje      TEXT,
+                glosario                    TEXT,
+                referencias                 TEXT,
+                duracion_horas              INTEGER,
+                fecha_actualizacion         TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
+                FOREIGN KEY (id_curso) REFERENCES cursos (id_curso)
+                    ON UPDATE CASCADE ON DELETE CASCADE
+            );
+            INSERT INTO guias_aprendizaje_nueva
+                (id_guia, id_curso, objetivo_general, objetivos_especificos, competencias,
+                 actividades_interactivas, criterios_evaluacion, duracion_horas, fecha_actualizacion)
+            SELECT id_guia, id_curso, objetivo_general, objetivos_especificos, competencias,
+                   actividades, criterios_evaluacion, duracion_horas, fecha_actualizacion
+            FROM guias_aprendizaje;
+            DROP TABLE guias_aprendizaje;
+            ALTER TABLE guias_aprendizaje_nueva RENAME TO guias_aprendizaje;
+            """
+        )
+
+    def _migrar_guia_aprendizaje_quitar_retroalimentar_reforzar_registrar(self):
+        """Se retiraron del alcance de la guía las secciones Retroalimentación, Actividades
+        de refuerzo y Evidencias de aprendizaje (decisión del usuario tras revisar el primer
+        diseño de 7 pestañas). Se reconstruye la tabla sin esas 3 columnas."""
+        columnas_guia = {fila["name"] for fila in self._conexion.execute("PRAGMA table_info(guias_aprendizaje)")}
+        if "retroalimentacion" not in columnas_guia:
+            return
+
+        self._conexion.executescript(
+            """
+            DROP TABLE IF EXISTS guias_aprendizaje_nueva;
+            CREATE TABLE guias_aprendizaje_nueva (
+                id_guia                     INTEGER PRIMARY KEY AUTOINCREMENT,
+                id_curso                    INTEGER NOT NULL UNIQUE,
+                objetivo_general            TEXT,
+                objetivos_especificos       TEXT,
+                competencias                TEXT,
+                introduccion                TEXT,
+                conocimientos_previos       TEXT,
+                procedimiento_paso_a_paso   TEXT,
+                normas_seguridad            TEXT,
+                ejemplos_practicos          TEXT,
+                actividades_interactivas    TEXT,
+                criterios_evaluacion        TEXT,
+                glosario                    TEXT,
+                referencias                 TEXT,
+                duracion_horas              INTEGER,
+                fecha_actualizacion         TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
+                FOREIGN KEY (id_curso) REFERENCES cursos (id_curso)
+                    ON UPDATE CASCADE ON DELETE CASCADE
+            );
+            INSERT INTO guias_aprendizaje_nueva
+                (id_guia, id_curso, objetivo_general, objetivos_especificos, competencias,
+                 introduccion, conocimientos_previos, procedimiento_paso_a_paso, normas_seguridad,
+                 ejemplos_practicos, actividades_interactivas, criterios_evaluacion,
+                 glosario, referencias, duracion_horas, fecha_actualizacion)
+            SELECT id_guia, id_curso, objetivo_general, objetivos_especificos, competencias,
+                   introduccion, conocimientos_previos, procedimiento_paso_a_paso, normas_seguridad,
+                   ejemplos_practicos, actividades_interactivas, criterios_evaluacion,
+                   glosario, referencias, duracion_horas, fecha_actualizacion
+            FROM guias_aprendizaje;
+            DROP TABLE guias_aprendizaje;
+            ALTER TABLE guias_aprendizaje_nueva RENAME TO guias_aprendizaje;
             """
         )
 

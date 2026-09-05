@@ -17,11 +17,12 @@ from config.settings import (
     RADIO_BOTON,
     RADIO_TARJETA,
 )
+from controller.certificado_controller import CertificadoController
 from controller.inscripcion_controller import InscripcionController
 from controller.progreso_controller import ProgresoController
 from model.entities.curso import Curso
-from view.screens.contenido_lector_screen import ContenidoLectorScreen
-from view.screens.guia_aprendizaje_screen import GuiaAprendizajeWindow
+from view.screens.certificado_screen import CertificadoWindow
+from view.screens.curso_aprendiz_screen import CursoAprendizScreen
 
 
 class MisCursosScreen(ctk.CTkFrame):
@@ -32,6 +33,7 @@ class MisCursosScreen(ctk.CTkFrame):
         self._usuario_sesion = usuario_sesion
         self._controlador = InscripcionController()
         self._progreso_controlador = ProgresoController()
+        self._certificado_controlador = CertificadoController()
         self._frame_interno = None
 
         self.grid_columnconfigure(0, weight=1)
@@ -84,8 +86,11 @@ class MisCursosScreen(ctk.CTkFrame):
             insignia, text=f"{porcentaje:.0f}% completado", font=(FONT_FAMILY, 11, "bold"), text_color=color_insignia,
         ).pack(padx=12, pady=4)
 
+        texto_instructor = f"Instructor: {curso.nombre_instructor}"
+        if curso.nombre_categoria:
+            texto_instructor += f"  ·  {curso.nombre_categoria}"
         ctk.CTkLabel(
-            tarjeta, text=f"Instructor: {curso.nombre_instructor}", font=(FONT_FAMILY, 12),
+            tarjeta, text=texto_instructor, font=(FONT_FAMILY, 12),
             text_color=COLOR_ACENTO_ALTERNO, anchor="w",
         ).grid(row=1, column=0, sticky="ew", padx=20)
 
@@ -105,26 +110,26 @@ class MisCursosScreen(ctk.CTkFrame):
         fila_botones.grid(row=4, column=0, sticky="w", padx=20, pady=(0, 16))
 
         ctk.CTkButton(
-            fila_botones, text="Ver contenido del curso", height=36, corner_radius=RADIO_BOTON,
+            fila_botones, text="Ver curso", height=36, corner_radius=RADIO_BOTON,
             fg_color=COLOR_ACENTO_PRIMARIO, hover_color=COLOR_ACENTO_SECUNDARIO,
             text_color="#FFFFFF", font=(FONT_FAMILY, 13, "bold"),
             command=lambda c=curso: self._mostrar_contenido(c),
         ).pack(side="left")
 
-        ctk.CTkButton(
-            fila_botones, text="Guía de aprendizaje", height=36, corner_radius=RADIO_BOTON,
-            fg_color="transparent", hover_color=COLOR_FONDO_TARJETA_HOVER,
-            border_width=GROSOR_BORDE_SUTIL, border_color=COLOR_ACENTO_ALTERNO,
-            text_color=COLOR_TEXTO_PRIMARIO, font=(FONT_FAMILY, 13, "bold"),
-            command=lambda c=curso: GuiaAprendizajeWindow(self, curso=c, solo_lectura=True),
-        ).pack(side="left", padx=(10, 0))
+        if self._certificado_controlador.curso_completado(self._usuario_sesion.id_usuario, curso.id_curso):
+            ctk.CTkButton(
+                fila_botones, text="🏆  Ver certificado", height=36, corner_radius=RADIO_BOTON,
+                fg_color=COLOR_EXITO, hover_color=COLOR_EXITO,
+                text_color="#FFFFFF", font=(FONT_FAMILY, 13, "bold"),
+                command=lambda c=curso: CertificadoWindow(self, usuario=self._usuario_sesion, curso=c),
+            ).pack(side="left", padx=(10, 0))
 
     # ------------------------------------------------------------------
     def _mostrar_contenido(self, curso: Curso):
         if self._frame_interno is not None:
             self._frame_interno.destroy()
 
-        self._frame_interno = ContenidoLectorScreen(
+        self._frame_interno = CursoAprendizScreen(
             self, curso=curso, usuario_sesion=self._usuario_sesion, al_volver=self._mostrar_lista_cursos
         )
         self._frame_interno.grid(row=0, column=0, sticky="nsew")

@@ -74,15 +74,22 @@ CREATE TABLE IF NOT EXISTS cursos_prerrequisitos (
 -- GUIAS DE APRENDIZAJE (una por curso: objetivos, competencias, actividades)
 -- ---------------------------------------------------------
 CREATE TABLE IF NOT EXISTS guias_aprendizaje (
-    id_guia                 INTEGER PRIMARY KEY AUTOINCREMENT,
-    id_curso                INTEGER NOT NULL UNIQUE,
-    objetivo_general        TEXT,
-    objetivos_especificos   TEXT,
-    competencias            TEXT,
-    actividades              TEXT,
-    criterios_evaluacion    TEXT,
-    duracion_horas          INTEGER,
-    fecha_actualizacion     TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
+    id_guia                     INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_curso                    INTEGER NOT NULL UNIQUE,
+    objetivo_general            TEXT,
+    objetivos_especificos       TEXT,
+    competencias                TEXT,
+    introduccion                TEXT,
+    conocimientos_previos       TEXT,
+    procedimiento_paso_a_paso   TEXT,
+    normas_seguridad            TEXT,
+    ejemplos_practicos          TEXT,
+    actividades_interactivas    TEXT,
+    criterios_evaluacion        TEXT,
+    glosario                    TEXT,
+    referencias                 TEXT,
+    duracion_horas              INTEGER,
+    fecha_actualizacion         TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
     FOREIGN KEY (id_curso) REFERENCES cursos (id_curso)
         ON UPDATE CASCADE ON DELETE CASCADE
 );
