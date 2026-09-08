@@ -1,6 +1,7 @@
 """Controlador de la Guía de Aprendizaje de un curso: valida y coordina Vista <-> Modelo."""
 from model.dao.guia_aprendizaje_dao import COLUMNAS_TEXTO_LIBRE, GuiaAprendizajeDAO
 from model.entities.guia_aprendizaje import GuiaAprendizaje
+from utils.texto_enriquecido import texto_plano_desde_markup
 
 # Única fuente de verdad de qué campos de texto libre existen en la guía; la vista construye
 # su formulario a partir de esta misma lista, para no duplicar el listado de claves válidas.
@@ -24,7 +25,7 @@ class GuiaAprendizajeController:
         que generar la guía sea rápido y no se sienta como un formulario de 15 campos obligatorios."""
         campos_limpios = {clave: (campos.get(clave) or "").strip() for clave in CAMPOS_TEXTO_GUIA}
 
-        if len(campos_limpios["objetivo_general"]) < 10:
+        if len(texto_plano_desde_markup(campos_limpios["objetivo_general"])) < 10:
             raise DatosGuiaInvalidosError("El objetivo general debe tener al menos 10 caracteres.")
 
         duracion_valor = None

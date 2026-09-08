@@ -38,6 +38,8 @@ from model.dao.resultado_dao import ResultadoDAO
 from model.entities.contenido import Contenido
 from model.entities.curso import Curso
 from model.entities.usuario import Usuario
+from utils.texto_enriquecido import texto_plano_desde_markup
+from view.components.editor_texto_enriquecido import EditorTextoEnriquecido
 from view.screens.presentar_evaluacion_screen import PresentarEvaluacionWindow
 from view.screens.presentar_simulacion_screen import PresentarCasoWindow
 from view.screens.responder_quiz_screen import ResponderQuizWindow
@@ -126,7 +128,7 @@ class CursoAprendizScreen(ctk.CTkFrame):
             ("objetivos_especificos", "Objetivos específicos"),
             ("competencias", "Competencias a desarrollar"),
         )
-        valores = [(etiqueta, (getattr(guia, clave, "") or "").strip()) for clave, etiqueta in campos]
+        valores = [(etiqueta, texto_plano_desde_markup(getattr(guia, clave, "") or "").strip()) for clave, etiqueta in campos]
         valores = [(etiqueta, valor) for etiqueta, valor in valores if valor]
         duracion = guia.duracion_horas if guia and guia.duracion_horas else None
 
@@ -222,10 +224,9 @@ class CursoAprendizScreen(ctk.CTkFrame):
         self._casillas_visto[contenido.id_contenido] = casilla_vista
 
         fila_siguiente = 1
-        if contenido.contenido_texto:
-            ctk.CTkLabel(
-                tarjeta, text=contenido.contenido_texto, font=(FONT_FAMILY, 13), text_color=COLOR_TEXTO_SECUNDARIO,
-                anchor="w", justify="left", wraplength=760,
+        if texto_plano_desde_markup(contenido.contenido_texto or "").strip():
+            EditorTextoEnriquecido(
+                tarjeta, valor_inicial=contenido.contenido_texto, solo_lectura=True,
             ).grid(row=fila_siguiente, column=0, sticky="ew", padx=18, pady=(0, 12))
             fila_siguiente += 1
 
@@ -404,7 +405,7 @@ class CursoAprendizScreen(ctk.CTkFrame):
     # -- Helper: sección de texto de la guía, se omite por completo si está vacía -----------
     def _agregar_texto_opcional(self, contenedor, guia, clave: str, etiqueta: str) -> bool:
         valor = (getattr(guia, clave, "") if guia else "") or ""
-        if not valor.strip():
+        if not texto_plano_desde_markup(valor).strip():
             return False
 
         fila = ctk.CTkFrame(contenedor, fg_color="transparent")
@@ -417,8 +418,5 @@ class CursoAprendizScreen(ctk.CTkFrame):
             border_width=GROSOR_BORDE_SUTIL, border_color=COLOR_BORDE_SUTIL,
         )
         tarjeta.pack(fill="x")
-        ctk.CTkLabel(
-            tarjeta, text=valor, font=(FONT_FAMILY, 13), text_color=COLOR_TEXTO_PRIMARIO,
-            anchor="w", justify="left", wraplength=720,
-        ).pack(anchor="w", padx=16, pady=12)
+        EditorTextoEnriquecido(tarjeta, valor_inicial=valor, solo_lectura=True).pack(fill="x", padx=12, pady=8)
         return True

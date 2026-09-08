@@ -33,6 +33,7 @@ from controller.evaluacion_controller import EvaluacionController
 from controller.guia_aprendizaje_controller import DatosGuiaInvalidosError, GuiaAprendizajeController
 from controller.simulacion_controller import SimulacionController
 from model.entities.curso import Curso
+from view.components.editor_texto_enriquecido import EditorTextoEnriquecido
 from view.screens.contenidos_screen import ContenidosScreen
 from view.screens.evaluacion_final_screen import EvaluacionFinalWindow
 from view.screens.matricula_screen import MatriculaWindow
@@ -139,7 +140,9 @@ class GestionarCursoWindow(ctk.CTkToplevel):
             columna = ctk.CTkFrame(cuerpo, fg_color="transparent")
             columna.grid(row=0, column=indice, sticky="new", padx=(0 if indice == 0 else 10, 0))
             valor = getattr(guia, clave, "") if guia else ""
-            self._cajas_texto[clave] = self._construir_seccion(columna, etiqueta, valor or "", alto=70)
+            self._cajas_texto[clave] = self._construir_seccion(
+                columna, etiqueta, valor or "", con_formato=False, altura_minima_lineas=2,
+            )
 
         self._campo_duracion = self._construir_campo_duracion(encabezado, guia)
         self._campo_duracion.master.grid(row=3, column=0, sticky="w", pady=(6, 0))
@@ -251,22 +254,20 @@ class GestionarCursoWindow(ctk.CTkToplevel):
         valor = getattr(guia, clave, "") if guia else ""
         self._cajas_texto[clave] = self._construir_seccion(contenedor, etiqueta, valor or "")
 
-    def _construir_seccion(self, contenedor, etiqueta: str, valor: str, alto: int = 80) -> ctk.CTkTextbox:
+    def _construir_seccion(
+        self, contenedor, etiqueta: str, valor: str, con_formato: bool = True, altura_minima_lineas: int = 3,
+    ) -> EditorTextoEnriquecido:
         fila = ctk.CTkFrame(contenedor, fg_color="transparent")
         fila.pack(fill="x", pady=(0, 14))
         ctk.CTkLabel(
             fila, text=etiqueta, font=(FONT_FAMILY, 12, "bold"), text_color=COLOR_TEXTO_SECUNDARIO, anchor="w",
         ).pack(anchor="w", pady=(0, 6))
 
-        caja = ctk.CTkTextbox(
-            fila, height=alto, corner_radius=RADIO_BOTON, fg_color=COLOR_FONDO_APP,
-            border_color=COLOR_BORDE_SUTIL, border_width=GROSOR_BORDE_SUTIL, text_color=COLOR_TEXTO_PRIMARIO,
-            font=(FONT_FAMILY, 13), wrap="word",
+        editor = EditorTextoEnriquecido(
+            fila, valor_inicial=valor, con_formato=con_formato, altura_minima_lineas=altura_minima_lineas,
         )
-        caja.pack(fill="x")
-        if valor:
-            caja.insert("1.0", valor)
-        return caja
+        editor.pack(fill="x")
+        return editor
 
     def _construir_seccion_computada(self, contenedor, etiqueta: str, lineas: list, texto_boton: str = None, comando_boton=None):
         """Tarjeta de solo lectura con datos reales (contenidos/simulaciones/evaluación), con
@@ -308,7 +309,7 @@ class GestionarCursoWindow(ctk.CTkToplevel):
 
     # ------------------------------------------------------------------
     def _guardar(self):
-        valores = {clave: caja.get("1.0", "end").strip() for clave, caja in self._cajas_texto.items()}
+        valores = {clave: caja.obtener_markup() for clave, caja in self._cajas_texto.items()}
         duracion = self._campo_duracion.get()
 
         try:

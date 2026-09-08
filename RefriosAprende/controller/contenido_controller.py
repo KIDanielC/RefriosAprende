@@ -7,6 +7,7 @@ import uuid
 from config.settings import CONTENIDOS_DIR
 from model.dao.contenido_dao import ContenidoDAO
 from model.entities.contenido import Contenido
+from utils.texto_enriquecido import texto_plano_desde_markup
 
 _logger = logging.getLogger(__name__)
 
@@ -35,7 +36,7 @@ class ContenidoController:
     # -- Contenido de tipo TEXTO -----------------------------------------
     def crear_contenido_texto(self, id_curso: int, titulo: str, contenido_texto: str) -> Contenido:
         self._validar_titulo(titulo)
-        if not contenido_texto or len(contenido_texto.strip()) < 10:
+        if not contenido_texto or len(texto_plano_desde_markup(contenido_texto).strip()) < 10:
             raise DatosContenidoInvalidosError("El contenido debe tener al menos 10 caracteres.")
 
         orden = self._contenido_dao.obtener_siguiente_orden(id_curso)
@@ -90,7 +91,9 @@ class ContenidoController:
         if contenido_existente is None:
             raise DatosContenidoInvalidosError("El contenido ya no existe.")
 
-        if contenido_existente.tipo_contenido == TIPO_TEXTO and (not contenido_texto or len(contenido_texto.strip()) < 10):
+        if contenido_existente.tipo_contenido == TIPO_TEXTO and (
+            not contenido_texto or len(texto_plano_desde_markup(contenido_texto).strip()) < 10
+        ):
             raise DatosContenidoInvalidosError("El contenido debe tener al menos 10 caracteres.")
 
         self._contenido_dao.actualizar(

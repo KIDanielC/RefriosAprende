@@ -25,6 +25,8 @@ from controller.contenido_controller import (
 )
 from model.entities.contenido import Contenido
 from model.entities.curso import Curso
+from utils.texto_enriquecido import texto_plano_desde_markup
+from view.components.editor_texto_enriquecido import EditorTextoEnriquecido
 from view.screens.preguntas_validacion_screen import PreguntasValidacionWindow
 
 
@@ -122,7 +124,7 @@ class ContenidosScreen(ctk.CTkFrame):
                 encabezado, text="🖼 Imagen", font=(FONT_FAMILY, 11, "bold"), text_color=COLOR_ACENTO_ALTERNO,
             ).grid(row=0, column=2, padx=(10, 0))
 
-        texto = contenido.contenido_texto or ""
+        texto = texto_plano_desde_markup(contenido.contenido_texto or "")
         extracto = texto[:160] + ("…" if len(texto) > 160 else "") if texto else "Sin descripción."
         ctk.CTkLabel(
             tarjeta, text=extracto, font=(FONT_FAMILY, 12), text_color=COLOR_TEXTO_SECUNDARIO,
@@ -256,23 +258,15 @@ class FormularioContenido(ctk.CTkToplevel):
         ctk.CTkLabel(
             self._area_dinamica, text="Contenido", font=(FONT_FAMILY, 12), text_color=COLOR_TEXTO_SECUNDARIO
         ).pack(pady=(0, 2), anchor="w")
-        self._campo_texto = ctk.CTkTextbox(
-            self._area_dinamica, width=500, height=220, corner_radius=4, fg_color=COLOR_FONDO_APP,
-            border_color=COLOR_BORDE_SUTIL, border_width=1, text_color=COLOR_TEXTO_PRIMARIO,
-            font=(FONT_FAMILY, 13),
-        )
-        self._campo_texto.pack()
+        self._campo_texto = EditorTextoEnriquecido(self._area_dinamica, altura_minima_lineas=6)
+        self._campo_texto.pack(fill="x")
 
     def _construir_area_archivo(self, etiqueta_archivo: str, texto_boton: str, tipos_archivo: list):
         ctk.CTkLabel(
             self._area_dinamica, text="Descripción (opcional)", font=(FONT_FAMILY, 12), text_color=COLOR_TEXTO_SECUNDARIO
         ).pack(pady=(0, 2), anchor="w")
-        self._campo_texto = ctk.CTkTextbox(
-            self._area_dinamica, width=500, height=100, corner_radius=4, fg_color=COLOR_FONDO_APP,
-            border_color=COLOR_BORDE_SUTIL, border_width=1, text_color=COLOR_TEXTO_PRIMARIO,
-            font=(FONT_FAMILY, 13),
-        )
-        self._campo_texto.pack(pady=(0, 10))
+        self._campo_texto = EditorTextoEnriquecido(self._area_dinamica, altura_minima_lineas=3)
+        self._campo_texto.pack(fill="x", pady=(0, 10))
 
         ctk.CTkLabel(
             self._area_dinamica, text=etiqueta_archivo, font=(FONT_FAMILY, 12), text_color=COLOR_TEXTO_SECUNDARIO
@@ -299,15 +293,13 @@ class FormularioContenido(ctk.CTkToplevel):
 
     def _precargar_datos(self, contenido: Contenido):
         self._campo_titulo.insert(0, contenido.titulo)
-        if contenido.contenido_texto:
-            self._campo_texto.insert("1.0", contenido.contenido_texto)
 
         if contenido.tipo_contenido == TIPO_PDF:
             for hijo in self._area_dinamica.winfo_children():
                 hijo.destroy()
             self._construir_area_archivo("Archivo PDF", "Elegir PDF…", [("Archivos PDF", "*.pdf")])
             if contenido.contenido_texto:
-                self._campo_texto.insert("1.0", contenido.contenido_texto)
+                self._campo_texto.cargar_markup(contenido.contenido_texto)
             self._etiqueta_archivo.configure(text="Archivo ya cargado (no se puede reemplazar aquí; elimina y crea de nuevo).")
         elif contenido.tipo_contenido == TIPO_IMAGEN:
             for hijo in self._area_dinamica.winfo_children():
@@ -316,12 +308,14 @@ class FormularioContenido(ctk.CTkToplevel):
                 "Archivo de imagen", "Elegir imagen…", [("Imágenes", "*.png *.jpg *.jpeg *.gif *.bmp")],
             )
             if contenido.contenido_texto:
-                self._campo_texto.insert("1.0", contenido.contenido_texto)
+                self._campo_texto.cargar_markup(contenido.contenido_texto)
             self._etiqueta_archivo.configure(text="Archivo ya cargado (no se puede reemplazar aquí; elimina y crea de nuevo).")
+        elif contenido.contenido_texto:
+            self._campo_texto.cargar_markup(contenido.contenido_texto)
 
     def _guardar(self):
         titulo = self._campo_titulo.get()
-        texto = self._campo_texto.get("1.0", "end").strip()
+        texto = self._campo_texto.obtener_markup()
 
         try:
             if self._contenido_existente:

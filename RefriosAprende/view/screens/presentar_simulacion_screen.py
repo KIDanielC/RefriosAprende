@@ -21,11 +21,13 @@ from config.settings import (
     RADIO_BOTON,
     RADIO_TARJETA,
 )
-from controller.simulacion_controller import DatosSimulacionInvalidosError, SimulacionController
+from controller.simulacion_controller import DatosSimulacionInvalidosError, IntentosAgotadosError, SimulacionController
 from model.entities.curso import Curso
 from model.entities.evaluacion import Evaluacion
 from model.entities.simulacion import Simulacion
 from model.entities.usuario import Usuario
+from utils.texto_enriquecido import texto_plano_desde_markup
+from view.components.editor_texto_enriquecido import EditorTextoEnriquecido
 
 
 class ListaSimulacionesWindow(ctk.CTkToplevel):
@@ -72,8 +74,8 @@ class ListaSimulacionesWindow(ctk.CTkToplevel):
             tarjeta, text=simulacion.titulo_caso, font=(FONT_FAMILY, 15, "bold"), text_color=COLOR_TEXTO_PRIMARIO, anchor="w",
         ).grid(row=0, column=0, sticky="ew", padx=18, pady=(14, 4))
         ctk.CTkLabel(
-            tarjeta, text=simulacion.descripcion_escenario, font=(FONT_FAMILY, 12), text_color=COLOR_TEXTO_SECUNDARIO,
-            anchor="w", justify="left", wraplength=580,
+            tarjeta, text=texto_plano_desde_markup(simulacion.descripcion_escenario), font=(FONT_FAMILY, 12),
+            text_color=COLOR_TEXTO_SECUNDARIO, anchor="w", justify="left", wraplength=580,
         ).grid(row=1, column=0, sticky="ew", padx=18, pady=(0, 10))
 
         ctk.CTkButton(
@@ -120,10 +122,9 @@ class PresentarCasoWindow(ctk.CTkToplevel):
             encabezado, text=self._simulacion.titulo_caso, font=(FONT_FAMILY, 16, "bold"), text_color=COLOR_TEXTO_PRIMARIO,
             anchor="w",
         ).pack(padx=16, pady=(14, 4), anchor="w")
-        ctk.CTkLabel(
-            encabezado, text=self._simulacion.descripcion_escenario, font=(FONT_FAMILY, 13), text_color=COLOR_TEXTO_SECUNDARIO,
-            anchor="w", justify="left", wraplength=600,
-        ).pack(padx=16, pady=(0, 14), anchor="w")
+        EditorTextoEnriquecido(
+            encabezado, valor_inicial=self._simulacion.descripcion_escenario, solo_lectura=True,
+        ).pack(padx=16, pady=(0, 14), anchor="w", fill="x")
 
         preguntas = self._controlador.listar_preguntas(self._evaluacion.id_evaluacion)
 
@@ -181,7 +182,7 @@ class PresentarCasoWindow(ctk.CTkToplevel):
 
         try:
             resultado = self._controlador.presentar_caso(self._usuario_sesion.id_usuario, self._evaluacion, respuestas)
-        except DatosSimulacionInvalidosError as error:
+        except (IntentosAgotadosError, DatosSimulacionInvalidosError) as error:
             self._etiqueta_resultado.configure(text=str(error), text_color=COLOR_ERROR)
             return
 

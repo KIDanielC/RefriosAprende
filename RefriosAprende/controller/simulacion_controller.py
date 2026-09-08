@@ -15,6 +15,7 @@ from model.entities.evaluacion import Evaluacion
 from model.entities.pregunta import Pregunta
 from model.entities.resultado import Resultado
 from model.entities.simulacion import Simulacion
+from utils.texto_enriquecido import texto_plano_desde_markup
 
 _NOTA_MAXIMA = 5.0
 _NOTA_MINIMA_APROBAR_DEFECTO = 3.0
@@ -72,7 +73,7 @@ class SimulacionController:
     def _validar_datos(self, titulo_caso: str, descripcion_escenario: str, diagnostico_correcto: str):
         if not titulo_caso or len(titulo_caso.strip()) < 3:
             raise DatosSimulacionInvalidosError("El título del caso debe tener al menos 3 caracteres.")
-        if not descripcion_escenario or len(descripcion_escenario.strip()) < 15:
+        if not descripcion_escenario or len(texto_plano_desde_markup(descripcion_escenario).strip()) < 15:
             raise DatosSimulacionInvalidosError("Describe el escenario clínico con al menos 15 caracteres.")
         if not diagnostico_correcto or len(diagnostico_correcto.strip()) < 3:
             raise DatosSimulacionInvalidosError("Indica el diagnóstico correcto del caso.")

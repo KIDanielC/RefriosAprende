@@ -20,6 +20,7 @@ from model.entities.curso import Curso
 from model.entities.evaluacion import Evaluacion
 from model.entities.pregunta import Pregunta
 from model.entities.simulacion import Simulacion
+from view.components.editor_texto_enriquecido import EditorTextoEnriquecido
 from view.screens.formulario_pregunta import FormularioPregunta
 
 
@@ -275,11 +276,8 @@ class FormularioCaso(ctk.CTkToplevel):
         ctk.CTkLabel(
             self, text="Descripción del escenario clínico", font=(FONT_FAMILY, 12), text_color=COLOR_TEXTO_SECUNDARIO
         ).pack(padx=28, pady=(6, 2), anchor="w")
-        self._campo_escenario = ctk.CTkTextbox(
-            self, width=460, height=140, corner_radius=4, fg_color=COLOR_FONDO_APP,
-            border_color=COLOR_BORDE_SUTIL, border_width=1, text_color=COLOR_TEXTO_PRIMARIO, font=(FONT_FAMILY, 13),
-        )
-        self._campo_escenario.pack(padx=28, pady=(0, 10))
+        self._campo_escenario = EditorTextoEnriquecido(self, altura_minima_lineas=5)
+        self._campo_escenario.pack(padx=28, pady=(0, 10), fill="x")
 
         self._campo_diagnostico = self._crear_campo("Diagnóstico correcto (referencia)")
 
@@ -307,12 +305,12 @@ class FormularioCaso(ctk.CTkToplevel):
 
     def _precargar_datos(self, simulacion: Simulacion):
         self._campo_titulo.insert(0, simulacion.titulo_caso)
-        self._campo_escenario.insert("1.0", simulacion.descripcion_escenario)
+        self._campo_escenario.cargar_markup(simulacion.descripcion_escenario)
         self._campo_diagnostico.insert(0, simulacion.diagnostico_correcto)
 
     def _guardar(self):
         titulo = self._campo_titulo.get()
-        escenario = self._campo_escenario.get("1.0", "end").strip()
+        escenario = self._campo_escenario.obtener_markup()
         diagnostico = self._campo_diagnostico.get()
 
         try:
