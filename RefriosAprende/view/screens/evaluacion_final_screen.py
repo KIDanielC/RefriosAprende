@@ -19,6 +19,7 @@ from model.entities.curso import Curso
 from model.entities.evaluacion import Evaluacion
 from model.entities.pregunta import Pregunta
 from view.screens.formulario_pregunta import FormularioPregunta
+from view.screens.resultados_evaluacion_screen import ResultadosEvaluacionWindow
 
 
 class EvaluacionFinalWindow(ctk.CTkToplevel):
@@ -142,8 +143,14 @@ class EvaluacionFinalWindow(ctk.CTkToplevel):
             ),
         ).pack(side="left")
         ctk.CTkButton(
+            barra, text="Ver resultados", height=36, corner_radius=4,
+            fg_color=COLOR_FONDO_TARJETA, hover_color=COLOR_FONDO_TARJETA_HOVER, border_width=1,
+            border_color=COLOR_ACENTO_SECUNDARIO, text_color=COLOR_TEXTO_PRIMARIO, font=(FONT_FAMILY, 13, "bold"),
+            command=lambda: self._ver_resultados(evaluacion),
+        ).pack(side="left", padx=8)
+        ctk.CTkButton(
             barra, text="Eliminar evaluación", height=36, corner_radius=4,
-            fg_color=COLOR_FONDO_TARJETA, hover_color="#FBE1E4", border_width=1, border_color=COLOR_ERROR,
+            fg_color=COLOR_FONDO_TARJETA, hover_color=COLOR_FONDO_TARJETA_HOVER, border_width=1, border_color=COLOR_ERROR,
             text_color=COLOR_ERROR, font=(FONT_FAMILY, 13, "bold"),
             command=lambda: self._eliminar_evaluacion(evaluacion),
         ).pack(side="left", padx=8)
@@ -203,6 +210,12 @@ class EvaluacionFinalWindow(ctk.CTkToplevel):
             font=(FONT_FAMILY, 12, "bold"),
             command=lambda: self._eliminar_pregunta(pregunta),
         ).pack(side="left")
+
+    def _ver_resultados(self, evaluacion: Evaluacion):
+        resultados = self._controlador.listar_resultados_detalle(evaluacion.id_evaluacion)
+        ResultadosEvaluacionWindow(
+            self, titulo=evaluacion.titulo, resultados=resultados, nota_minima=evaluacion.nota_minima_aprobar,
+        )
 
     def _eliminar_pregunta(self, pregunta: Pregunta):
         self._controlador.eliminar_pregunta(pregunta.id_pregunta)

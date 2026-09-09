@@ -80,6 +80,10 @@ class EvaluacionController:
     def eliminar_pregunta(self, id_pregunta: int) -> None:
         self._pregunta_dao.eliminar(id_pregunta)
 
+    # -- Resultados (Administrador) -----------------------------------------
+    def listar_resultados_detalle(self, id_evaluacion: int) -> list[tuple[str, float, bool, str]]:
+        return self._resultado_dao.listar_detalle_por_evaluacion(id_evaluacion)
+
     # -- Presentación (Aprendiz) -------------------------------------------
     def intentos_usados(self, id_usuario: int, id_evaluacion: int) -> int:
         return len(self._resultado_dao.listar_por_usuario_y_evaluacion(id_usuario, id_evaluacion))

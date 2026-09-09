@@ -22,6 +22,7 @@ from model.entities.pregunta import Pregunta
 from model.entities.simulacion import Simulacion
 from view.components.editor_texto_enriquecido import EditorTextoEnriquecido
 from view.screens.formulario_pregunta import FormularioPregunta
+from view.screens.resultados_evaluacion_screen import ResultadosEvaluacionWindow
 
 
 class SimulacionesWindow(ctk.CTkToplevel):
@@ -121,6 +122,12 @@ class SimulacionesWindow(ctk.CTkToplevel):
             command=lambda s=simulacion: self._abrir_formulario_edicion(s),
         ).pack(side="left", padx=(0, 8))
         ctk.CTkButton(
+            barra_acciones, text="Resultados", width=90, height=30, corner_radius=4,
+            fg_color=COLOR_FONDO_TARJETA_HOVER, border_width=1, border_color=COLOR_ACENTO_SECUNDARIO,
+            text_color=COLOR_TEXTO_PRIMARIO, font=(FONT_FAMILY, 12, "bold"),
+            command=lambda e=evaluacion: self._ver_resultados(e),
+        ).pack(side="left", padx=(0, 8))
+        ctk.CTkButton(
             barra_acciones, text="Eliminar", width=90, height=30, corner_radius=4,
             fg_color=COLOR_FONDO_TARJETA_HOVER, border_width=1, border_color=COLOR_ERROR, text_color=COLOR_ERROR,
             font=(FONT_FAMILY, 12, "bold"), command=lambda e=evaluacion: self._eliminar_caso(e),
@@ -133,6 +140,12 @@ class SimulacionesWindow(ctk.CTkToplevel):
 
     def _abrir_preguntas(self, evaluacion: Evaluacion):
         PreguntasCasoWindow(self, controlador=self._controlador, evaluacion=evaluacion)
+
+    def _ver_resultados(self, evaluacion: Evaluacion):
+        resultados = self._controlador.listar_resultados_detalle(evaluacion.id_evaluacion)
+        ResultadosEvaluacionWindow(
+            self, titulo=evaluacion.titulo, resultados=resultados, nota_minima=evaluacion.nota_minima_aprobar,
+        )
 
     def _abrir_formulario_creacion(self):
         FormularioCaso(self, controlador=self._controlador, id_curso=self._curso.id_curso, al_guardar=self._cargar_casos)

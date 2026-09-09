@@ -37,6 +37,25 @@ class ResultadoDAO:
         cursor.execute(f"{_SELECT_BASE} WHERE id_evaluacion = ? ORDER BY fecha_intento", (id_evaluacion,))
         return [self._fila_a_entidad(fila) for fila in cursor.fetchall()]
 
+    def listar_detalle_por_evaluacion(self, id_evaluacion: int) -> list[tuple[str, float, bool, str]]:
+        """Cada intento con el nombre del aprendiz (para que el administrador vea notas e
+        intentos sin tener que cruzar usuarios y resultados a mano)."""
+        cursor = self._conexion.obtener_cursor()
+        cursor.execute(
+            """
+            SELECT u.nombre_completo, r.nota_obtenida, r.aprobado, r.fecha_intento
+            FROM resultados r
+            JOIN usuarios u ON u.id_usuario = r.id_usuario
+            WHERE r.id_evaluacion = ?
+            ORDER BY u.nombre_completo, r.fecha_intento
+            """,
+            (id_evaluacion,),
+        )
+        return [
+            (fila["nombre_completo"], fila["nota_obtenida"], bool(fila["aprobado"]), fila["fecha_intento"])
+            for fila in cursor.fetchall()
+        ]
+
     def existe_aprobado(self, id_usuario: int, id_evaluacion: int) -> bool:
         cursor = self._conexion.obtener_cursor()
         cursor.execute(
