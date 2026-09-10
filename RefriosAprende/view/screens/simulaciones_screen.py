@@ -270,7 +270,7 @@ class FormularioCaso(ctk.CTkToplevel):
         self.configure(fg_color=COLOR_FONDO_TARJETA)
         self.geometry("520x600")
         self.minsize(520, 600)
-        self.resizable(False, True)
+        self.resizable(True, True)
         self.transient(master)
         self.grab_set()
 

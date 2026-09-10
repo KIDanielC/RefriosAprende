@@ -53,8 +53,8 @@ class ContenidosScreen(ctk.CTkFrame):
         barra.grid(row=0, column=0, sticky="ew", padx=28, pady=(24, 4))
 
         ctk.CTkButton(
-            barra, text="←  Volver a cursos", fg_color="transparent", hover_color=COLOR_FONDO_TARJETA_HOVER,
-            text_color=COLOR_ACENTO_SECUNDARIO, font=(FONT_FAMILY, 13, "bold"), width=160, height=32,
+            barra, text="←  Cerrar", fg_color="transparent", hover_color=COLOR_FONDO_TARJETA_HOVER,
+            text_color=COLOR_ACENTO_SECUNDARIO, font=(FONT_FAMILY, 13, "bold"), width=120, height=32,
             command=self._al_volver,
         ).pack(side="left")
 
@@ -189,7 +189,7 @@ class FormularioContenido(ctk.CTkToplevel):
         self.configure(fg_color=COLOR_FONDO_TARJETA)
         self.geometry("560x560")
         self.minsize(560, 480)
-        self.resizable(False, True)
+        self.resizable(True, True)
         self.transient(master)
         self.grab_set()
 
