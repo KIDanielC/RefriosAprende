@@ -1,7 +1,44 @@
 """Configuración global de la aplicación: rutas y paleta institucional."""
 import os
+import shutil
+import sys
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+def _en_modo_congelado() -> bool:
+    """True cuando el código corre empaquetado con PyInstaller (no en desarrollo)."""
+    return bool(getattr(sys, "frozen", False))
+
+
+if _en_modo_congelado():
+    # Carpeta de solo lectura: donde PyInstaller deja los recursos que se empaquetaron
+    # junto al ejecutable (schema.sql, imágenes, base de datos precargada de fábrica).
+    _DIR_RECURSOS_EMPAQUETADOS = getattr(sys, "_MEIPASS", os.path.dirname(sys.executable))
+    # Carpeta persistente y escribible para la BD real y los archivos que suban los
+    # instructores. El instalador suele dejar el .exe en "Program Files", donde un
+    # usuario sin permisos de administrador no puede escribir.
+    BASE_DIR = os.path.join(os.environ.get("LOCALAPPDATA", os.path.expanduser("~")), "RefriosAprende")
+else:
+    _DIR_RECURSOS_EMPAQUETADOS = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    BASE_DIR = _DIR_RECURSOS_EMPAQUETADOS
+
+
+def _preparar_datos_usuario() -> None:
+    """Primer arranque de la versión empaquetada: copia el esquema, la base de datos
+    precargada (si el instalador la incluyó) y los recursos originales desde la carpeta
+    de solo lectura del instalador hacia BASE_DIR (escribible). No hace nada si BASE_DIR
+    ya existe, para nunca pisar datos reales que el usuario ya haya generado."""
+    if not _en_modo_congelado() or os.path.isdir(BASE_DIR):
+        return
+    os.makedirs(BASE_DIR, exist_ok=True)
+    for carpeta in ("database", "resources"):
+        origen = os.path.join(_DIR_RECURSOS_EMPAQUETADOS, carpeta)
+        destino = os.path.join(BASE_DIR, carpeta)
+        if os.path.isdir(origen):
+            shutil.copytree(origen, destino, dirs_exist_ok=True)
+
+
+_preparar_datos_usuario()
+
 DATABASE_PATH = os.path.join(BASE_DIR, "database", "refrios.db")
 SCHEMA_PATH = os.path.join(BASE_DIR, "database", "schema.sql")
 ICONS_DIR = os.path.join(BASE_DIR, "resources", "icons")
