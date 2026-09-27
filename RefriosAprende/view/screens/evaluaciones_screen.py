@@ -1,28 +1,26 @@
 """Pantallas de acceso directo (menú lateral) a Evaluaciones y Simulaciones.
 
-La lógica y las ventanas de gestión/presentación ya existían desde el Sprint 3
-(EvaluacionFinalWindow, SimulacionesWindow, PresentarEvaluacionWindow,
-ListaSimulacionesWindow); estas pantallas solo listan los cursos relevantes
-según el rol y abren esas ventanas, para que "Evaluaciones"/"Simulaciones" del
-menú dejen de caer en el placeholder "se construirá en un sprint posterior".
+Solo listan los cursos relevantes según el rol y abren las ventanas de gestión o
+presentación correspondientes (EvaluacionFinalWindow, SimulacionesWindow,
+PresentarEvaluacionWindow, ListaSimulacionesWindow), sin lógica propia adicional.
 """
 import customtkinter as ctk
 
 from config.settings import (
-    COLOR_ACENTO_ALTERNO,
+    COLOR_FONDO_APP,
+    FONT_FAMILY,
+    COLOR_TEXTO_SECUNDARIO,
+    COLOR_FONDO_TARJETA,
+    RADIO_TARJETA,
+    GROSOR_BORDE_SUTIL,
+    COLOR_BORDE_SUTIL,
+    COLOR_TEXTO_PRIMARIO,
+    RADIO_BOTON,
     COLOR_ACENTO_PRIMARIO,
     COLOR_ACENTO_SECUNDARIO,
-    COLOR_BORDE_SUTIL,
-    COLOR_EXITO,
-    COLOR_FONDO_APP,
-    COLOR_FONDO_TARJETA,
     COLOR_FONDO_TARJETA_HOVER,
-    COLOR_TEXTO_PRIMARIO,
-    COLOR_TEXTO_SECUNDARIO,
-    FONT_FAMILY,
-    GROSOR_BORDE_SUTIL,
-    RADIO_BOTON,
-    RADIO_TARJETA,
+    COLOR_ACENTO_ALTERNO,
+    COLOR_EXITO,
 )
 from controller.curso_controller import CursoController
 from controller.evaluacion_controller import EvaluacionController

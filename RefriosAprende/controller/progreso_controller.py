@@ -10,7 +10,7 @@ from model.dao.evaluacion_dao import EvaluacionDAO
 from model.dao.inscripcion_dao import InscripcionDAO
 from model.dao.progreso_dao import ProgresoDAO
 from model.dao.resultado_dao import ResultadoDAO
-from model.entities.progreso import COMPLETADO, EN_PROGRESO, NO_INICIADO, Progreso
+from model.entities.progreso import Progreso, NO_INICIADO, COMPLETADO, EN_PROGRESO
 
 
 class ProgresoController:

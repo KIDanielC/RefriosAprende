@@ -1,5 +1,5 @@
 """Controlador de la Guía de Aprendizaje de un curso: valida y coordina Vista <-> Modelo."""
-from model.dao.guia_aprendizaje_dao import COLUMNAS_TEXTO_LIBRE, GuiaAprendizajeDAO
+from model.dao.guia_aprendizaje_dao import GuiaAprendizajeDAO, COLUMNAS_TEXTO_LIBRE
 from model.entities.guia_aprendizaje import GuiaAprendizaje
 from utils.texto_enriquecido import texto_plano_desde_markup
 

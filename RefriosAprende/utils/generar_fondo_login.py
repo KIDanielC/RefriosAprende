@@ -1,5 +1,5 @@
 """Script de un solo uso: redimensiona el logo original (pesado, 18 MB) a un tamaño
-liviano para el panel de Login. No se modifica color, brillo, contraste ni opacidad —
+liviano para el panel de Login. No se modifica color, brillo, contraste ni opacidad:
 la imagen se muestra tal cual es, solo más pequeña para que la app cargue rápido.
 
 Ejecutar manualmente cada vez que se reemplace resources/images/Logo_Interfaz.png:

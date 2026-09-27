@@ -1,8 +1,8 @@
 import pytest
 
 from controller.autenticacion_controller import (
-    AutenticacionController,
     CredencialesInvalidasError,
+    AutenticacionController,
     UsuarioInactivoError,
 )
 from controller.usuario_controller import UsuarioController

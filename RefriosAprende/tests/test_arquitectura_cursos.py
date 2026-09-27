@@ -1,12 +1,12 @@
-"""Pruebas de las mejoras arquitectónicas de Sprint 4: prerrequisitos entre cursos,
+"""Pruebas de la arquitectura extendida de cursos: prerrequisitos entre cursos,
 aprendizaje secuencial (contenido bloqueado) y certificado de finalización."""
 import pytest
 
-from controller.certificado_controller import CertificadoController, CursoNoCompletadoError
+from controller.certificado_controller import CursoNoCompletadoError, CertificadoController
 from controller.contenido_controller import ContenidoController
 from controller.curso_controller import CursoController
 from controller.evaluacion_controller import EvaluacionController
-from controller.inscripcion_controller import InscripcionController, PrerrequisitosIncompletosError
+from controller.inscripcion_controller import PrerrequisitosIncompletosError, InscripcionController
 from controller.progreso_controller import ProgresoController
 
 

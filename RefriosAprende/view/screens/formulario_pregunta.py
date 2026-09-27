@@ -6,17 +6,18 @@ import tkinter as tk
 import customtkinter as ctk
 
 from config.settings import (
-    COLOR_ACENTO_PRIMARIO,
-    COLOR_ACENTO_SECUNDARIO,
-    COLOR_BORDE_SUTIL,
-    COLOR_ERROR,
-    COLOR_FONDO_APP,
     COLOR_FONDO_TARJETA,
+    FONT_FAMILY,
     COLOR_TEXTO_PRIMARIO,
     COLOR_TEXTO_SECUNDARIO,
-    FONT_FAMILY,
+    RADIO_BOTON,
+    COLOR_FONDO_APP,
+    COLOR_BORDE_SUTIL,
+    COLOR_ACENTO_PRIMARIO,
+    COLOR_ERROR,
+    COLOR_ACENTO_SECUNDARIO,
 )
-from controller._pregunta_opcion_utils import DatosPreguntaInvalidosError, MAXIMO_OPCIONES
+from controller._pregunta_opcion_utils import MAXIMO_OPCIONES, DatosPreguntaInvalidosError
 from model.entities.pregunta import Pregunta
 
 
@@ -34,7 +35,6 @@ class FormularioPregunta(ctk.CTkToplevel):
         self.geometry("520x640")
         self.minsize(520, 640)
         self.resizable(True, True)
-        self.transient(master)
         self.grab_set()
 
         self._construir_formulario()
@@ -51,7 +51,7 @@ class FormularioPregunta(ctk.CTkToplevel):
             self, text="Enunciado", font=(FONT_FAMILY, 12), text_color=COLOR_TEXTO_SECUNDARIO
         ).pack(padx=28, pady=(0, 2), anchor="w")
         self._campo_enunciado = ctk.CTkTextbox(
-            self, width=460, height=70, corner_radius=4, fg_color=COLOR_FONDO_APP,
+            self, width=460, height=70, corner_radius=RADIO_BOTON, fg_color=COLOR_FONDO_APP,
             border_color=COLOR_BORDE_SUTIL, border_width=1, text_color=COLOR_TEXTO_PRIMARIO,
             font=(FONT_FAMILY, 13),
         )
@@ -72,7 +72,7 @@ class FormularioPregunta(ctk.CTkToplevel):
             ).pack(side="left", padx=(0, 8))
 
             campo = ctk.CTkEntry(
-                fila, width=380, height=38, corner_radius=4, fg_color=COLOR_FONDO_APP,
+                fila, width=380, height=38, corner_radius=RADIO_BOTON, fg_color=COLOR_FONDO_APP,
                 border_color=COLOR_BORDE_SUTIL, text_color=COLOR_TEXTO_PRIMARIO,
                 placeholder_text=f"Opción {indice + 1}" + (" (opcional)" if indice >= 2 else ""),
             )
@@ -85,7 +85,7 @@ class FormularioPregunta(ctk.CTkToplevel):
         self._etiqueta_error.pack(padx=28, pady=(10, 0))
 
         ctk.CTkButton(
-            self, text="Guardar", width=460, height=44, corner_radius=4,
+            self, text="Guardar", width=460, height=44, corner_radius=RADIO_BOTON,
             fg_color=COLOR_ACENTO_PRIMARIO, hover_color=COLOR_ACENTO_SECUNDARIO,
             font=(FONT_FAMILY, 14, "bold"), command=self._guardar,
         ).pack(padx=28, pady=(18, 24))

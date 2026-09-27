@@ -5,23 +5,23 @@ from tkinter import ttk
 import customtkinter as ctk
 
 from config.settings import (
-    COLOR_ACENTO_ALTERNO,
-    COLOR_ACENTO_PRIMARIO,
-    COLOR_ACENTO_SECUNDARIO,
-    COLOR_BORDE_SUTIL,
-    COLOR_ERROR,
     COLOR_FONDO_APP,
-    COLOR_FONDO_PANEL,
-    COLOR_FONDO_TARJETA,
-    COLOR_FONDO_TARJETA_HOVER,
+    FONT_FAMILY,
     COLOR_TEXTO_PRIMARIO,
     COLOR_TEXTO_SECUNDARIO,
-    FONT_FAMILY,
-    GROSOR_BORDE_SUTIL,
     RADIO_BOTON,
+    COLOR_ACENTO_PRIMARIO,
+    COLOR_ACENTO_SECUNDARIO,
+    COLOR_FONDO_TARJETA,
+    COLOR_BORDE_SUTIL,
+    GROSOR_BORDE_SUTIL,
+    COLOR_FONDO_TARJETA_HOVER,
+    COLOR_ACENTO_ALTERNO,
+    COLOR_ERROR,
     RADIO_TARJETA,
+    COLOR_FONDO_PANEL,
 )
-from controller.usuario_controller import DatosInvalidosError, UltimoAdministradorError, UsuarioController
+from controller.usuario_controller import UsuarioController, UltimoAdministradorError, DatosInvalidosError
 from model.entities.usuario import Usuario
 
 
@@ -347,7 +347,6 @@ class DialogoConfirmacion(ctk.CTkToplevel):
         self.geometry("420x190")
         self.minsize(420, 190)
         self.resizable(True, True)
-        self.transient(master)
         self.grab_set()
 
         ctk.CTkLabel(
@@ -392,7 +391,6 @@ class FormularioUsuario(ctk.CTkToplevel):
         self.geometry("480x700")
         self.minsize(480, 700)
         self.resizable(True, True)
-        self.transient(master)
         self.grab_set()
 
         self._construir_formulario()
@@ -506,7 +504,6 @@ class FormularioContrasena(ctk.CTkToplevel):
         self.geometry("400x260")
         self.minsize(400, 260)
         self.resizable(True, True)
-        self.transient(master)
         self.grab_set()
 
         ctk.CTkLabel(

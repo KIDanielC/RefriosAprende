@@ -1,7 +1,7 @@
-"""Pantalla del Aprendiz: vista única de un curso, combinando la guía de aprendizaje (texto
-pedagógico) con el contenido real y las acciones de practicar/presentar — un solo lugar en vez
-de dos ventanas separadas ("Guía de aprendizaje" + "Ver contenido del curso"). Organizada según
-la metodología: aprender -> practicar -> simular -> evaluar."""
+"""Pantalla del Aprendiz: vista única de un curso, que combina la guía de aprendizaje (texto
+pedagógico) con el contenido real y las acciones de practicar/presentar en un solo lugar, en
+vez de dos ventanas separadas ("Guía de aprendizaje" + "Ver contenido del curso"). Organizada
+según la metodología: aprender -> practicar -> simular -> evaluar."""
 import os
 import subprocess
 import sys
@@ -10,23 +10,23 @@ import customtkinter as ctk
 from PIL import Image
 
 from config.settings import (
-    BASE_DIR,
-    COLOR_ACENTO_ALTERNO,
-    COLOR_ACENTO_ALTERNO_GLOW,
-    COLOR_ACENTO_PRIMARIO,
-    COLOR_ACENTO_SECUNDARIO,
-    COLOR_BORDE_SUTIL,
-    COLOR_ERROR,
-    COLOR_EXITO,
     COLOR_FONDO_APP,
     COLOR_FONDO_TARJETA,
-    COLOR_FONDO_TARJETA_HOVER,
-    COLOR_TEXTO_PRIMARIO,
-    COLOR_TEXTO_SECUNDARIO,
-    FONT_FAMILY,
-    GROSOR_BORDE_SUTIL,
-    RADIO_BOTON,
     RADIO_TARJETA,
+    GROSOR_BORDE_SUTIL,
+    COLOR_BORDE_SUTIL,
+    COLOR_ACENTO_PRIMARIO,
+    COLOR_ACENTO_SECUNDARIO,
+    COLOR_TEXTO_PRIMARIO,
+    COLOR_FONDO_TARJETA_HOVER,
+    FONT_FAMILY,
+    COLOR_TEXTO_SECUNDARIO,
+    RADIO_BOTON,
+    COLOR_ACENTO_ALTERNO,
+    BASE_DIR,
+    COLOR_ACENTO_ALTERNO_GLOW,
+    COLOR_EXITO,
+    COLOR_ERROR,
 )
 from controller.contenido_controller import TIPO_IMAGEN, TIPO_PDF, ContenidoController
 from controller.evaluacion_controller import EvaluacionController
@@ -122,7 +122,7 @@ class CursoAprendizScreen(ctk.CTkFrame):
 
     def _construir_resumen_guia(self, guia):
         """Objetivos, competencias y duración: lo primero que el aprendiz debe leer del curso,
-        visible de una vez al entrar — sin abrir nada aparte ni cambiar de pestaña."""
+        visible de una vez al entrar, sin abrir nada aparte ni cambiar de pestaña."""
         campos = (
             ("objetivo_general", "Objetivo general"),
             ("objetivos_especificos", "Objetivos específicos"),

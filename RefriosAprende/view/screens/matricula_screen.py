@@ -2,21 +2,21 @@
 import customtkinter as ctk
 
 from config.settings import (
-    COLOR_ACENTO_PRIMARIO,
-    COLOR_ACENTO_SECUNDARIO,
-    COLOR_BORDE_SUTIL,
-    COLOR_ERROR,
     COLOR_FONDO_APP,
-    COLOR_FONDO_TARJETA,
-    COLOR_FONDO_TARJETA_HOVER,
-    COLOR_TEXTO_PRIMARIO,
-    COLOR_TEXTO_SECUNDARIO,
     FONT_FAMILY,
-    GROSOR_BORDE_SUTIL,
-    RADIO_BOTON,
+    COLOR_TEXTO_PRIMARIO,
+    COLOR_ERROR,
+    COLOR_ACENTO_PRIMARIO,
+    COLOR_FONDO_TARJETA,
     RADIO_TARJETA,
+    GROSOR_BORDE_SUTIL,
+    COLOR_BORDE_SUTIL,
+    COLOR_TEXTO_SECUNDARIO,
+    RADIO_BOTON,
+    COLOR_FONDO_TARJETA_HOVER,
+    COLOR_ACENTO_SECUNDARIO,
 )
-from controller.inscripcion_controller import InscripcionController, PrerrequisitosIncompletosError
+from controller.inscripcion_controller import PrerrequisitosIncompletosError, InscripcionController
 from model.entities.curso import Curso
 
 
@@ -32,7 +32,7 @@ class MatriculaWindow(ctk.CTkToplevel):
         self.configure(fg_color=COLOR_FONDO_APP)
         self.geometry("760x560")
         self.minsize(680, 460)
-        self.transient(master)
+        self.resizable(True, True)
         self.grab_set()
 
         self.grid_columnconfigure((0, 1), weight=1)

@@ -1,5 +1,5 @@
 """Script único de inicialización: crea el usuario administrador por defecto si no existe."""
-from controller.usuario_controller import DatosInvalidosError, UsuarioController
+from controller.usuario_controller import UsuarioController, DatosInvalidosError
 from model.dao.rol_dao import RolDAO
 from model.dao.usuario_dao import UsuarioDAO
 

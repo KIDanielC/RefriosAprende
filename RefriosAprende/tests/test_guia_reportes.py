@@ -1,7 +1,7 @@
 import pytest
 
 from controller.evaluacion_controller import EvaluacionController
-from controller.guia_aprendizaje_controller import CAMPOS_TEXTO_GUIA, DatosGuiaInvalidosError, GuiaAprendizajeController
+from controller.guia_aprendizaje_controller import GuiaAprendizajeController, DatosGuiaInvalidosError, CAMPOS_TEXTO_GUIA
 from controller.inscripcion_controller import InscripcionController
 from controller.progreso_controller import ProgresoController
 from controller.reporte_controller import ReporteController

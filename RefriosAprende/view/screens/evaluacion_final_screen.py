@@ -2,19 +2,22 @@
 import customtkinter as ctk
 
 from config.settings import (
-    COLOR_ACENTO_PRIMARIO,
-    COLOR_ACENTO_SECUNDARIO,
-    COLOR_BORDE_SUTIL,
-    COLOR_ERROR,
-    COLOR_EXITO,
     COLOR_FONDO_APP,
-    COLOR_FONDO_TARJETA,
-    COLOR_FONDO_TARJETA_HOVER,
+    FONT_FAMILY,
     COLOR_TEXTO_PRIMARIO,
     COLOR_TEXTO_SECUNDARIO,
-    FONT_FAMILY,
+    COLOR_ERROR,
+    RADIO_BOTON,
+    COLOR_ACENTO_PRIMARIO,
+    COLOR_ACENTO_SECUNDARIO,
+    COLOR_FONDO_TARJETA,
+    COLOR_BORDE_SUTIL,
+    COLOR_FONDO_TARJETA_HOVER,
+    RADIO_TARJETA,
+    GROSOR_BORDE_SUTIL,
+    COLOR_EXITO,
 )
-from controller.evaluacion_controller import DatosEvaluacionInvalidosError, EvaluacionController
+from controller.evaluacion_controller import EvaluacionController, DatosEvaluacionInvalidosError
 from model.entities.curso import Curso
 from model.entities.evaluacion import Evaluacion
 from model.entities.pregunta import Pregunta
@@ -35,7 +38,7 @@ class EvaluacionFinalWindow(ctk.CTkToplevel):
         self.configure(fg_color=COLOR_FONDO_APP)
         self.geometry("700x620")
         self.minsize(650, 500)
-        self.transient(master)
+        self.resizable(True, True)
         self.grab_set()
 
         self.grid_columnconfigure(0, weight=1)
@@ -97,7 +100,7 @@ class EvaluacionFinalWindow(ctk.CTkToplevel):
             self._refrescar()
 
         ctk.CTkButton(
-            contenedor, text="Crear evaluación final", width=380, height=44, corner_radius=4,
+            contenedor, text="Crear evaluación final", width=380, height=44, corner_radius=RADIO_BOTON,
             fg_color=COLOR_ACENTO_PRIMARIO, hover_color=COLOR_ACENTO_SECUNDARIO,
             font=(FONT_FAMILY, 14, "bold"), command=_crear,
         ).pack(padx=28, pady=(16, 24))
@@ -107,7 +110,7 @@ class EvaluacionFinalWindow(ctk.CTkToplevel):
             contenedor, text=etiqueta, font=(FONT_FAMILY, 12), text_color=COLOR_TEXTO_SECUNDARIO
         ).pack(padx=28, pady=(6, 2), anchor="w")
         campo = ctk.CTkEntry(
-            contenedor, width=380, height=40, corner_radius=4, fg_color=COLOR_FONDO_TARJETA,
+            contenedor, width=380, height=40, corner_radius=RADIO_BOTON, fg_color=COLOR_FONDO_TARJETA,
             border_color=COLOR_BORDE_SUTIL, text_color=COLOR_TEXTO_PRIMARIO,
         )
         campo.pack(padx=28, pady=(0, 2))
@@ -131,7 +134,7 @@ class EvaluacionFinalWindow(ctk.CTkToplevel):
         barra = ctk.CTkFrame(self, fg_color="transparent")
         barra.grid(row=1, column=0, sticky="ew", padx=24, pady=(8, 8))
         ctk.CTkButton(
-            barra, text="+  Nueva pregunta", height=36, corner_radius=4,
+            barra, text="+  Nueva pregunta", height=36, corner_radius=RADIO_BOTON,
             fg_color=COLOR_ACENTO_PRIMARIO, hover_color=COLOR_ACENTO_SECUNDARIO,
             font=(FONT_FAMILY, 13, "bold"),
             command=lambda: FormularioPregunta(
@@ -143,13 +146,13 @@ class EvaluacionFinalWindow(ctk.CTkToplevel):
             ),
         ).pack(side="left")
         ctk.CTkButton(
-            barra, text="Ver resultados", height=36, corner_radius=4,
+            barra, text="Ver resultados", height=36, corner_radius=RADIO_BOTON,
             fg_color=COLOR_FONDO_TARJETA, hover_color=COLOR_FONDO_TARJETA_HOVER, border_width=1,
             border_color=COLOR_ACENTO_SECUNDARIO, text_color=COLOR_TEXTO_PRIMARIO, font=(FONT_FAMILY, 13, "bold"),
             command=lambda: self._ver_resultados(evaluacion),
         ).pack(side="left", padx=8)
         ctk.CTkButton(
-            barra, text="Eliminar evaluación", height=36, corner_radius=4,
+            barra, text="Eliminar evaluación", height=36, corner_radius=RADIO_BOTON,
             fg_color=COLOR_FONDO_TARJETA, hover_color=COLOR_FONDO_TARJETA_HOVER, border_width=1, border_color=COLOR_ERROR,
             text_color=COLOR_ERROR, font=(FONT_FAMILY, 13, "bold"),
             command=lambda: self._eliminar_evaluacion(evaluacion),
@@ -172,7 +175,8 @@ class EvaluacionFinalWindow(ctk.CTkToplevel):
 
     def _construir_tarjeta_pregunta(self, contenedor, fila: int, pregunta: Pregunta, evaluacion: Evaluacion):
         tarjeta = ctk.CTkFrame(
-            contenedor, fg_color=COLOR_FONDO_TARJETA, corner_radius=4, border_width=1, border_color=COLOR_BORDE_SUTIL
+            contenedor, fg_color=COLOR_FONDO_TARJETA, corner_radius=RADIO_TARJETA,
+            border_width=GROSOR_BORDE_SUTIL, border_color=COLOR_BORDE_SUTIL,
         )
         tarjeta.grid(row=fila, column=0, sticky="ew", pady=6)
         tarjeta.grid_columnconfigure(0, weight=1)
@@ -193,7 +197,7 @@ class EvaluacionFinalWindow(ctk.CTkToplevel):
         barra_acciones.grid(row=1 + len(pregunta.opciones), column=0, sticky="w", padx=16, pady=(8, 12))
 
         ctk.CTkButton(
-            barra_acciones, text="Editar", width=90, height=30, corner_radius=4,
+            barra_acciones, text="Editar", width=90, height=30, corner_radius=RADIO_BOTON,
             fg_color=COLOR_FONDO_TARJETA_HOVER, border_width=1, border_color=COLOR_ACENTO_SECUNDARIO,
             text_color=COLOR_TEXTO_PRIMARIO, font=(FONT_FAMILY, 12, "bold"),
             command=lambda: FormularioPregunta(
@@ -205,7 +209,7 @@ class EvaluacionFinalWindow(ctk.CTkToplevel):
             ),
         ).pack(side="left", padx=(0, 8))
         ctk.CTkButton(
-            barra_acciones, text="Eliminar", width=90, height=30, corner_radius=4,
+            barra_acciones, text="Eliminar", width=90, height=30, corner_radius=RADIO_BOTON,
             fg_color=COLOR_FONDO_TARJETA_HOVER, border_width=1, border_color=COLOR_ERROR, text_color=COLOR_ERROR,
             font=(FONT_FAMILY, 12, "bold"),
             command=lambda: self._eliminar_pregunta(pregunta),

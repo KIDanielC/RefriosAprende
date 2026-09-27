@@ -6,7 +6,7 @@ from model.entities.usuario import Usuario
 
 _SELECT_BASE = """
     SELECT u.id_usuario, u.nombre_completo, u.documento, u.correo, u.usuario,
-           u.contrasena_hash, u.id_rol, u.activo, u.fecha_creacion, r.nombre_rol
+           u.contrasena_hash, u.id_rol, u.activo, u.fecha_creacion, u.foto_perfil, r.nombre_rol
     FROM usuarios u
     INNER JOIN roles r ON r.id_rol = u.id_rol
 """
@@ -36,6 +36,7 @@ class UsuarioDAO:
             activo=fila["activo"],
             fecha_creacion=fila["fecha_creacion"],
             nombre_rol=fila["nombre_rol"],
+            foto_perfil=fila["foto_perfil"],
         )
 
     def obtener_por_usuario(self, usuario: str) -> Usuario | None:
@@ -111,6 +112,14 @@ class UsuarioDAO:
         cursor.execute(
             "UPDATE usuarios SET contrasena_hash = ? WHERE id_usuario = ?",
             (contrasena_hash, id_usuario),
+        )
+        self._conexion.confirmar()
+
+    def actualizar_foto_perfil(self, id_usuario: int, ruta_relativa: str | None) -> None:
+        cursor = self._conexion.obtener_cursor()
+        cursor.execute(
+            "UPDATE usuarios SET foto_perfil = ? WHERE id_usuario = ?",
+            (ruta_relativa, id_usuario),
         )
         self._conexion.confirmar()
 

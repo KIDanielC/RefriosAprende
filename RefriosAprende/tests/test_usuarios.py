@@ -1,7 +1,24 @@
+import os
+
 import pytest
 
+import controller.usuario_controller as usuario_controller_module
 from controller.curso_controller import CursoController
-from controller.usuario_controller import DatosInvalidosError, UltimoAdministradorError, UsuarioController
+from controller.usuario_controller import UsuarioController, DatosInvalidosError, UltimoAdministradorError
+
+
+@pytest.fixture
+def carpeta_fotos_perfil(tmp_path, monkeypatch):
+    """Aísla dónde se guardan las fotos de perfil durante la prueba (nunca en resources/ real)."""
+    monkeypatch.setattr(usuario_controller_module, "BASE_DIR", str(tmp_path))
+    monkeypatch.setattr(usuario_controller_module, "FOTOS_PERFIL_DIR", str(tmp_path / "resources" / "fotos_perfil"))
+    return tmp_path
+
+
+def _crear_png_de_prueba(tmp_path, nombre="foto.png") -> str:
+    ruta = tmp_path / nombre
+    ruta.write_bytes(b"contenido png de prueba")
+    return str(ruta)
 
 
 def test_crear_usuario_valido(id_rol_aprendiz):
@@ -95,3 +112,41 @@ def test_no_se_puede_eliminar_usuario_instructor_de_un_curso(admin, id_rol_admin
 
     with pytest.raises(DatosInvalidosError):
         uc.eliminar_usuario(otro_admin.id_usuario)
+
+
+def test_actualizar_foto_perfil_valida(aprendiz, carpeta_fotos_perfil):
+    uc = UsuarioController()
+    ruta_origen = _crear_png_de_prueba(carpeta_fotos_perfil)
+
+    actualizado = uc.actualizar_foto_perfil(aprendiz.id_usuario, ruta_origen)
+
+    assert actualizado.foto_perfil is not None
+    assert actualizado.foto_perfil.endswith(".png")
+    assert os.path.isfile(os.path.join(str(carpeta_fotos_perfil), actualizado.foto_perfil))
+
+
+def test_actualizar_foto_perfil_rechaza_extension_no_png(aprendiz, carpeta_fotos_perfil):
+    uc = UsuarioController()
+    ruta_origen = _crear_png_de_prueba(carpeta_fotos_perfil, nombre="foto.jpg")
+
+    with pytest.raises(DatosInvalidosError):
+        uc.actualizar_foto_perfil(aprendiz.id_usuario, ruta_origen)
+
+
+def test_actualizar_foto_perfil_rechaza_archivo_inexistente(aprendiz, carpeta_fotos_perfil):
+    uc = UsuarioController()
+    with pytest.raises(DatosInvalidosError):
+        uc.actualizar_foto_perfil(aprendiz.id_usuario, str(carpeta_fotos_perfil / "no_existe.png"))
+
+
+def test_actualizar_foto_perfil_reemplaza_y_borra_la_anterior(aprendiz, carpeta_fotos_perfil):
+    uc = UsuarioController()
+    primera = uc.actualizar_foto_perfil(aprendiz.id_usuario, _crear_png_de_prueba(carpeta_fotos_perfil, "primera.png"))
+    ruta_primera_absoluta = os.path.join(str(carpeta_fotos_perfil), primera.foto_perfil)
+    assert os.path.isfile(ruta_primera_absoluta)
+
+    segunda = uc.actualizar_foto_perfil(aprendiz.id_usuario, _crear_png_de_prueba(carpeta_fotos_perfil, "segunda.png"))
+
+    assert segunda.foto_perfil != primera.foto_perfil
+    assert not os.path.isfile(ruta_primera_absoluta)
+    assert os.path.isfile(os.path.join(str(carpeta_fotos_perfil), segunda.foto_perfil))

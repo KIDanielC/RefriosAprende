@@ -48,8 +48,8 @@ def aprendiz(id_rol_aprendiz):
 
 @pytest.fixture
 def curso(admin):
-    """Curso ya publicado (ACTIVO): los cursos nacen en BORRADOR, así que la mayoría de
-    pruebas —que asumen un curso visible/matriculable— lo publican de inmediato aquí."""
+    """Curso ya publicado (ACTIVO): los cursos nacen en BORRADOR, así que esta fixture lo
+    publica de inmediato, porque la mayoría de pruebas asumen un curso visible y matriculable."""
     cc = CursoController()
     curso_creado = cc.crear_curso("Curso de Prueba", "Descripción del curso de prueba", admin.id_usuario)
     return cc.actualizar_curso(

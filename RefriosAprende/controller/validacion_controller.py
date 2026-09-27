@@ -1,7 +1,7 @@
 """Controlador de preguntas de opción múltiple para validar el conocimiento de un contenido puntual.
 
-No es el módulo formal de Evaluaciones (Sprint 3): estas preguntas son cuestionarios cortos
-de refuerzo por contenido, sin nota mínima ni intentos. Internamente reutilizan las tablas
+No es el módulo formal de Evaluaciones: estas preguntas son cuestionarios cortos de refuerzo
+por contenido, sin nota mínima ni intentos. Internamente reutilizan las tablas
 evaluaciones/preguntas/opciones, pero ese detalle no se expone a la Vista.
 """
 from model.dao.evaluacion_dao import EvaluacionDAO

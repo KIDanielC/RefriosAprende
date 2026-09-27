@@ -2,20 +2,20 @@
 import customtkinter as ctk
 
 from config.settings import (
+    COLOR_TEXTO_SECUNDARIO,
     COLOR_ACENTO_PRIMARIO,
-    COLOR_BORDE_SUTIL,
     COLOR_EXITO,
     COLOR_FONDO_APP,
-    COLOR_FONDO_TARJETA,
-    COLOR_TEXTO_PRIMARIO,
-    COLOR_TEXTO_SECUNDARIO,
     FONT_FAMILY,
-    GROSOR_BORDE_SUTIL,
+    COLOR_FONDO_TARJETA,
     RADIO_TARJETA,
+    GROSOR_BORDE_SUTIL,
+    COLOR_BORDE_SUTIL,
+    COLOR_TEXTO_PRIMARIO,
 )
 from controller.inscripcion_controller import InscripcionController
 from controller.progreso_controller import ProgresoController
-from model.entities.progreso import COMPLETADO, EN_PROGRESO
+from model.entities.progreso import EN_PROGRESO, COMPLETADO
 from model.entities.usuario import Usuario
 
 _TEXTOS_ESTADO = {

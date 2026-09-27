@@ -1,11 +1,17 @@
 """Controlador de gestión de usuarios: valida y coordina Vista <-> Modelo."""
+import logging
+import os
 import re
+import shutil
+import uuid
 
+from config.settings import BASE_DIR, FOTOS_PERFIL_DIR
 from model.dao.rol_dao import RolDAO
-from model.dao.usuario_dao import UsuarioDAO, UsuarioReferenciadoError, UsuarioYaExisteError
+from model.dao.usuario_dao import UsuarioDAO, UsuarioYaExisteError, UsuarioReferenciadoError
 from model.entities.usuario import Usuario
 from utils.seguridad import generar_hash
 
+_logger = logging.getLogger(__name__)
 _PATRON_CORREO = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 _NOMBRE_ROL_ADMINISTRADOR = "ADMINISTRADOR"
 
@@ -104,6 +110,35 @@ class UsuarioController:
         if not contrasena_nueva or len(contrasena_nueva) < 6:
             raise DatosInvalidosError("La contraseña debe tener al menos 6 caracteres.")
         self._usuario_dao.actualizar_contrasena(id_usuario, generar_hash(contrasena_nueva))
+
+    def actualizar_foto_perfil(self, id_usuario: int, ruta_imagen_origen: str) -> Usuario:
+        if not ruta_imagen_origen or not os.path.isfile(ruta_imagen_origen):
+            raise DatosInvalidosError("Selecciona un archivo de imagen válido.")
+        if not ruta_imagen_origen.lower().endswith(".png"):
+            raise DatosInvalidosError("La foto de perfil debe ser un archivo PNG.")
+
+        usuario_actual = self._usuario_dao.obtener_por_id(id_usuario)
+        if usuario_actual is None:
+            raise DatosInvalidosError("El usuario ya no existe.")
+
+        os.makedirs(FOTOS_PERFIL_DIR, exist_ok=True)
+        nombre_unico = f"{uuid.uuid4().hex}.png"
+        shutil.copyfile(ruta_imagen_origen, os.path.join(FOTOS_PERFIL_DIR, nombre_unico))
+        ruta_relativa = os.path.join("resources", "fotos_perfil", nombre_unico)
+
+        self._usuario_dao.actualizar_foto_perfil(id_usuario, ruta_relativa)
+        if usuario_actual.foto_perfil:
+            self._eliminar_archivo_fisico(usuario_actual.foto_perfil)
+
+        return self._usuario_dao.obtener_por_id(id_usuario)
+
+    def _eliminar_archivo_fisico(self, ruta_relativa: str) -> None:
+        ruta_absoluta = os.path.join(BASE_DIR, ruta_relativa)
+        if os.path.isfile(ruta_absoluta):
+            try:
+                os.remove(ruta_absoluta)
+            except OSError:
+                _logger.warning("No se pudo eliminar la foto de perfil anterior: %s", ruta_absoluta, exc_info=True)
 
     def eliminar_usuario(self, id_usuario: int) -> None:
         usuario = self._usuario_dao.obtener_por_id(id_usuario)

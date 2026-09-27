@@ -2,14 +2,14 @@
 import customtkinter as ctk
 
 from config.settings import (
-    APP_NAME,
-    COLOR_ACENTO_PRIMARIO,
     COLOR_FONDO_APP,
     COLOR_FONDO_TARJETA,
-    COLOR_TEXTO_PRIMARIO,
-    COLOR_TEXTO_SECUNDARIO,
-    FONT_FAMILY,
     RADIO_TARJETA,
+    COLOR_ACENTO_PRIMARIO,
+    FONT_FAMILY,
+    COLOR_TEXTO_SECUNDARIO,
+    COLOR_TEXTO_PRIMARIO,
+    APP_NAME,
 )
 from controller.certificado_controller import CertificadoController
 

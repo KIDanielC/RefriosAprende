@@ -6,21 +6,21 @@ import tkinter as tk
 import customtkinter as ctk
 
 from config.settings import (
-    COLOR_ACENTO_PRIMARIO,
-    COLOR_ACENTO_SECUNDARIO,
-    COLOR_BORDE_SUTIL,
-    COLOR_ERROR,
-    COLOR_EXITO,
     COLOR_FONDO_APP,
-    COLOR_FONDO_TARJETA,
+    FONT_FAMILY,
     COLOR_TEXTO_PRIMARIO,
     COLOR_TEXTO_SECUNDARIO,
-    FONT_FAMILY,
-    GROSOR_BORDE_SUTIL,
-    RADIO_BOTON,
+    COLOR_ERROR,
+    COLOR_FONDO_TARJETA,
     RADIO_TARJETA,
+    GROSOR_BORDE_SUTIL,
+    COLOR_BORDE_SUTIL,
+    COLOR_ACENTO_PRIMARIO,
+    RADIO_BOTON,
+    COLOR_ACENTO_SECUNDARIO,
+    COLOR_EXITO,
 )
-from controller.evaluacion_controller import DatosEvaluacionInvalidosError, EvaluacionController, IntentosAgotadosError
+from controller.evaluacion_controller import EvaluacionController, IntentosAgotadosError, DatosEvaluacionInvalidosError
 from model.entities.evaluacion import Evaluacion
 from model.entities.usuario import Usuario
 

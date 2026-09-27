@@ -1,31 +1,38 @@
 """Pantalla de Configuración: datos de la propia cuenta del administrador en sesión."""
+from tkinter import filedialog
+
 import customtkinter as ctk
 
 from config.settings import (
-    COLOR_ACENTO_PRIMARIO,
-    COLOR_ACENTO_SECUNDARIO,
-    COLOR_BORDE_SUTIL,
-    COLOR_ERROR,
-    COLOR_EXITO,
     COLOR_FONDO_APP,
     COLOR_FONDO_TARJETA,
+    RADIO_TARJETA,
+    GROSOR_BORDE_SUTIL,
+    COLOR_BORDE_SUTIL,
+    FONT_FAMILY,
     COLOR_TEXTO_PRIMARIO,
     COLOR_TEXTO_SECUNDARIO,
-    FONT_FAMILY,
-    GROSOR_BORDE_SUTIL,
     RADIO_BOTON,
-    RADIO_TARJETA,
+    COLOR_ACENTO_PRIMARIO,
+    COLOR_ACENTO_SECUNDARIO,
+    COLOR_ACENTO_ALTERNO,
+    COLOR_ERROR,
+    COLOR_EXITO,
 )
-from controller.usuario_controller import DatosInvalidosError, UsuarioController
+from controller.usuario_controller import UsuarioController, DatosInvalidosError
 from model.entities.usuario import Usuario
+from view.components.avatar import cargar_imagen_perfil
+
+_LADO_AVATAR = 72
 
 
 class ConfiguracionScreen(ctk.CTkFrame):
-    """Permite al administrador en sesión actualizar sus propios datos y contraseña."""
+    """Permite al usuario en sesión actualizar sus propios datos, foto de perfil y contraseña."""
 
-    def __init__(self, master, usuario_sesion: Usuario):
+    def __init__(self, master, usuario_sesion: Usuario, al_actualizar_perfil=None):
         super().__init__(master, fg_color=COLOR_FONDO_APP, corner_radius=0)
         self._usuario_sesion = usuario_sesion
+        self._al_actualizar_perfil = al_actualizar_perfil
         self._controlador = UsuarioController()
 
         self.grid_columnconfigure(0, weight=1)
@@ -57,6 +64,8 @@ class ConfiguracionScreen(ctk.CTkFrame):
             tarjeta, text=f"Usuario: {self._usuario_sesion.usuario}  ·  Rol: {self._usuario_sesion.nombre_rol.title()}",
             font=(FONT_FAMILY, 12), text_color=COLOR_TEXTO_SECUNDARIO, anchor="w",
         ).pack(anchor="w", padx=24, pady=(0, 16))
+
+        self._construir_seccion_foto(tarjeta)
 
         self._campo_nombre = self._crear_campo(tarjeta, "Nombre completo", self._usuario_sesion.nombre_completo)
         self._campo_documento = self._crear_campo(tarjeta, "Documento", self._usuario_sesion.documento)
@@ -95,6 +104,52 @@ class ConfiguracionScreen(ctk.CTkFrame):
             font=(FONT_FAMILY, 13, "bold"), command=self._guardar_contrasena,
         ).pack(anchor="w", padx=24, pady=(14, 22))
         return tarjeta
+
+    def _construir_seccion_foto(self, contenedor):
+        fila = ctk.CTkFrame(contenedor, fg_color="transparent")
+        fila.pack(anchor="w", padx=24, pady=(0, 16))
+
+        self._avatar = ctk.CTkLabel(
+            fila, text="", width=_LADO_AVATAR, height=_LADO_AVATAR, corner_radius=_LADO_AVATAR // 2,
+            fg_color=COLOR_ACENTO_ALTERNO,
+        )
+        self._avatar.pack(side="left")
+        self._refrescar_avatar()
+
+        columna_boton = ctk.CTkFrame(fila, fg_color="transparent")
+        columna_boton.pack(side="left", padx=(16, 0))
+        ctk.CTkButton(
+            columna_boton, text="Subir foto (PNG)", width=160, height=32, corner_radius=RADIO_BOTON,
+            fg_color="transparent", hover_color=COLOR_FONDO_APP, border_width=GROSOR_BORDE_SUTIL,
+            border_color=COLOR_ACENTO_PRIMARIO, text_color=COLOR_TEXTO_PRIMARIO, font=(FONT_FAMILY, 12, "bold"),
+            command=self._subir_foto,
+        ).pack(anchor="w")
+        self._etiqueta_estado_foto = ctk.CTkLabel(columna_boton, text="", font=(FONT_FAMILY, 11), text_color=COLOR_TEXTO_SECUNDARIO, anchor="w")
+        self._etiqueta_estado_foto.pack(anchor="w", pady=(4, 0))
+
+    def _refrescar_avatar(self):
+        imagen = cargar_imagen_perfil(self._usuario_sesion.foto_perfil, _LADO_AVATAR)
+        if imagen is not None:
+            self._avatar.configure(image=imagen, text="")
+        else:
+            iniciales = "".join(parte[0] for parte in self._usuario_sesion.nombre_completo.split()[:2]).upper()
+            self._avatar.configure(image=None, text=iniciales, font=(FONT_FAMILY, 18, "bold"), text_color="#FFFFFF")
+
+    def _subir_foto(self):
+        ruta = filedialog.askopenfilename(title="Selecciona una foto de perfil", filetypes=[("Imagen PNG", "*.png")])
+        if not ruta:
+            return
+        try:
+            usuario_actualizado = self._controlador.actualizar_foto_perfil(self._usuario_sesion.id_usuario, ruta)
+        except DatosInvalidosError as error:
+            self._etiqueta_estado_foto.configure(text=str(error), text_color=COLOR_ERROR)
+            return
+
+        self._usuario_sesion.foto_perfil = usuario_actualizado.foto_perfil
+        self._refrescar_avatar()
+        self._etiqueta_estado_foto.configure(text="✓ Foto actualizada", text_color=COLOR_EXITO)
+        if self._al_actualizar_perfil:
+            self._al_actualizar_perfil()
 
     def _crear_campo(self, contenedor, etiqueta: str, valor_inicial: str, oculto: bool = False) -> ctk.CTkEntry:
         ctk.CTkLabel(

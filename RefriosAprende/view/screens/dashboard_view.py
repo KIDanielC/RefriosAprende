@@ -3,30 +3,30 @@ import customtkinter as ctk
 
 from config.settings import (
     APP_NAME,
-    COLOR_ACENTO_ALTERNO,
-    COLOR_ACENTO_GLOW,
-    COLOR_ACENTO_PRIMARIO,
-    COLOR_ACENTO_SECUNDARIO,
-    COLOR_BORDE_SUTIL,
-    COLOR_ERROR,
-    COLOR_EXITO,
-    COLOR_FONDO_APP,
-    COLOR_FONDO_PANEL,
-    COLOR_FONDO_TARJETA,
-    COLOR_FONDO_TARJETA_HOVER,
-    COLOR_NAV_BORDE,
-    COLOR_NAV_FONDO,
-    COLOR_NAV_FONDO_HOVER,
-    COLOR_NAV_TEXTO,
-    COLOR_NAV_TEXTO_SECUNDARIO,
-    COLOR_TEXTO_PRIMARIO,
-    COLOR_TEXTO_SECUNDARIO,
-    FONT_FAMILY,
-    GROSOR_BORDE_SUTIL,
-    RADIO_BOTON,
-    RADIO_TARJETA,
-    VENTANA_ALTO,
     VENTANA_ANCHO,
+    VENTANA_ALTO,
+    COLOR_FONDO_APP,
+    COLOR_NAV_FONDO,
+    COLOR_ACENTO_PRIMARIO,
+    FONT_FAMILY,
+    COLOR_NAV_TEXTO,
+    COLOR_NAV_BORDE,
+    COLOR_NAV_FONDO_HOVER,
+    COLOR_NAV_TEXTO_SECUNDARIO,
+    RADIO_BOTON,
+    COLOR_ACENTO_ALTERNO,
+    COLOR_ERROR,
+    GROSOR_BORDE_SUTIL,
+    COLOR_FONDO_PANEL,
+    COLOR_TEXTO_PRIMARIO,
+    COLOR_EXITO,
+    COLOR_ACENTO_GLOW,
+    COLOR_TEXTO_SECUNDARIO,
+    COLOR_FONDO_TARJETA,
+    RADIO_TARJETA,
+    COLOR_BORDE_SUTIL,
+    COLOR_FONDO_TARJETA_HOVER,
+    COLOR_ACENTO_SECUNDARIO,
 )
 from controller.curso_controller import CursoController
 from controller.evaluacion_controller import EvaluacionController
@@ -35,9 +35,10 @@ from controller.progreso_controller import ProgresoController
 from controller.usuario_controller import UsuarioController
 from model.dao.resultado_dao import ResultadoDAO
 from model.entities.usuario import Usuario
+from view.components.avatar import cargar_imagen_perfil
 from view.screens.configuracion_screen import ConfiguracionScreen
 from view.screens.cursos_screen import CursosScreen
-from view.screens.evaluaciones_screen import EvaluacionesAdminScreen, EvaluacionesAprendizScreen, SimulacionesAprendizScreen
+from view.screens.evaluaciones_screen import EvaluacionesAprendizScreen, EvaluacionesAdminScreen, SimulacionesAprendizScreen
 from view.screens.mi_progreso_screen import MiProgresoScreen
 from view.screens.mis_cursos_screen import MisCursosScreen
 from view.screens.reportes_screen import ReportesScreen
@@ -144,8 +145,9 @@ class DashboardView(ctk.CTk):
         avatar = ctk.CTkFrame(pie, fg_color=COLOR_ACENTO_ALTERNO, corner_radius=16, width=32, height=32)
         avatar.pack(side="left")
         avatar.pack_propagate(False)
-        iniciales = "".join(parte[0] for parte in self._usuario.nombre_completo.split()[:2]).upper()
-        ctk.CTkLabel(avatar, text=iniciales, font=(FONT_FAMILY, 11, "bold"), text_color="#FFFFFF").pack(expand=True)
+        self._etiqueta_avatar = ctk.CTkLabel(avatar, text="", font=(FONT_FAMILY, 11, "bold"), text_color="#FFFFFF")
+        self._etiqueta_avatar.pack(expand=True)
+        self._actualizar_avatar()
         texto_pie = ctk.CTkFrame(pie, fg_color="transparent")
         texto_pie.pack(side="left", padx=(10, 0))
         ctk.CTkLabel(
@@ -170,6 +172,14 @@ class DashboardView(ctk.CTk):
             corner_radius=RADIO_BOTON,
             command=self._manejar_cierre_sesion,
         ).pack(side="bottom", fill="x", padx=12, pady=(0, 16))
+
+    def _actualizar_avatar(self):
+        imagen = cargar_imagen_perfil(self._usuario.foto_perfil, 32)
+        if imagen is not None:
+            self._etiqueta_avatar.configure(image=imagen, text="")
+        else:
+            iniciales = "".join(parte[0] for parte in self._usuario.nombre_completo.split()[:2]).upper()
+            self._etiqueta_avatar.configure(image=None, text=iniciales)
 
     def _construir_area_contenido(self):
         contenido = ctk.CTkFrame(self, fg_color=COLOR_FONDO_APP, corner_radius=0)
@@ -228,7 +238,9 @@ class DashboardView(ctk.CTk):
         elif nombre_seccion == _SECCION_REPORTES and self._usuario.es_administrador():
             self._frame_seccion_actual = ReportesScreen(self._area_seccion, usuario_sesion=self._usuario)
         elif nombre_seccion == _SECCION_CONFIGURACION and self._usuario.es_administrador():
-            self._frame_seccion_actual = ConfiguracionScreen(self._area_seccion, usuario_sesion=self._usuario)
+            self._frame_seccion_actual = ConfiguracionScreen(
+                self._area_seccion, usuario_sesion=self._usuario, al_actualizar_perfil=self._actualizar_avatar,
+            )
         elif nombre_seccion == _SECCION_MIS_CURSOS and not self._usuario.es_administrador():
             self._frame_seccion_actual = MisCursosScreen(self._area_seccion, usuario_sesion=self._usuario)
         elif nombre_seccion == _SECCION_MI_PROGRESO and not self._usuario.es_administrador():
@@ -240,9 +252,11 @@ class DashboardView(ctk.CTk):
         elif nombre_seccion == "Simulaciones" and not self._usuario.es_administrador():
             self._frame_seccion_actual = SimulacionesAprendizScreen(self._area_seccion, usuario_sesion=self._usuario)
         elif nombre_seccion == "Mi Perfil" and not self._usuario.es_administrador():
-            self._frame_seccion_actual = ConfiguracionScreen(self._area_seccion, usuario_sesion=self._usuario)
+            self._frame_seccion_actual = ConfiguracionScreen(
+                self._area_seccion, usuario_sesion=self._usuario, al_actualizar_perfil=self._actualizar_avatar,
+            )
         else:
-            self._frame_seccion_actual = self._construir_seccion_en_construccion(self._area_seccion, nombre_seccion)
+            self._frame_seccion_actual = self._construir_seccion_no_disponible(self._area_seccion, nombre_seccion)
 
         self._frame_seccion_actual.grid(row=0, column=0, sticky="nsew")
 
@@ -453,7 +467,7 @@ class DashboardView(ctk.CTk):
         lienzo.get_tk_widget().pack(fill="x", padx=14, pady=(0, 16))
 
     def _construir_grafica_cursos_completados(self, contenedor):
-        """Aprendiz: conteo simple y directo de cursos terminados, acumulado día a día —
+        """Aprendiz: conteo simple y directo de cursos terminados, acumulado día a día;
         más claro que un % agregado de contenidos vistos entre cursos heterogéneos."""
         serie = ProgresoController().historial_cursos_completados_aprendiz(self._usuario.id_usuario)
         if not serie:
@@ -633,13 +647,15 @@ class DashboardView(ctk.CTk):
             ("📈", "Progreso general", f"{progreso_promedio:.0f}%"),
         ]
 
-    def _construir_seccion_en_construccion(self, contenedor, nombre_seccion):
+    def _construir_seccion_no_disponible(self, contenedor, nombre_seccion):
+        """Reservado para una opción de menú sin sección asociada; con el menú actual
+        nunca debería alcanzarse, pero evita dejar la ventana sin contenido si eso cambia."""
         frame = ctk.CTkFrame(contenedor, fg_color=COLOR_FONDO_APP, corner_radius=0)
         frame.grid_columnconfigure(0, weight=1)
         frame.grid_rowconfigure(0, weight=1)
         ctk.CTkLabel(
             frame,
-            text=f"El módulo «{nombre_seccion}» se construirá en un sprint posterior.",
+            text=f"La sección «{nombre_seccion}» no está disponible.",
             font=(FONT_FAMILY, 16),
             text_color=COLOR_TEXTO_SECUNDARIO,
         ).grid(row=0, column=0)

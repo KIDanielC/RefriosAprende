@@ -1,9 +1,9 @@
 import pytest
 
 from controller.simulacion_controller import (
+    SimulacionController,
     DatosSimulacionInvalidosError,
     IntentosAgotadosError,
-    SimulacionController,
 )
 
 

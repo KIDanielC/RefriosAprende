@@ -5,32 +5,32 @@ practicar -> simular -> evaluar.
 
 Cuatro secciones (Contenido teórico, Recursos visuales, Simulación básica, Evaluación) no se
 escriben como texto libre: se calculan en vivo desde los controladores reales, y cada una trae
-su propio botón para crear/editar ese dato real — el instructor no tiene que salir de esta
-ventana para armar el curso completo.
+su propio botón para crear/editar ese dato real, así el instructor no tiene que salir de
+esta ventana para armar el curso completo.
 
 El aprendiz consulta esta misma información, ya combinada con el contenido real y las acciones
 de practicar/presentar, en `view.screens.curso_aprendiz_screen.CursoAprendizScreen`."""
 import customtkinter as ctk
 
 from config.settings import (
-    COLOR_ACENTO_ALTERNO,
-    COLOR_ACENTO_PRIMARIO,
-    COLOR_ACENTO_SECUNDARIO,
-    COLOR_BORDE_SUTIL,
-    COLOR_ERROR,
-    COLOR_EXITO,
     COLOR_FONDO_APP,
     COLOR_FONDO_TARJETA,
-    COLOR_TEXTO_PRIMARIO,
-    COLOR_TEXTO_SECUNDARIO,
-    FONT_FAMILY,
-    GROSOR_BORDE_SUTIL,
-    RADIO_BOTON,
     RADIO_TARJETA,
+    GROSOR_BORDE_SUTIL,
+    COLOR_BORDE_SUTIL,
+    COLOR_ACENTO_PRIMARIO,
+    COLOR_ACENTO_SECUNDARIO,
+    COLOR_TEXTO_PRIMARIO,
+    FONT_FAMILY,
+    RADIO_BOTON,
+    COLOR_TEXTO_SECUNDARIO,
+    COLOR_ACENTO_ALTERNO,
+    COLOR_ERROR,
+    COLOR_EXITO,
 )
 from controller.contenido_controller import TIPO_IMAGEN, TIPO_PDF, TIPO_TEXTO, ContenidoController
 from controller.evaluacion_controller import EvaluacionController
-from controller.guia_aprendizaje_controller import DatosGuiaInvalidosError, GuiaAprendizajeController
+from controller.guia_aprendizaje_controller import GuiaAprendizajeController, DatosGuiaInvalidosError
 from controller.simulacion_controller import SimulacionController
 from model.entities.curso import Curso
 from view.components.editor_texto_enriquecido import EditorTextoEnriquecido
@@ -62,7 +62,7 @@ class GestionarCursoWindow(ctk.CTkToplevel):
         self.configure(fg_color=COLOR_FONDO_APP)
         self.geometry("920x740")
         self.minsize(780, 580)
-        self.transient(master)
+        self.resizable(True, True)
         self.grab_set()
 
         self.grid_columnconfigure(0, weight=1)
@@ -85,9 +85,10 @@ class GestionarCursoWindow(ctk.CTkToplevel):
         )
         pestanas.grid(row=1, column=0, sticky="nsew", padx=24, pady=(4, 4))
 
-        for nombre in ("Aprender", "Practicar", "Simular", "Evaluar"):
+        for nombre in ("Información general", "Aprender", "Practicar", "Simular", "Evaluar"):
             pestanas.add(nombre)
 
+        self._construir_pestana_informacion(pestanas.tab("Información general"), guia)
         self._construir_pestana_aprender(pestanas.tab("Aprender"), guia)
         self._construir_pestana_practicar(pestanas.tab("Practicar"), guia)
         self._construir_pestana_simular(pestanas.tab("Simular"))
@@ -132,20 +133,8 @@ class GestionarCursoWindow(ctk.CTkToplevel):
             encabezado, text=info, font=(FONT_FAMILY, 12), text_color=COLOR_TEXTO_SECUNDARIO, anchor="w",
         ).grid(row=1, column=0, sticky="w", pady=(2, 10))
 
-        cuerpo = ctk.CTkScrollableFrame(encabezado, fg_color="transparent", height=120)
-        cuerpo.grid(row=2, column=0, sticky="ew")
-        cuerpo.grid_columnconfigure((0, 1, 2), weight=1)
-
-        for indice, (clave, etiqueta) in enumerate(_CAMPOS_ENCABEZADO):
-            columna = ctk.CTkFrame(cuerpo, fg_color="transparent")
-            columna.grid(row=0, column=indice, sticky="new", padx=(0 if indice == 0 else 10, 0))
-            valor = getattr(guia, clave, "") if guia else ""
-            self._cajas_texto[clave] = self._construir_seccion(
-                columna, etiqueta, valor or "", con_formato=False, altura_minima_lineas=2,
-            )
-
         self._campo_duracion = self._construir_campo_duracion(encabezado, guia)
-        self._campo_duracion.master.grid(row=3, column=0, sticky="w", pady=(6, 0))
+        self._campo_duracion.master.grid(row=2, column=0, sticky="w", pady=(0, 4))
 
     def _construir_campo_duracion(self, contenedor, guia):
         fila = ctk.CTkFrame(contenedor, fg_color="transparent")
@@ -164,6 +153,18 @@ class GestionarCursoWindow(ctk.CTkToplevel):
         return campo
 
     # -- Pestañas de la metodología -----------------------------------------------------
+    def _construir_pestana_informacion(self, tab, guia):
+        tab.grid_columnconfigure(0, weight=1)
+        contenedor = ctk.CTkScrollableFrame(tab, fg_color="transparent")
+        contenedor.grid(row=0, column=0, sticky="nsew", padx=4, pady=4)
+        tab.grid_rowconfigure(0, weight=1)
+
+        for clave, etiqueta in _CAMPOS_ENCABEZADO:
+            valor = getattr(guia, clave, "") if guia else ""
+            self._cajas_texto[clave] = self._construir_seccion(
+                contenedor, etiqueta, valor or "", con_formato=False, altura_minima_lineas=3,
+            )
+
     def _construir_pestana_aprender(self, tab, guia):
         tab.grid_columnconfigure(0, weight=1)
         contenedor = ctk.CTkScrollableFrame(tab, fg_color="transparent")
@@ -238,7 +239,7 @@ class GestionarCursoWindow(ctk.CTkToplevel):
         ventana.configure(fg_color=COLOR_FONDO_APP)
         ventana.geometry("820x640")
         ventana.minsize(680, 480)
-        ventana.transient(self)
+        ventana.resizable(True, True)
         ventana.grab_set()
         ventana.grid_columnconfigure(0, weight=1)
         ventana.grid_rowconfigure(0, weight=1)
@@ -255,7 +256,8 @@ class GestionarCursoWindow(ctk.CTkToplevel):
         self._cajas_texto[clave] = self._construir_seccion(contenedor, etiqueta, valor or "")
 
     def _construir_seccion(
-        self, contenedor, etiqueta: str, valor: str, con_formato: bool = True, altura_minima_lineas: int = 3,
+        self, contenedor, etiqueta: str, valor: str, con_formato: bool = True,
+        altura_minima_lineas: int = 3, altura_maxima_lineas: int = 18,
     ) -> EditorTextoEnriquecido:
         fila = ctk.CTkFrame(contenedor, fg_color="transparent")
         fila.pack(fill="x", pady=(0, 14))
@@ -264,14 +266,15 @@ class GestionarCursoWindow(ctk.CTkToplevel):
         ).pack(anchor="w", pady=(0, 6))
 
         editor = EditorTextoEnriquecido(
-            fila, valor_inicial=valor, con_formato=con_formato, altura_minima_lineas=altura_minima_lineas,
+            fila, valor_inicial=valor, con_formato=con_formato,
+            altura_minima_lineas=altura_minima_lineas, altura_maxima_lineas=altura_maxima_lineas,
         )
         editor.pack(fill="x")
         return editor
 
     def _construir_seccion_computada(self, contenedor, etiqueta: str, lineas: list, texto_boton: str = None, comando_boton=None):
         """Tarjeta de solo lectura con datos reales (contenidos/simulaciones/evaluación), con
-        un botón que abre la herramienta real donde se crean/editan — sin salir de esta ventana."""
+        un botón que abre la herramienta real donde se crean/editan, sin salir de esta ventana."""
         fila = ctk.CTkFrame(contenedor, fg_color="transparent")
         fila.pack(fill="x", pady=(0, 14))
         ctk.CTkLabel(

@@ -6,18 +6,18 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 from config.settings import (
-    COLOR_ACENTO_PRIMARIO,
-    COLOR_BORDE_SUTIL,
-    COLOR_EXITO,
     COLOR_FONDO_APP,
-    COLOR_FONDO_PANEL,
     COLOR_FONDO_TARJETA,
-    COLOR_FONDO_TARJETA_HOVER,
-    COLOR_TEXTO_PRIMARIO,
-    COLOR_TEXTO_SECUNDARIO,
-    FONT_FAMILY,
-    GROSOR_BORDE_SUTIL,
     RADIO_TARJETA,
+    GROSOR_BORDE_SUTIL,
+    COLOR_BORDE_SUTIL,
+    COLOR_FONDO_TARJETA_HOVER,
+    FONT_FAMILY,
+    COLOR_TEXTO_SECUNDARIO,
+    COLOR_TEXTO_PRIMARIO,
+    COLOR_EXITO,
+    COLOR_ACENTO_PRIMARIO,
+    COLOR_FONDO_PANEL,
 )
 from controller.reporte_controller import ReporteController
 

@@ -1,9 +1,9 @@
 """Controlador de la evaluación final de un curso: preguntas de opción múltiple,
 nota mínima e intentos permitidos, y presentación por parte del aprendiz."""
 from controller._pregunta_opcion_utils import (
-    DatosPreguntaInvalidosError,
-    actualizar_pregunta_con_opciones,
     crear_pregunta_con_opciones,
+    actualizar_pregunta_con_opciones,
+    DatosPreguntaInvalidosError,
 )
 from controller.progreso_controller import ProgresoController
 from model.dao.evaluacion_dao import EvaluacionDAO

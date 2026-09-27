@@ -14,6 +14,7 @@ class Usuario:
         activo: bool,
         fecha_creacion: str,
         nombre_rol: str = None,
+        foto_perfil: str = None,
     ):
         self.id_usuario = id_usuario
         self.nombre_completo = nombre_completo
@@ -25,6 +26,7 @@ class Usuario:
         self.activo = bool(activo)
         self.fecha_creacion = fecha_creacion
         self.nombre_rol = nombre_rol
+        self.foto_perfil = foto_perfil
 
     def es_administrador(self) -> bool:
         return self.nombre_rol == "ADMINISTRADOR"

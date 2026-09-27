@@ -4,24 +4,24 @@ import tkinter as tk
 import customtkinter as ctk
 
 from config.settings import (
+    COLOR_FONDO_APP,
+    FONT_FAMILY,
+    COLOR_TEXTO_PRIMARIO,
+    COLOR_FONDO_TARJETA,
+    RADIO_TARJETA,
+    GROSOR_BORDE_SUTIL,
+    COLOR_BORDE_SUTIL,
+    COLOR_TEXTO_SECUNDARIO,
+    RADIO_BOTON,
     COLOR_ACENTO_ALTERNO,
     COLOR_ACENTO_ALTERNO_GLOW,
     COLOR_ACENTO_PRIMARIO,
-    COLOR_ACENTO_SECUNDARIO,
-    COLOR_BORDE_SUTIL,
     COLOR_ERROR,
     COLOR_EXITO,
-    COLOR_FONDO_APP,
-    COLOR_FONDO_TARJETA,
+    COLOR_ACENTO_SECUNDARIO,
     COLOR_FONDO_TARJETA_HOVER,
-    COLOR_TEXTO_PRIMARIO,
-    COLOR_TEXTO_SECUNDARIO,
-    FONT_FAMILY,
-    GROSOR_BORDE_SUTIL,
-    RADIO_BOTON,
-    RADIO_TARJETA,
 )
-from controller.simulacion_controller import DatosSimulacionInvalidosError, IntentosAgotadosError, SimulacionController
+from controller.simulacion_controller import SimulacionController, IntentosAgotadosError, DatosSimulacionInvalidosError
 from model.entities.curso import Curso
 from model.entities.evaluacion import Evaluacion
 from model.entities.simulacion import Simulacion

@@ -2,7 +2,7 @@
 import os
 import sqlite3
 
-from config.settings import DATABASE_PATH, SCHEMA_PATH
+from config.settings import SCHEMA_PATH, DATABASE_PATH
 
 
 class ConexionBD:
@@ -55,6 +55,12 @@ class ConexionBD:
         self._conexion.execute("CREATE INDEX IF NOT EXISTS idx_cursos_categoria ON cursos (id_categoria)")
         self._migrar_guia_aprendizaje_secciones_ampliadas()
         self._migrar_guia_aprendizaje_quitar_retroalimentar_reforzar_registrar()
+        self._migrar_usuarios_foto_perfil()
+
+    def _migrar_usuarios_foto_perfil(self):
+        columnas_usuarios = {fila["name"] for fila in self._conexion.execute("PRAGMA table_info(usuarios)")}
+        if "foto_perfil" not in columnas_usuarios:
+            self._conexion.execute("ALTER TABLE usuarios ADD COLUMN foto_perfil TEXT")
 
     def _migrar_matricula_desde_progreso(self):
         """La matrícula (tabla inscripciones) se agregó después de que ya existían cursos con

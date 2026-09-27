@@ -5,16 +5,16 @@ la misma tabla `resultados` (ver `EvaluacionController`/`SimulacionController`.
 import customtkinter as ctk
 
 from config.settings import (
-    COLOR_BORDE_SUTIL,
-    COLOR_ERROR,
-    COLOR_EXITO,
     COLOR_FONDO_APP,
-    COLOR_FONDO_TARJETA,
+    FONT_FAMILY,
     COLOR_TEXTO_PRIMARIO,
     COLOR_TEXTO_SECUNDARIO,
-    FONT_FAMILY,
-    GROSOR_BORDE_SUTIL,
+    COLOR_FONDO_TARJETA,
     RADIO_TARJETA,
+    GROSOR_BORDE_SUTIL,
+    COLOR_BORDE_SUTIL,
+    COLOR_EXITO,
+    COLOR_ERROR,
 )
 
 

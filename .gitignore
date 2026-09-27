@@ -6,6 +6,7 @@ venv/
 RefriosAprende/database/refrios.db
 RefriosAprende/resources/images/Logo_Interfaz.png
 RefriosAprende/resources/contenidos/
+RefriosAprende/resources/fotos_perfil/
 RefriosAprende/database/refrios.db.backup-*
 
 # Artefactos de empaquetado (PyInstaller / Inno Setup) — se regeneran con packaging/

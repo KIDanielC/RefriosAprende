@@ -44,11 +44,12 @@ SCHEMA_PATH = os.path.join(BASE_DIR, "database", "schema.sql")
 ICONS_DIR = os.path.join(BASE_DIR, "resources", "icons")
 IMAGES_DIR = os.path.join(BASE_DIR, "resources", "images")
 CONTENIDOS_DIR = os.path.join(BASE_DIR, "resources", "contenidos")
+FOTOS_PERFIL_DIR = os.path.join(BASE_DIR, "resources", "fotos_perfil")
 
 APP_NAME = "Refrios Aprende"
-APP_VERSION = "0.1.0"
+APP_VERSION = "1.0.0"
 
-# Paleta "Cobre" — cálida e industrial (cobre/latón + pátina verde-azulada), inspirada en
+# Paleta "Cobre": cálida e industrial (cobre/latón + pátina verde-azulada), inspirada en
 # tubería de cobre y manómetros de diagnóstico de A/C, en vez de los tonos institucionales
 # genéricos (azul/amarillo) o el HUD cian/negro de versiones anteriores. Contenido en tono
 # crema cálido, sidebar en grafito oscuro cálido: un híbrido claro/oscuro deliberado, no el
@@ -78,7 +79,7 @@ RADIO_BOTON = 12
 GROSOR_BORDE_SUTIL = 1
 
 # Navegación (sidebar del Dashboard, panel de marca del Login): grafito oscuro cálido,
-# a propósito muy distinto del contenido claro — un layout híbrido, no monocromático.
+# a propósito muy distinto del contenido claro: un layout híbrido, no monocromático.
 COLOR_NAV_FONDO = "#241C14"
 COLOR_NAV_FONDO_HOVER = "#342A1E"
 COLOR_NAV_BORDE = "#3D3225"

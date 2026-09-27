@@ -4,17 +4,20 @@ from tkinter import filedialog
 import customtkinter as ctk
 
 from config.settings import (
-    COLOR_ACENTO_ALTERNO,
-    COLOR_ACENTO_PRIMARIO,
-    COLOR_ACENTO_SECUNDARIO,
-    COLOR_BORDE_SUTIL,
-    COLOR_ERROR,
     COLOR_FONDO_APP,
-    COLOR_FONDO_TARJETA,
     COLOR_FONDO_TARJETA_HOVER,
-    COLOR_TEXTO_PRIMARIO,
-    COLOR_TEXTO_SECUNDARIO,
+    COLOR_ACENTO_SECUNDARIO,
     FONT_FAMILY,
+    COLOR_TEXTO_PRIMARIO,
+    RADIO_BOTON,
+    COLOR_ACENTO_PRIMARIO,
+    COLOR_TEXTO_SECUNDARIO,
+    COLOR_FONDO_TARJETA,
+    RADIO_TARJETA,
+    GROSOR_BORDE_SUTIL,
+    COLOR_BORDE_SUTIL,
+    COLOR_ACENTO_ALTERNO,
+    COLOR_ERROR,
 )
 from controller.contenido_controller import (
     TIPO_IMAGEN,
@@ -68,7 +71,7 @@ class ContenidosScreen(ctk.CTkFrame):
         barra.grid(row=1, column=0, sticky="ew", padx=28, pady=(0, 12))
 
         ctk.CTkButton(
-            barra, text="+  Nuevo contenido", height=38, corner_radius=4,
+            barra, text="+  Nuevo contenido", height=38, corner_radius=RADIO_BOTON,
             fg_color=COLOR_ACENTO_PRIMARIO, hover_color=COLOR_ACENTO_SECUNDARIO,
             font=(FONT_FAMILY, 13, "bold"), command=self._abrir_formulario_creacion,
         ).pack(side="left")
@@ -97,8 +100,8 @@ class ContenidosScreen(ctk.CTkFrame):
 
     def _construir_tarjeta_contenido(self, fila: int, contenido: Contenido):
         tarjeta = ctk.CTkFrame(
-            self._lista, fg_color=COLOR_FONDO_TARJETA, corner_radius=4,
-            border_width=1, border_color=COLOR_BORDE_SUTIL,
+            self._lista, fg_color=COLOR_FONDO_TARJETA, corner_radius=RADIO_TARJETA,
+            border_width=GROSOR_BORDE_SUTIL, border_color=COLOR_BORDE_SUTIL,
         )
         tarjeta.grid(row=fila, column=0, sticky="ew", pady=6)
         tarjeta.grid_columnconfigure(0, weight=1)
@@ -135,18 +138,18 @@ class ContenidosScreen(ctk.CTkFrame):
         barra_acciones.grid(row=2, column=0, sticky="w", padx=18, pady=(0, 14))
 
         ctk.CTkButton(
-            barra_acciones, text="Editar", width=90, height=30, corner_radius=4,
+            barra_acciones, text="Editar", width=90, height=30, corner_radius=RADIO_BOTON,
             fg_color=COLOR_FONDO_TARJETA_HOVER, border_width=1, border_color=COLOR_ACENTO_SECUNDARIO,
             text_color=COLOR_TEXTO_PRIMARIO, font=(FONT_FAMILY, 12, "bold"),
             command=lambda c=contenido: self._abrir_formulario_edicion(c),
         ).pack(side="left", padx=(0, 8))
         ctk.CTkButton(
-            barra_acciones, text="Eliminar", width=90, height=30, corner_radius=4,
+            barra_acciones, text="Eliminar", width=90, height=30, corner_radius=RADIO_BOTON,
             fg_color=COLOR_FONDO_TARJETA_HOVER, border_width=1, border_color=COLOR_ERROR, text_color=COLOR_ERROR,
             font=(FONT_FAMILY, 12, "bold"), command=lambda c=contenido: self._eliminar_contenido(c),
         ).pack(side="left", padx=(8, 0))
         ctk.CTkButton(
-            barra_acciones, text="Preguntas de validación", width=180, height=30, corner_radius=4,
+            barra_acciones, text="Preguntas de validación", width=180, height=30, corner_radius=RADIO_BOTON,
             fg_color=COLOR_FONDO_TARJETA_HOVER, border_width=1, border_color=COLOR_ACENTO_ALTERNO, text_color=COLOR_ACENTO_ALTERNO,
             font=(FONT_FAMILY, 12, "bold"), command=lambda c=contenido: self._abrir_preguntas_validacion(c),
         ).pack(side="left", padx=(8, 0))
@@ -190,7 +193,6 @@ class FormularioContenido(ctk.CTkToplevel):
         self.geometry("560x560")
         self.minsize(560, 480)
         self.resizable(True, True)
-        self.transient(master)
         self.grab_set()
 
         self._construir_formulario()
@@ -220,7 +222,7 @@ class FormularioContenido(ctk.CTkToplevel):
             self, text="Título", font=(FONT_FAMILY, 12), text_color=COLOR_TEXTO_SECUNDARIO
         ).pack(padx=28, pady=(0, 2), anchor="w")
         self._campo_titulo = ctk.CTkEntry(
-            self, width=500, height=40, corner_radius=4, fg_color=COLOR_FONDO_APP,
+            self, width=500, height=40, corner_radius=RADIO_BOTON, fg_color=COLOR_FONDO_APP,
             border_color=COLOR_BORDE_SUTIL, text_color=COLOR_TEXTO_PRIMARIO,
         )
         self._campo_titulo.pack(padx=28, pady=(0, 10))
@@ -235,7 +237,7 @@ class FormularioContenido(ctk.CTkToplevel):
         self._etiqueta_error.pack(padx=28, pady=(6, 0))
 
         ctk.CTkButton(
-            self, text="Guardar", width=500, height=44, corner_radius=4,
+            self, text="Guardar", width=500, height=44, corner_radius=RADIO_BOTON,
             fg_color=COLOR_ACENTO_PRIMARIO, hover_color=COLOR_ACENTO_SECUNDARIO,
             font=(FONT_FAMILY, 14, "bold"), command=self._guardar,
         ).pack(padx=28, pady=(16, 24))
@@ -279,7 +281,7 @@ class FormularioContenido(ctk.CTkToplevel):
         )
         self._etiqueta_archivo.pack(side="left", padx=(0, 10))
         ctk.CTkButton(
-            fila_archivo, text=texto_boton, width=140, height=32, corner_radius=4,
+            fila_archivo, text=texto_boton, width=140, height=32, corner_radius=RADIO_BOTON,
             fg_color=COLOR_FONDO_TARJETA_HOVER, border_width=1, border_color=COLOR_ACENTO_PRIMARIO,
             text_color=COLOR_TEXTO_PRIMARIO, font=(FONT_FAMILY, 12, "bold"),
             command=lambda: self._elegir_archivo(tipos_archivo),

@@ -13,7 +13,7 @@
 ; Ver documentation/EMPAQUETADO.md para el procedimiento completo.
 
 #define MyAppName "Refrios Aprende"
-#define MyAppVersion "0.1.0"
+#define MyAppVersion "1.0.0"
 #define MyAppPublisher "Refrios"
 #define MyAppExeName "RefriosAprende.exe"
 #define MyDistDir "..\dist\RefriosAprende"

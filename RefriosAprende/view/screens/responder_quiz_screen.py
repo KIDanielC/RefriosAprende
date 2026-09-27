@@ -1,21 +1,24 @@
 """Ventana modal donde el aprendiz responde el cuestionario de validación de un contenido.
-No guarda resultados formales (eso corresponde al módulo de Evaluaciones del Sprint 3):
-es solo retroalimentación inmediata para reforzar el aprendizaje."""
+No guarda resultados formales (eso corresponde al módulo de Evaluaciones): es solo
+retroalimentación inmediata para reforzar el aprendizaje."""
 import tkinter as tk
 
 import customtkinter as ctk
 
 from config.settings import (
-    COLOR_ACENTO_PRIMARIO,
-    COLOR_ACENTO_SECUNDARIO,
-    COLOR_BORDE_SUTIL,
-    COLOR_ERROR,
-    COLOR_EXITO,
     COLOR_FONDO_APP,
-    COLOR_FONDO_TARJETA,
-    COLOR_TEXTO_PRIMARIO,
-    COLOR_TEXTO_SECUNDARIO,
     FONT_FAMILY,
+    COLOR_TEXTO_PRIMARIO,
+    COLOR_FONDO_TARJETA,
+    RADIO_TARJETA,
+    GROSOR_BORDE_SUTIL,
+    COLOR_BORDE_SUTIL,
+    COLOR_ACENTO_PRIMARIO,
+    COLOR_TEXTO_SECUNDARIO,
+    RADIO_BOTON,
+    COLOR_ACENTO_SECUNDARIO,
+    COLOR_EXITO,
+    COLOR_ERROR,
 )
 from controller.validacion_controller import ValidacionController
 from model.entities.contenido import Contenido
@@ -60,8 +63,8 @@ class ResponderQuizWindow(ctk.CTkToplevel):
 
         for indice, pregunta in enumerate(self._preguntas):
             tarjeta = ctk.CTkFrame(
-                contenedor, fg_color=COLOR_FONDO_TARJETA, corner_radius=4,
-                border_width=1, border_color=COLOR_BORDE_SUTIL,
+                contenedor, fg_color=COLOR_FONDO_TARJETA, corner_radius=RADIO_TARJETA,
+                border_width=GROSOR_BORDE_SUTIL, border_color=COLOR_BORDE_SUTIL,
             )
             tarjeta.grid(row=indice, column=0, sticky="ew", pady=6)
             tarjeta.grid_columnconfigure(0, weight=1)
@@ -94,7 +97,7 @@ class ResponderQuizWindow(ctk.CTkToplevel):
         self._etiqueta_puntaje.grid(row=0, column=0, sticky="w")
 
         ctk.CTkButton(
-            pie, text="Corregir", width=160, height=42, corner_radius=4,
+            pie, text="Corregir", width=160, height=42, corner_radius=RADIO_BOTON,
             fg_color=COLOR_ACENTO_PRIMARIO, hover_color=COLOR_ACENTO_SECUNDARIO,
             font=(FONT_FAMILY, 14, "bold"), command=self._corregir,
         ).grid(row=0, column=1, sticky="e")

@@ -5,21 +5,23 @@ from tkinter import ttk
 import customtkinter as ctk
 
 from config.settings import (
-    COLOR_ACENTO_ALTERNO,
+    COLOR_FONDO_APP,
+    RADIO_BOTON,
+    COLOR_FONDO_TARJETA,
+    COLOR_BORDE_SUTIL,
+    COLOR_TEXTO_PRIMARIO,
+    FONT_FAMILY,
     COLOR_ACENTO_PRIMARIO,
     COLOR_ACENTO_SECUNDARIO,
-    COLOR_BORDE_SUTIL,
-    COLOR_ERROR,
-    COLOR_FONDO_APP,
-    COLOR_FONDO_PANEL,
-    COLOR_FONDO_TARJETA,
     COLOR_FONDO_TARJETA_HOVER,
-    COLOR_TEXTO_PRIMARIO,
+    COLOR_ACENTO_ALTERNO,
+    COLOR_ERROR,
+    RADIO_TARJETA,
+    GROSOR_BORDE_SUTIL,
+    COLOR_FONDO_PANEL,
     COLOR_TEXTO_SECUNDARIO,
-    FONT_FAMILY,
-    RADIO_BOTON,
 )
-from controller.curso_controller import CursoController, DatosCursoInvalidosError
+from controller.curso_controller import DatosCursoInvalidosError, CursoController
 from model.entities.curso import Curso
 from view.screens.gestionar_curso_screen import GestionarCursoWindow
 
@@ -63,7 +65,7 @@ class CursosScreen(ctk.CTkFrame):
 
         campo_busqueda = ctk.CTkEntry(
             barra, textvariable=self._texto_filtro, placeholder_text="Buscar por nombre de curso…",
-            width=340, height=40, corner_radius=4, fg_color=COLOR_FONDO_TARJETA,
+            width=340, height=40, corner_radius=RADIO_BOTON, fg_color=COLOR_FONDO_TARJETA,
             border_color=COLOR_BORDE_SUTIL, border_width=1, text_color=COLOR_TEXTO_PRIMARIO,
             font=(FONT_FAMILY, 13),
         )
@@ -71,7 +73,7 @@ class CursosScreen(ctk.CTkFrame):
         self._texto_filtro.trace_add("write", lambda *args: self._cargar_cursos())
 
         ctk.CTkButton(
-            barra, text="+  Nuevo curso", height=40, corner_radius=4,
+            barra, text="+  Nuevo curso", height=40, corner_radius=RADIO_BOTON,
             fg_color=COLOR_ACENTO_PRIMARIO, hover_color=COLOR_ACENTO_SECUNDARIO,
             font=(FONT_FAMILY, 13, "bold"), command=self._abrir_formulario_creacion,
         ).grid(row=0, column=2, sticky="e")
@@ -81,7 +83,7 @@ class CursosScreen(ctk.CTkFrame):
         barra.grid(row=1, column=0, sticky="ew", padx=28, pady=(0, 12))
 
         self._boton_gestionar = ctk.CTkButton(
-            barra, text="Gestionar curso", width=150, height=34, corner_radius=4,
+            barra, text="Gestionar curso", width=150, height=34, corner_radius=RADIO_BOTON,
             fg_color=COLOR_FONDO_TARJETA, hover_color=COLOR_FONDO_TARJETA_HOVER,
             border_width=1, border_color=COLOR_ACENTO_ALTERNO, text_color=COLOR_TEXTO_PRIMARIO,
             font=(FONT_FAMILY, 12, "bold"), state="disabled", command=self._abrir_gestionar_curso,
@@ -89,7 +91,7 @@ class CursosScreen(ctk.CTkFrame):
         self._boton_gestionar.pack(side="left", padx=(0, 8))
 
         self._boton_editar = ctk.CTkButton(
-            barra, text="Editar", width=110, height=34, corner_radius=4,
+            barra, text="Editar", width=110, height=34, corner_radius=RADIO_BOTON,
             fg_color=COLOR_FONDO_TARJETA, hover_color=COLOR_FONDO_TARJETA_HOVER,
             border_width=1, border_color=COLOR_ACENTO_SECUNDARIO, text_color=COLOR_TEXTO_PRIMARIO,
             font=(FONT_FAMILY, 12, "bold"), state="disabled", command=self._abrir_formulario_edicion,
@@ -97,7 +99,7 @@ class CursosScreen(ctk.CTkFrame):
         self._boton_editar.pack(side="left", padx=8)
 
         self._boton_eliminar = ctk.CTkButton(
-            barra, text="Eliminar", width=110, height=34, corner_radius=4,
+            barra, text="Eliminar", width=110, height=34, corner_radius=RADIO_BOTON,
             fg_color=COLOR_FONDO_TARJETA, hover_color=COLOR_FONDO_TARJETA_HOVER,
             border_width=1, border_color=COLOR_ERROR, text_color=COLOR_ERROR, font=(FONT_FAMILY, 12, "bold"),
             state="disabled", command=self._eliminar_curso,
@@ -109,7 +111,8 @@ class CursosScreen(ctk.CTkFrame):
 
     def _construir_tabla(self, contenedor):
         marco = ctk.CTkFrame(
-            contenedor, fg_color=COLOR_FONDO_TARJETA, corner_radius=4, border_width=1, border_color=COLOR_BORDE_SUTIL
+            contenedor, fg_color=COLOR_FONDO_TARJETA, corner_radius=RADIO_TARJETA,
+            border_width=GROSOR_BORDE_SUTIL, border_color=COLOR_BORDE_SUTIL,
         )
         marco.grid(row=2, column=0, sticky="nsew", padx=28, pady=(0, 24))
         marco.grid_columnconfigure(0, weight=1)
@@ -219,7 +222,6 @@ class FormularioCurso(ctk.CTkToplevel):
         self.geometry("480x760")
         self.minsize(480, 600)
         self.resizable(True, True)
-        self.transient(master)
         self.grab_set()
 
         self._construir_formulario()

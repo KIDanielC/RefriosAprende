@@ -3,7 +3,7 @@ que validan longitud mínima de campos de texto. Sin dependencias de tkinter a p
 controladores no deben importar nada de `view` (ver arquitectura MVC del proyecto).
 
 Un valor guardado es JSON con la marca `MARCA_FORMATO`, o texto plano (datos de antes de esta
-funcionalidad, o cualquier valor que no traiga formato) — `analizar()` interpreta ambos casos.
+funcionalidad, o cualquier valor que no traiga formato); `analizar()` interpreta ambos casos.
 """
 import json
 

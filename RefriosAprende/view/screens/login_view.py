@@ -28,8 +28,8 @@ from config.settings import (
     VENTANA_ANCHO,
 )
 from controller.autenticacion_controller import (
-    AutenticacionController,
     CredencialesInvalidasError,
+    AutenticacionController,
     UsuarioInactivoError,
 )
 
@@ -103,14 +103,15 @@ class LoginView(ctk.CTk):
         ctk.CTkLabel(
             cuerpo,
             text=(
-                "Cursos, evaluaciones y simulaciones de diagnóstico para el\n"
-                "equipo técnico de Refrios — con seguimiento de avance\n"
+                "Cursos, evaluaciones y simulaciones de diagnóstico para el "
+                "equipo técnico de Refrios — con seguimiento de avance "
                 "en tiempo real."
             ),
             font=(FONT_FAMILY, 13.5),
             text_color=COLOR_NAV_TEXTO_SECUNDARIO,
             justify="left",
             anchor="w",
+            wraplength=300,
         ).pack(anchor="w")
 
         pie = ctk.CTkFrame(panel, fg_color="transparent")
@@ -151,9 +152,12 @@ class LoginView(ctk.CTk):
         ).grid(row=0, column=0, padx=44, pady=(40, 8), sticky="w")
         ctk.CTkLabel(
             tarjeta,
-            text="Ingresa tus credenciales para continuar tu formación.",
+            text=" Ingresa tus credenciales para continuar tu formación.",
             font=(FONT_FAMILY, 13.5),
             text_color=COLOR_TEXTO_SECUNDARIO,
+            wraplength=350,
+            justify="left",
+            anchor="w",
         ).grid(row=1, column=0, padx=44, pady=(0, 28), sticky="w")
 
         self._campo_usuario = ctk.CTkEntry(

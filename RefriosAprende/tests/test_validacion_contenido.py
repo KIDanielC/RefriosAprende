@@ -1,7 +1,7 @@
 import pytest
 
 from controller.contenido_controller import ContenidoController
-from controller.validacion_controller import DatosPreguntaInvalidosError, ValidacionController
+from controller.validacion_controller import ValidacionController, DatosPreguntaInvalidosError
 
 
 @pytest.fixture

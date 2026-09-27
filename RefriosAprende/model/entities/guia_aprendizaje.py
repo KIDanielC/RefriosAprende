@@ -40,8 +40,5 @@ class GuiaAprendizaje:
         self.duracion_horas = duracion_horas
         self.fecha_actualizacion = fecha_actualizacion
 
-    def esta_completa(self) -> bool:
-        return bool((self.objetivo_general or "").strip())
-
     def __repr__(self):
         return f"GuiaAprendizaje(id_guia={self.id_guia}, id_curso={self.id_curso})"

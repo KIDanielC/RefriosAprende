@@ -2,9 +2,9 @@
 de opción múltiple. Es un tipo de evaluación (tipo_evaluacion='SIMULACION'),
 sin límite de una sola por curso: un curso puede tener varios casos."""
 from controller._pregunta_opcion_utils import (
-    DatosPreguntaInvalidosError,
-    actualizar_pregunta_con_opciones,
     crear_pregunta_con_opciones,
+    actualizar_pregunta_con_opciones,
+    DatosPreguntaInvalidosError,
 )
 from model.dao.evaluacion_dao import EvaluacionDAO
 from model.dao.opcion_dao import OpcionDAO

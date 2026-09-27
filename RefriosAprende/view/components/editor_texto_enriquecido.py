@@ -18,16 +18,16 @@ import webbrowser
 import customtkinter as ctk
 
 from config.settings import (
-    COLOR_ACENTO_ALTERNO,
-    COLOR_BORDE_SUTIL,
-    COLOR_FONDO_APP,
-    COLOR_FONDO_TARJETA_HOVER,
-    COLOR_TEXTO_PRIMARIO,
     FONT_FAMILY,
-    GROSOR_BORDE_SUTIL,
     RADIO_BOTON,
+    COLOR_FONDO_APP,
+    COLOR_BORDE_SUTIL,
+    GROSOR_BORDE_SUTIL,
+    COLOR_TEXTO_PRIMARIO,
+    COLOR_FONDO_TARJETA_HOVER,
+    COLOR_ACENTO_ALTERNO,
 )
-from utils.texto_enriquecido import MARCA_FORMATO, analizar, texto_plano_desde_markup
+from utils.texto_enriquecido import texto_plano_desde_markup, MARCA_FORMATO, analizar
 
 _FUENTES_DISPONIBLES = [FONT_FAMILY, "Arial", "Georgia", "Consolas", "Verdana"]
 _TAMANOS_DISPONIBLES = ["11", "12", "13", "14", "16", "18", "20", "24"]
@@ -136,7 +136,7 @@ class EditorTextoEnriquecido(ctk.CTkFrame):
         boton.pack(side="left", padx=1, pady=4)
         return boton
 
-    # -- Tags base (alineación) — las de fuente se crean bajo demanda, hay muchas combinaciones ---
+    # -- Tags base (alineación); las de fuente se crean bajo demanda, hay muchas combinaciones ---
     def _configurar_tags_base(self):
         self._texto.tag_configure("al::center", justify="center")
         self._texto.tag_configure("al::right", justify="right")

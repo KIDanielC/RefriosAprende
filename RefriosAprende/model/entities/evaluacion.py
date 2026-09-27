@@ -1,5 +1,6 @@
-"""Entidad Evaluación. En Sprint 2 solo se usa como contenedor interno del
-cuestionario corto de validación de un contenido (id_contenido NOT NULL)."""
+"""Entidad Evaluación: cuestionario de opción múltiple. Si id_contenido es NULL es una
+evaluación de curso (final o simulación); si no, es el cuestionario corto de validación
+de ese contenido puntual."""
 
 
 class Evaluacion:

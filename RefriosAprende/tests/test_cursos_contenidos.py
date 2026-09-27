@@ -11,7 +11,7 @@ from controller.contenido_controller import (
     ContenidoController,
     DatosContenidoInvalidosError,
 )
-from controller.curso_controller import CursoController, DatosCursoInvalidosError
+from controller.curso_controller import DatosCursoInvalidosError, CursoController
 
 
 def test_crear_curso_valido(admin):
