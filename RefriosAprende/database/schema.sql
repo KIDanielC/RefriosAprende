@@ -251,6 +251,23 @@ CREATE TABLE IF NOT EXISTS entregas_taller (
 );
 
 -- ---------------------------------------------------------
+-- TIEMPO_USO_CURSO (tiempo real que un aprendiz pasa con la pantalla de un curso abierta;
+-- base para comparar horas acumuladas vs. la duracion estimada de la Guia de Aprendizaje)
+-- ---------------------------------------------------------
+CREATE TABLE IF NOT EXISTS tiempo_uso_curso (
+    id_registro         INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_usuario          INTEGER NOT NULL,
+    id_curso            INTEGER NOT NULL,
+    fecha_inicio        TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
+    fecha_fin           TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
+    duracion_segundos   INTEGER NOT NULL DEFAULT 0,
+    FOREIGN KEY (id_usuario) REFERENCES usuarios (id_usuario)
+        ON UPDATE CASCADE ON DELETE CASCADE,
+    FOREIGN KEY (id_curso) REFERENCES cursos (id_curso)
+        ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+-- ---------------------------------------------------------
 -- CONTENIDOS_VISTOS (seguimiento de lectura, base del calculo de progreso)
 -- ---------------------------------------------------------
 CREATE TABLE IF NOT EXISTS contenidos_vistos (
@@ -282,6 +299,7 @@ CREATE INDEX IF NOT EXISTS idx_cursos_prerrequisitos_prerrequisito ON cursos_pre
 CREATE INDEX IF NOT EXISTS idx_talleres_curso ON talleres (id_curso);
 CREATE INDEX IF NOT EXISTS idx_entregas_taller_taller ON entregas_taller (id_taller);
 CREATE INDEX IF NOT EXISTS idx_entregas_taller_usuario ON entregas_taller (id_usuario);
+CREATE INDEX IF NOT EXISTS idx_tiempo_uso_curso_usuario_curso ON tiempo_uso_curso (id_usuario, id_curso);
 -- idx_cursos_categoria se crea en la migración (connection.py), no aquí: en bases ya
 -- existentes la columna cursos.id_categoria todavía no existe cuando este script corre.
 

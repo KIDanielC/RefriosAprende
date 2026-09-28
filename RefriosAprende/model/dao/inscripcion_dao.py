@@ -15,6 +15,17 @@ _SELECT_USUARIOS_MATRICULADOS = """
     ORDER BY u.nombre_completo
 """
 
+_SELECT_MATRICULAS_DETALLE_POR_CURSO = """
+    SELECT u.id_usuario, u.nombre_completo, u.documento, u.correo, u.usuario,
+           u.contrasena_hash, u.id_rol, u.activo, u.fecha_creacion, r.nombre_rol,
+           i.fecha_inscripcion
+    FROM inscripciones i
+    INNER JOIN usuarios u ON u.id_usuario = i.id_usuario
+    INNER JOIN roles r ON r.id_rol = u.id_rol
+    WHERE i.id_curso = ?
+    ORDER BY u.nombre_completo
+"""
+
 _SELECT_CURSOS_MATRICULADOS = """
     SELECT c.id_curso, c.nombre_curso, c.descripcion, c.id_instructor,
            c.estado, c.fecha_creacion, ui.nombre_completo AS nombre_instructor
@@ -68,6 +79,13 @@ class InscripcionDAO:
         cursor = self._conexion.obtener_cursor()
         cursor.execute(_SELECT_USUARIOS_MATRICULADOS, (id_curso,))
         return [self._fila_a_usuario(fila) for fila in cursor.fetchall()]
+
+    def listar_matriculas_detalle_por_curso(self, id_curso: int) -> list:
+        """Igual que listar_usuarios_matriculados, pero incluye la fecha de matrícula de
+        cada aprendiz (necesaria para calcular hace cuántos días está matriculado)."""
+        cursor = self._conexion.obtener_cursor()
+        cursor.execute(_SELECT_MATRICULAS_DETALLE_POR_CURSO, (id_curso,))
+        return [(self._fila_a_usuario(fila), fila["fecha_inscripcion"]) for fila in cursor.fetchall()]
 
     def listar_cursos_matriculados(self, id_usuario: int) -> list[Curso]:
         cursor = self._conexion.obtener_cursor()

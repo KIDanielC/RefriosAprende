@@ -26,6 +26,9 @@ class CursoController:
     def listar_cursos_activos(self) -> list[Curso]:
         return [curso for curso in self._curso_dao.listar_todos() if curso.esta_activo()]
 
+    def listar_cursos_por_instructor(self, id_instructor: int) -> list[Curso]:
+        return [curso for curso in self._curso_dao.listar_todos() if curso.id_instructor == id_instructor]
+
     def listar_instructores(self):
         return self._usuario_dao.listar_todos()
 

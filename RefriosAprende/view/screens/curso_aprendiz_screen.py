@@ -5,6 +5,7 @@ según la metodología: aprender -> practicar -> simular -> evaluar."""
 import os
 import subprocess
 import sys
+import time
 from tkinter import filedialog
 
 import customtkinter as ctk
@@ -35,6 +36,7 @@ from controller.guia_aprendizaje_controller import GuiaAprendizajeController
 from controller.progreso_controller import ProgresoController
 from controller.simulacion_controller import SimulacionController
 from controller.taller_controller import DatosTallerInvalidosError, TallerController
+from controller.tiempo_uso_controller import TiempoUsoController
 from controller.validacion_controller import ValidacionController
 from model.dao.resultado_dao import ResultadoDAO
 from model.entities.contenido import Contenido
@@ -65,6 +67,7 @@ class CursoAprendizScreen(ctk.CTkFrame):
         self._progreso_controlador = ProgresoController()
         self._guia_controlador = GuiaAprendizajeController()
         self._taller_controlador = TallerController()
+        self._tiempo_uso_controlador = TiempoUsoController()
         self._resultado_dao = ResultadoDAO()
 
         self._imagenes_cargadas = []  # referencias vivas: evita que el GC libere las CTkImage en pantalla
@@ -75,6 +78,8 @@ class CursoAprendizScreen(ctk.CTkFrame):
         self.grid_rowconfigure(3, weight=1)
 
         self._construir()
+        self._iniciar_seguimiento_tiempo()
+        self.bind("<Destroy>", self._al_destruir_pantalla)
 
     # ------------------------------------------------------------------
     def _construir(self):
@@ -99,6 +104,30 @@ class CursoAprendizScreen(ctk.CTkFrame):
         self._construir_pestana_practicar(pestanas.tab("Practicar"), guia)
         self._construir_pestana_simular(pestanas.tab("Simular"))
         self._construir_pestana_evaluar(pestanas.tab("Evaluar"), guia)
+
+    # -- Seguimiento de tiempo real: cuánto tiempo pasa el aprendiz con este curso abierto,
+    # para que el instructor pueda comparar horas acumuladas vs. la duración estimada del
+    # curso en Reportes. Se guarda con "latidos" periódicos (no solo al cerrar) para no
+    # perder el tiempo registrado si la app se cierra de golpe. -----------------------------
+    def _iniciar_seguimiento_tiempo(self):
+        self._inicio_tiempo_monotonico = time.monotonic()
+        self._id_registro_tiempo = self._tiempo_uso_controlador.iniciar_sesion_curso(
+            self._usuario_sesion.id_usuario, self._curso.id_curso,
+        )
+        self._tarea_latido_tiempo = self.after(30_000, self._latido_tiempo)
+
+    def _latido_tiempo(self):
+        segundos = int(time.monotonic() - self._inicio_tiempo_monotonico)
+        self._tiempo_uso_controlador.actualizar_sesion_curso(self._id_registro_tiempo, segundos)
+        self._tarea_latido_tiempo = self.after(30_000, self._latido_tiempo)
+
+    def _al_destruir_pantalla(self, evento):
+        if evento.widget is not self:
+            return
+        if getattr(self, "_tarea_latido_tiempo", None) is not None:
+            self.after_cancel(self._tarea_latido_tiempo)
+        segundos = int(time.monotonic() - self._inicio_tiempo_monotonico)
+        self._tiempo_uso_controlador.actualizar_sesion_curso(self._id_registro_tiempo, segundos)
 
     def _construir_encabezado(self):
         ctk.CTkButton(

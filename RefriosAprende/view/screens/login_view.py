@@ -2,7 +2,8 @@
 import os
 
 import customtkinter as ctk
-from PIL import Image
+import numpy as np
+from PIL import Image, ImageDraw, ImageFont
 
 from config.settings import (
     APP_NAME,
@@ -15,7 +16,6 @@ from config.settings import (
     COLOR_FONDO_APP,
     COLOR_FONDO_TARJETA,
     COLOR_NAV_BORDE,
-    COLOR_NAV_FONDO,
     COLOR_NAV_TEXTO,
     COLOR_NAV_TEXTO_SECUNDARIO,
     COLOR_TEXTO_PRIMARIO,
@@ -33,9 +33,53 @@ from controller.autenticacion_controller import (
     UsuarioInactivoError,
 )
 
+_DIR_FUENTES_WINDOWS = os.path.join(os.environ.get("WINDIR", r"C:\Windows"), "Fonts")
+
+
+def _hex_a_rgb(color_hex: str) -> tuple:
+    color_hex = color_hex.lstrip("#")
+    return tuple(int(color_hex[i:i + 2], 16) for i in (0, 2, 4))
+
+
+def _cargar_fuente(nombre_archivo: str, tamano: int) -> ImageFont.FreeTypeFont:
+    """Carga Century Gothic desde las fuentes de Windows para dibujarla directamente sobre
+    la ilustración (Tkinter no permite mezclar texto con transparencia real sobre una imagen
+    de fondo: solo pintando el texto como píxeles de la propia imagen se logra que se vea
+    "parte del fondo" y no una caja de color encima). Si la fuente no está instalada, cae a
+    la fuente por defecto de Pillow en vez de fallar."""
+    try:
+        return ImageFont.truetype(os.path.join(_DIR_FUENTES_WINDOWS, nombre_archivo), tamano)
+    except OSError:
+        return ImageFont.load_default()
+
+
+def _envolver_texto(texto: str, fuente: ImageFont.FreeTypeFont, ancho_maximo: int) -> list:
+    palabras = texto.split()
+    lineas = []
+    actual = ""
+    for palabra in palabras:
+        candidata = f"{actual} {palabra}".strip()
+        if not actual or fuente.getlength(candidata) <= ancho_maximo:
+            actual = candidata
+        else:
+            lineas.append(actual)
+            actual = palabra
+    if actual:
+        lineas.append(actual)
+    return lineas
+
 
 class LoginView(ctk.CTk):
-    """Ventana de autenticación. Al validar credenciales, invoca `al_iniciar_sesion`."""
+    """Ventana de autenticación. Una sola ilustración de fondo cubre toda la ventana; el texto
+    de marca se dibuja directamente sobre esa imagen (con Pillow, no como widgets encima), para
+    que quede realmente integrado con la foto en vez de sobre un recuadro de color sólido. Solo
+    la tarjeta del formulario (a la derecha) es una tarjeta de verdad, como es normal en un
+    formulario. No contiene lógica de negocio."""
+
+    _PAD_IZQUIERDO = 56
+    _PAD_INFERIOR = 44
+    _ANCHO_TEXTO = 420
+    _LADO_INSIGNIA = 52
 
     def __init__(self, al_iniciar_sesion):
         super().__init__()
@@ -47,104 +91,187 @@ class LoginView(ctk.CTk):
         self.minsize(1000, 640)
         self.configure(fg_color=COLOR_FONDO_APP)
 
-        self.grid_columnconfigure(0, weight=6)
-        self.grid_columnconfigure(1, weight=5)
-        self.grid_rowconfigure(0, weight=1)
+        self._ilustracion_original = self._cargar_ilustracion_original()
+        self._imagen_fondo = None
+        self._ultimo_tamano_fondo = None
+        self._tarea_redimensionar_fondo = None
 
-        self._construir_panel_marca()
+        self._fuente_insignia = _cargar_fuente("GOTHICB.TTF", 20)
+        self._fuente_titulo = _cargar_fuente("GOTHICB.TTF", 30)
+        self._fuente_texto = _cargar_fuente("GOTHIC.TTF", 14)
+        self._fuente_estadistica_valor = _cargar_fuente("GOTHICB.TTF", 20)
+        self._fuente_estadistica_etiqueta = _cargar_fuente("GOTHIC.TTF", 11)
+
+        self._construir_fondo()
         self._construir_panel_formulario()
 
-    # ------------------------------------------------------------------
-    def _cargar_imagen_manometro(self) -> ctk.CTkImage | None:
-        """Ilustración propia (manómetro de diagnóstico) generada por código, no una foto de
-        stock ni una imagen de IA: evita cualquier duda de licencia y no depende de internet."""
-        ruta = os.path.join(IMAGES_DIR, "manometro_login.png")
+        self.bind("<Configure>", self._al_redimensionar_ventana)
+
+    # -- Fondo: una sola ilustración detrás de toda la ventana, con el texto de marca ------
+    # dibujado directamente sobre ella (no como widgets superpuestos).
+    def _cargar_ilustracion_original(self) -> Image.Image | None:
+        ruta = os.path.join(IMAGES_DIR, "ilustracion_login.jpg")
         if not os.path.isfile(ruta):
             return None
         with Image.open(ruta) as archivo_imagen:
-            imagen_pil = archivo_imagen.copy()
-        return ctk.CTkImage(light_image=imagen_pil, dark_image=imagen_pil, size=(220, 220))
+            return archivo_imagen.convert("RGB").copy()
 
-    def _construir_panel_marca(self):
-        panel = ctk.CTkFrame(self, fg_color=COLOR_NAV_FONDO, corner_radius=0)
-        panel.grid(row=0, column=0, sticky="nsew")
-        panel.grid_rowconfigure(0, weight=1)
-        panel.grid_rowconfigure(2, weight=0)
-        panel.grid_columnconfigure(0, weight=1)
+    @staticmethod
+    def _recortar_a_cubrir(imagen: Image.Image, ancho: int, alto: int) -> Image.Image:
+        """Recorta al centro y redimensiona para cubrir exactamente (ancho x alto),
+        sin deformar la imagen ni dejar franjas vacías (equivalente a CSS background-size: cover)."""
+        proporcion_objetivo = ancho / alto
+        proporcion_imagen = imagen.width / imagen.height
+        if proporcion_imagen > proporcion_objetivo:
+            nuevo_ancho = round(imagen.height * proporcion_objetivo)
+            x0 = (imagen.width - nuevo_ancho) // 2
+            recorte = imagen.crop((x0, 0, x0 + nuevo_ancho, imagen.height))
+        else:
+            nuevo_alto = round(imagen.width / proporcion_objetivo)
+            y0 = (imagen.height - nuevo_alto) // 2
+            recorte = imagen.crop((0, y0, imagen.width, y0 + nuevo_alto))
+        return recorte.resize((ancho, alto), Image.LANCZOS)
 
-        contenido = ctk.CTkFrame(panel, fg_color="transparent")
-        contenido.grid(row=0, column=0, sticky="nsew", padx=56, pady=(60, 20))
-        contenido.grid_columnconfigure(0, weight=1)
-        contenido.grid_rowconfigure(0, weight=1)
+    @staticmethod
+    def _oscurecer(imagen: Image.Image) -> Image.Image:
+        """Viñeta suave y radial anclada en la esquina inferior izquierda (donde va el texto
+        de marca): se desvanece de forma continua hacia arriba y hacia la derecha, sin bordes
+        duros de rectángulo, para que el texto que se dibuja encima siga leyéndose sin tapar
+        la foto con una caja de color plano."""
+        ancho, alto = imagen.size
+        u = np.linspace(0, 1, ancho)
+        cercania_abajo = 1 - np.linspace(0, 1, alto)
+        uu, cc = np.meshgrid(u, cercania_abajo)
+        radio = np.sqrt((uu / 0.55) ** 2 + (cc / 0.95) ** 2)
+        factor = np.clip(1 - radio, 0, 1) ** 1.3
+        alpha = (factor * 145).astype("uint8")
 
-        cuerpo = ctk.CTkFrame(contenido, fg_color="transparent")
-        cuerpo.grid(row=0, column=0, sticky="w")
+        mascara = Image.fromarray(alpha, mode="L")
+        capa = Image.new("RGBA", (ancho, alto), (8, 11, 15, 255))
+        capa.putalpha(mascara)
+        return Image.alpha_composite(imagen.convert("RGBA"), capa).convert("RGB")
 
-        self._imagen_manometro = self._cargar_imagen_manometro()
-        if self._imagen_manometro is not None:
-            ctk.CTkLabel(contenido, image=self._imagen_manometro, text="").grid(
-                row=0, column=1, sticky="e", padx=(20, 0)
+    def _dibujar_texto_marca(self, imagen: Image.Image) -> Image.Image:
+        """Dibuja la insignia, el titular, la descripción y las estadísticas como píxeles
+        reales de la imagen (con Pillow): así quedan integradas con la foto de fondo, en vez
+        de sobre un widget con su propio color de relleno."""
+        draw = ImageDraw.Draw(imagen)
+        ancho_imagen, alto_imagen = imagen.size
+
+        lineas_titulo = ["Formación técnica que", "se mide, no se supone."]
+        lineas_texto = _envolver_texto(
+            "Cursos, evaluaciones y simulaciones de diagnóstico para el equipo técnico de "
+            "Refrios — con seguimiento de avance en tiempo real.",
+            self._fuente_texto, self._ANCHO_TEXTO,
+        )
+        estadisticas = (("18", "Cursos activos"), ("92%", "Aprobación"), ("236", "Aprendices"))
+
+        alto_linea_titulo = round(self._fuente_titulo.size * 1.3)
+        alto_linea_texto = round(self._fuente_texto.size * 1.55)
+        alto_valor_estadistica = round(self._fuente_estadistica_valor.size * 1.3)
+        alto_etiqueta_estadistica = round(self._fuente_estadistica_etiqueta.size * 1.3)
+
+        gap_tras_insignia = 20
+        gap_tras_titulo = 12
+        gap_tras_texto = 22
+        gap_tras_separador = 18
+        gap_valor_etiqueta = 4
+
+        alto_total = (
+            self._LADO_INSIGNIA + gap_tras_insignia
+            + alto_linea_titulo * len(lineas_titulo) + gap_tras_titulo
+            + alto_linea_texto * len(lineas_texto) + gap_tras_texto
+            + 1 + gap_tras_separador
+            + alto_valor_estadistica + gap_valor_etiqueta + alto_etiqueta_estadistica
+        )
+        y = max(24, alto_imagen - self._PAD_INFERIOR - alto_total)
+        x = self._PAD_IZQUIERDO
+
+        # Insignia "RA"
+        color_acento = _hex_a_rgb(COLOR_ACENTO_PRIMARIO)
+        draw.rounded_rectangle(
+            (x, y, x + self._LADO_INSIGNIA, y + self._LADO_INSIGNIA), radius=RADIO_BOTON, fill=color_acento,
+        )
+        caja_ra = draw.textbbox((0, 0), "RA", font=self._fuente_insignia)
+        ancho_ra, alto_ra = caja_ra[2] - caja_ra[0], caja_ra[3] - caja_ra[1]
+        draw.text(
+            (x + (self._LADO_INSIGNIA - ancho_ra) / 2 - caja_ra[0], y + (self._LADO_INSIGNIA - alto_ra) / 2 - caja_ra[1]),
+            "RA", font=self._fuente_insignia, fill=(11, 15, 20),
+        )
+        y += self._LADO_INSIGNIA + gap_tras_insignia
+
+        # Titular
+        color_titulo = _hex_a_rgb(COLOR_NAV_TEXTO)
+        for linea in lineas_titulo:
+            draw.text((x, y), linea, font=self._fuente_titulo, fill=color_titulo)
+            y += alto_linea_titulo
+        y += gap_tras_titulo
+
+        # Descripción
+        color_secundario = _hex_a_rgb(COLOR_NAV_TEXTO_SECUNDARIO)
+        for linea in lineas_texto:
+            draw.text((x, y), linea, font=self._fuente_texto, fill=color_secundario)
+            y += alto_linea_texto
+        y += gap_tras_texto
+
+        # Separador
+        draw.line((x, y, x + self._ANCHO_TEXTO, y), fill=_hex_a_rgb(COLOR_NAV_BORDE), width=1)
+        y += 1 + gap_tras_separador
+
+        # Estadísticas
+        color_glow = _hex_a_rgb(COLOR_ACENTO_GLOW)
+        x_columna = x
+        for valor, etiqueta in estadisticas:
+            draw.text((x_columna, y), valor, font=self._fuente_estadistica_valor, fill=color_glow)
+            draw.text(
+                (x_columna, y + alto_valor_estadistica + gap_valor_etiqueta), etiqueta,
+                font=self._fuente_estadistica_etiqueta, fill=color_secundario,
             )
+            ancho_columna = max(
+                self._fuente_estadistica_valor.getlength(valor),
+                self._fuente_estadistica_etiqueta.getlength(etiqueta),
+            )
+            x_columna += ancho_columna + 34
 
-        insignia = ctk.CTkFrame(cuerpo, fg_color=COLOR_ACENTO_PRIMARIO, corner_radius=RADIO_BOTON, width=52, height=52)
-        insignia.pack(anchor="w")
-        insignia.pack_propagate(False)
-        ctk.CTkLabel(insignia, text="RA", font=(FONT_FAMILY, 20, "bold"), text_color="#0B0F14").pack(expand=True)
+        return imagen
 
-        ctk.CTkLabel(
-            cuerpo,
-            text="Formación técnica que\nse mide, no se supone.",
-            font=(FONT_FAMILY, 30, "bold"),
-            text_color=COLOR_NAV_TEXTO,
-            justify="left",
-            anchor="w",
-        ).pack(anchor="w", pady=(26, 14))
+    def _construir_fondo(self):
+        self._etiqueta_fondo = ctk.CTkLabel(self, text="", fg_color=COLOR_FONDO_APP)
+        self._etiqueta_fondo.place(x=0, y=0, relwidth=1, relheight=1)
 
-        ctk.CTkLabel(
-            cuerpo,
-            text=(
-                "Cursos, evaluaciones y simulaciones de diagnóstico para el "
-                "equipo técnico de Refrios — con seguimiento de avance "
-                "en tiempo real."
-            ),
-            font=(FONT_FAMILY, 13.5),
-            text_color=COLOR_NAV_TEXTO_SECUNDARIO,
-            justify="left",
-            anchor="w",
-            wraplength=300,
-        ).pack(anchor="w")
+    def _actualizar_fondo(self):
+        ancho = self.winfo_width()
+        alto = self.winfo_height()
+        if ancho < 10 or alto < 10 or self._ilustracion_original is None:
+            return
+        if self._ultimo_tamano_fondo == (ancho, alto):
+            return
+        self._ultimo_tamano_fondo = (ancho, alto)
 
-        pie = ctk.CTkFrame(panel, fg_color="transparent")
-        pie.grid(row=1, column=0, sticky="ew", padx=56, pady=(10, 44))
-        separador = ctk.CTkFrame(pie, fg_color=COLOR_NAV_BORDE, height=1, corner_radius=0)
-        separador.pack(fill="x", pady=(0, 18))
-        fila_stats = ctk.CTkFrame(pie, fg_color="transparent")
-        fila_stats.pack(anchor="w")
-        for valor, etiqueta in (("18", "Cursos activos"), ("92%", "Aprobación"), ("236", "Aprendices")):
-            estadistica = ctk.CTkFrame(fila_stats, fg_color="transparent")
-            estadistica.pack(side="left", padx=(0, 34))
-            ctk.CTkLabel(
-                estadistica, text=valor, font=(FONT_FAMILY, 20, "bold"), text_color=COLOR_ACENTO_GLOW, anchor="w",
-            ).pack(anchor="w")
-            ctk.CTkLabel(
-                estadistica, text=etiqueta, font=(FONT_FAMILY, 10.5), text_color=COLOR_NAV_TEXTO_SECUNDARIO, anchor="w",
-            ).pack(anchor="w")
+        cubierta = self._recortar_a_cubrir(self._ilustracion_original, ancho, alto)
+        cubierta = self._oscurecer(cubierta)
+        cubierta = self._dibujar_texto_marca(cubierta)
+        self._imagen_fondo = ctk.CTkImage(light_image=cubierta, dark_image=cubierta, size=(ancho, alto))
+        self._etiqueta_fondo.configure(image=self._imagen_fondo)
 
+    def _al_redimensionar_ventana(self, evento):
+        if evento.widget is not self:
+            return
+        if self._tarea_redimensionar_fondo is not None:
+            self.after_cancel(self._tarea_redimensionar_fondo)
+        self._tarea_redimensionar_fondo = self.after(60, self._actualizar_fondo)
+
+    # -- Tarjeta de login: flota sobre el fondo, del lado derecho ---------------------------
     def _construir_panel_formulario(self):
-        panel = ctk.CTkFrame(self, fg_color=COLOR_FONDO_APP, corner_radius=0)
-        panel.grid(row=0, column=1, sticky="nsew")
-        panel.grid_rowconfigure(0, weight=1)
-        panel.grid_columnconfigure(0, weight=1)
-
         tarjeta = ctk.CTkFrame(
-            panel,
+            self,
             fg_color=COLOR_FONDO_TARJETA,
             corner_radius=RADIO_TARJETA + 4,
             width=440,
             border_width=GROSOR_BORDE_SUTIL,
             border_color=COLOR_BORDE_SUTIL,
         )
-        tarjeta.grid(row=0, column=0)
+        tarjeta.place(relx=0.77, rely=0.5, anchor="center")
         tarjeta.grid_columnconfigure(0, weight=1)
 
         ctk.CTkLabel(
