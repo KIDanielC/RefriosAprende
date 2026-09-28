@@ -18,6 +18,7 @@ from config.settings import (
     COLOR_EXITO,
     COLOR_ACENTO_PRIMARIO,
     COLOR_FONDO_PANEL,
+    RADIO_BOTON,
 )
 from controller.reporte_controller import ReporteController
 
@@ -65,7 +66,7 @@ class ReportesScreen(ctk.CTkFrame):
             )
             tarjeta.grid(row=0, column=indice, padx=6, sticky="ew")
             tarjeta.grid_propagate(False)
-            insignia = ctk.CTkFrame(tarjeta, fg_color=COLOR_FONDO_TARJETA_HOVER, corner_radius=9, width=32, height=32)
+            insignia = ctk.CTkFrame(tarjeta, fg_color=COLOR_FONDO_TARJETA_HOVER, corner_radius=RADIO_BOTON, width=32, height=32)
             insignia.pack(anchor="w", padx=18, pady=(16, 0))
             insignia.pack_propagate(False)
             ctk.CTkLabel(insignia, text=icono, font=(FONT_FAMILY, 14)).pack(expand=True)
@@ -151,7 +152,7 @@ class ReportesScreen(ctk.CTkFrame):
         )
         estilo.map(
             "Reportes.Treeview", background=[("selected", COLOR_ACENTO_PRIMARIO)],
-            foreground=[("selected", COLOR_TEXTO_PRIMARIO)],
+            foreground=[("selected", "#0B0F14")],
         )
 
         columnas = ("curso", "inscritos", "progreso", "evaluaciones", "aprobacion")

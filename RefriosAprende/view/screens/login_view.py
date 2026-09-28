@@ -86,10 +86,10 @@ class LoginView(ctk.CTk):
                 row=0, column=1, sticky="e", padx=(20, 0)
             )
 
-        insignia = ctk.CTkFrame(cuerpo, fg_color=COLOR_ACENTO_PRIMARIO, corner_radius=13, width=52, height=52)
+        insignia = ctk.CTkFrame(cuerpo, fg_color=COLOR_ACENTO_PRIMARIO, corner_radius=RADIO_BOTON, width=52, height=52)
         insignia.pack(anchor="w")
         insignia.pack_propagate(False)
-        ctk.CTkLabel(insignia, text="RA", font=(FONT_FAMILY, 20, "bold"), text_color="#FFFFFF").pack(expand=True)
+        ctk.CTkLabel(insignia, text="RA", font=(FONT_FAMILY, 20, "bold"), text_color="#0B0F14").pack(expand=True)
 
         ctk.CTkLabel(
             cuerpo,
@@ -203,7 +203,7 @@ class LoginView(ctk.CTk):
             corner_radius=RADIO_BOTON,
             fg_color=COLOR_ACENTO_PRIMARIO,
             hover_color=COLOR_ACENTO_SECUNDARIO,
-            text_color="#FFFFFF",
+            text_color="#0B0F14",
             font=(FONT_FAMILY, 16, "bold"),
             command=self._manejar_inicio_sesion,
         )

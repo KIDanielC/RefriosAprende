@@ -103,12 +103,12 @@ class DashboardView(ctk.CTk):
         marca = ctk.CTkFrame(sidebar, fg_color="transparent", border_width=0)
         marca.pack(pady=(24, 18), padx=20, anchor="w", fill="x")
         insignia_marca = ctk.CTkFrame(
-            marca, fg_color=COLOR_ACENTO_PRIMARIO, corner_radius=10, width=36, height=36,
+            marca, fg_color=COLOR_ACENTO_PRIMARIO, corner_radius=RADIO_BOTON, width=36, height=36,
         )
         insignia_marca.pack(side="left")
         insignia_marca.pack_propagate(False)
         ctk.CTkLabel(
-            insignia_marca, text="RA", font=(FONT_FAMILY, 13, "bold"), text_color="#FFFFFF",
+            insignia_marca, text="RA", font=(FONT_FAMILY, 13, "bold"), text_color="#0B0F14",
         ).pack(expand=True)
         texto_marca = ctk.CTkFrame(marca, fg_color="transparent")
         texto_marca.pack(side="left", padx=(10, 0))
@@ -145,7 +145,7 @@ class DashboardView(ctk.CTk):
         avatar = ctk.CTkFrame(pie, fg_color=COLOR_ACENTO_ALTERNO, corner_radius=16, width=32, height=32)
         avatar.pack(side="left")
         avatar.pack_propagate(False)
-        self._etiqueta_avatar = ctk.CTkLabel(avatar, text="", font=(FONT_FAMILY, 11, "bold"), text_color="#FFFFFF")
+        self._etiqueta_avatar = ctk.CTkLabel(avatar, text="", font=(FONT_FAMILY, 11, "bold"), text_color="#0B0F14")
         self._etiqueta_avatar.pack(expand=True)
         self._actualizar_avatar()
         texto_pie = ctk.CTkFrame(pie, fg_color="transparent")
@@ -294,7 +294,7 @@ class DashboardView(ctk.CTk):
             tarjeta.grid_propagate(False)
             encabezado = ctk.CTkFrame(tarjeta, fg_color="transparent")
             encabezado.pack(anchor="w", padx=18, pady=(16, 0), fill="x")
-            insignia = ctk.CTkFrame(encabezado, fg_color=COLOR_FONDO_TARJETA_HOVER, corner_radius=9, width=32, height=32)
+            insignia = ctk.CTkFrame(encabezado, fg_color=COLOR_FONDO_TARJETA_HOVER, corner_radius=RADIO_BOTON, width=32, height=32)
             insignia.pack(side="left")
             insignia.pack_propagate(False)
             ctk.CTkLabel(insignia, text=icono, font=(FONT_FAMILY, 14)).pack(expand=True)
@@ -333,7 +333,7 @@ class DashboardView(ctk.CTk):
                 anchor="w", width=170,
             ).grid(row=0, column=0, sticky="w")
             barra = ctk.CTkProgressBar(
-                fila, height=8, corner_radius=99, fg_color=COLOR_BORDE_SUTIL, progress_color=COLOR_ACENTO_PRIMARIO,
+                fila, height=8, corner_radius=RADIO_BOTON, fg_color=COLOR_BORDE_SUTIL, progress_color=COLOR_ACENTO_PRIMARIO,
             )
             barra.set(porcentaje / 100)
             barra.grid(row=0, column=1, sticky="ew", padx=12)

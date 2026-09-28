@@ -101,7 +101,7 @@ class EvaluacionFinalWindow(ctk.CTkToplevel):
 
         ctk.CTkButton(
             contenedor, text="Crear evaluación final", width=380, height=44, corner_radius=RADIO_BOTON,
-            fg_color=COLOR_ACENTO_PRIMARIO, hover_color=COLOR_ACENTO_SECUNDARIO,
+            fg_color=COLOR_ACENTO_PRIMARIO, hover_color=COLOR_ACENTO_SECUNDARIO, text_color="#0B0F14",
             font=(FONT_FAMILY, 14, "bold"), command=_crear,
         ).pack(padx=28, pady=(16, 24))
 
@@ -135,7 +135,7 @@ class EvaluacionFinalWindow(ctk.CTkToplevel):
         barra.grid(row=1, column=0, sticky="ew", padx=24, pady=(8, 8))
         ctk.CTkButton(
             barra, text="+  Nueva pregunta", height=36, corner_radius=RADIO_BOTON,
-            fg_color=COLOR_ACENTO_PRIMARIO, hover_color=COLOR_ACENTO_SECUNDARIO,
+            fg_color=COLOR_ACENTO_PRIMARIO, hover_color=COLOR_ACENTO_SECUNDARIO, text_color="#0B0F14",
             font=(FONT_FAMILY, 13, "bold"),
             command=lambda: FormularioPregunta(
                 self,

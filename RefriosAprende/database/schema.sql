@@ -216,6 +216,41 @@ CREATE TABLE IF NOT EXISTS simulaciones (
 );
 
 -- ---------------------------------------------------------
+-- TALLERES (ejercicios practicos/entregas que el instructor asigna a un curso;
+-- un curso puede tener varios, igual que las simulaciones)
+-- ---------------------------------------------------------
+CREATE TABLE IF NOT EXISTS talleres (
+    id_taller       INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_curso        INTEGER NOT NULL,
+    titulo          TEXT NOT NULL,
+    descripcion     TEXT NOT NULL,
+    fecha_creacion  TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
+    FOREIGN KEY (id_curso) REFERENCES cursos (id_curso)
+        ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+-- ---------------------------------------------------------
+-- ENTREGAS_TALLER (archivo -imagen/PDF/Word- que sube un aprendiz para un taller,
+-- y su calificacion por el instructor: aprobado/rechazado + comentario)
+-- ---------------------------------------------------------
+CREATE TABLE IF NOT EXISTS entregas_taller (
+    id_entrega              INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_taller               INTEGER NOT NULL,
+    id_usuario              INTEGER NOT NULL,
+    ruta_archivo            TEXT NOT NULL,
+    nombre_archivo_original TEXT,
+    estado                  TEXT NOT NULL DEFAULT 'PENDIENTE' CHECK (estado IN ('PENDIENTE', 'APROBADO', 'RECHAZADO')),
+    comentario_instructor   TEXT,
+    fecha_entrega           TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
+    fecha_calificacion      TEXT,
+    UNIQUE (id_taller, id_usuario),
+    FOREIGN KEY (id_taller) REFERENCES talleres (id_taller)
+        ON UPDATE CASCADE ON DELETE CASCADE,
+    FOREIGN KEY (id_usuario) REFERENCES usuarios (id_usuario)
+        ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+-- ---------------------------------------------------------
 -- CONTENIDOS_VISTOS (seguimiento de lectura, base del calculo de progreso)
 -- ---------------------------------------------------------
 CREATE TABLE IF NOT EXISTS contenidos_vistos (
@@ -244,6 +279,9 @@ CREATE INDEX IF NOT EXISTS idx_inscripciones_usuario ON inscripciones (id_usuari
 CREATE INDEX IF NOT EXISTS idx_progreso_usuario_curso ON progreso (id_usuario, id_curso);
 CREATE INDEX IF NOT EXISTS idx_resultados_evaluacion ON resultados (id_evaluacion);
 CREATE INDEX IF NOT EXISTS idx_cursos_prerrequisitos_prerrequisito ON cursos_prerrequisitos (id_curso_prerrequisito);
+CREATE INDEX IF NOT EXISTS idx_talleres_curso ON talleres (id_curso);
+CREATE INDEX IF NOT EXISTS idx_entregas_taller_taller ON entregas_taller (id_taller);
+CREATE INDEX IF NOT EXISTS idx_entregas_taller_usuario ON entregas_taller (id_usuario);
 -- idx_cursos_categoria se crea en la migración (connection.py), no aquí: en bases ya
 -- existentes la columna cursos.id_categoria todavía no existe cuando este script corre.
 

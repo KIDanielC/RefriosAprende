@@ -80,7 +80,7 @@ class MisCursosScreen(ctk.CTkFrame):
         progreso = self._progreso_controlador.obtener_progreso(self._usuario_sesion.id_usuario, curso.id_curso)
         porcentaje = progreso.porcentaje_avance if progreso else 0.0
         color_insignia = COLOR_EXITO if porcentaje >= 100 else COLOR_ACENTO_PRIMARIO
-        insignia = ctk.CTkFrame(encabezado, fg_color=COLOR_FONDO_TARJETA_HOVER, corner_radius=99)
+        insignia = ctk.CTkFrame(encabezado, fg_color=COLOR_FONDO_TARJETA_HOVER, corner_radius=RADIO_BOTON)
         insignia.grid(row=0, column=1, sticky="e")
         ctk.CTkLabel(
             insignia, text=f"{porcentaje:.0f}% completado", font=(FONT_FAMILY, 11, "bold"), text_color=color_insignia,
@@ -101,7 +101,7 @@ class MisCursosScreen(ctk.CTkFrame):
         ).grid(row=2, column=0, sticky="ew", padx=20, pady=(6, 10))
 
         barra = ctk.CTkProgressBar(
-            tarjeta, height=8, corner_radius=99, fg_color=COLOR_BORDE_SUTIL, progress_color=color_insignia,
+            tarjeta, height=8, corner_radius=RADIO_BOTON, fg_color=COLOR_BORDE_SUTIL, progress_color=color_insignia,
         )
         barra.set(porcentaje / 100)
         barra.grid(row=3, column=0, sticky="ew", padx=20, pady=(0, 14))
@@ -112,7 +112,7 @@ class MisCursosScreen(ctk.CTkFrame):
         ctk.CTkButton(
             fila_botones, text="Ver curso", height=36, corner_radius=RADIO_BOTON,
             fg_color=COLOR_ACENTO_PRIMARIO, hover_color=COLOR_ACENTO_SECUNDARIO,
-            text_color="#FFFFFF", font=(FONT_FAMILY, 13, "bold"),
+            text_color="#0B0F14", font=(FONT_FAMILY, 13, "bold"),
             command=lambda c=curso: self._mostrar_contenido(c),
         ).pack(side="left")
 
@@ -120,7 +120,7 @@ class MisCursosScreen(ctk.CTkFrame):
             ctk.CTkButton(
                 fila_botones, text="🏆  Ver certificado", height=36, corner_radius=RADIO_BOTON,
                 fg_color=COLOR_EXITO, hover_color=COLOR_EXITO,
-                text_color="#FFFFFF", font=(FONT_FAMILY, 13, "bold"),
+                text_color="#0B0F14", font=(FONT_FAMILY, 13, "bold"),
                 command=lambda c=curso: CertificadoWindow(self, usuario=self._usuario_sesion, curso=c),
             ).pack(side="left", padx=(10, 0))
 

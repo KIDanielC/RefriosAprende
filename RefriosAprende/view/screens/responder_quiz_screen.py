@@ -98,7 +98,7 @@ class ResponderQuizWindow(ctk.CTkToplevel):
 
         ctk.CTkButton(
             pie, text="Corregir", width=160, height=42, corner_radius=RADIO_BOTON,
-            fg_color=COLOR_ACENTO_PRIMARIO, hover_color=COLOR_ACENTO_SECUNDARIO,
+            fg_color=COLOR_ACENTO_PRIMARIO, hover_color=COLOR_ACENTO_SECUNDARIO, text_color="#0B0F14",
             font=(FONT_FAMILY, 14, "bold"), command=self._corregir,
         ).grid(row=0, column=1, sticky="e")
 

@@ -32,12 +32,14 @@ from controller.contenido_controller import TIPO_IMAGEN, TIPO_PDF, TIPO_TEXTO, C
 from controller.evaluacion_controller import EvaluacionController
 from controller.guia_aprendizaje_controller import GuiaAprendizajeController, DatosGuiaInvalidosError
 from controller.simulacion_controller import SimulacionController
+from controller.taller_controller import TallerController
 from model.entities.curso import Curso
 from view.components.editor_texto_enriquecido import EditorTextoEnriquecido
 from view.screens.contenidos_screen import ContenidosScreen
 from view.screens.evaluacion_final_screen import EvaluacionFinalWindow
 from view.screens.matricula_screen import MatriculaWindow
 from view.screens.simulaciones_screen import SimulacionesWindow
+from view.screens.talleres_screen import TalleresWindow
 
 _CAMPOS_ENCABEZADO = (
     ("objetivo_general", "Objetivo general"),
@@ -56,6 +58,7 @@ class GestionarCursoWindow(ctk.CTkToplevel):
         self._contenido_controlador = ContenidoController()
         self._simulacion_controlador = SimulacionController()
         self._evaluacion_controlador = EvaluacionController()
+        self._taller_controlador = TallerController()
         self._cajas_texto = {}
 
         self.title(f"Gestionar curso — {curso.nombre_curso}")
@@ -104,7 +107,7 @@ class GestionarCursoWindow(ctk.CTkToplevel):
         ctk.CTkButton(
             pie, text="Guardar guía", width=160, height=42, corner_radius=RADIO_BOTON,
             fg_color=COLOR_ACENTO_PRIMARIO, hover_color=COLOR_ACENTO_SECUNDARIO,
-            text_color="#FFFFFF", font=(FONT_FAMILY, 14, "bold"), command=self._guardar,
+            text_color="#0B0F14", font=(FONT_FAMILY, 14, "bold"), command=self._guardar,
         ).grid(row=0, column=1, sticky="e")
 
     # -- Encabezado fijo: info del curso + lo transversal a toda la metodología ------------
@@ -197,6 +200,14 @@ class GestionarCursoWindow(ctk.CTkToplevel):
         self._agregar_campo(contenedor, guia, "ejemplos_practicos", "Ejemplos prácticos")
         self._agregar_campo(contenedor, guia, "actividades_interactivas", "Actividades interactivas")
 
+        talleres = self._taller_controlador.listar_por_curso(self._curso.id_curso)
+        lineas = [taller.titulo for taller in talleres]
+        self._construir_seccion_computada(
+            contenedor, "Talleres prácticos (entrega calificable, requisito para completar el curso)", lineas,
+            texto_boton="Gestionar talleres",
+            comando_boton=self._abrir_talleres,
+        )
+
     def _construir_pestana_simular(self, tab):
         tab.grid_columnconfigure(0, weight=1)
         contenedor = ctk.CTkScrollableFrame(tab, fg_color="transparent")
@@ -250,6 +261,9 @@ class GestionarCursoWindow(ctk.CTkToplevel):
 
     def _abrir_evaluacion_final(self):
         EvaluacionFinalWindow(self, curso=self._curso)
+
+    def _abrir_talleres(self):
+        TalleresWindow(self, curso=self._curso)
 
     def _agregar_campo(self, contenedor, guia, clave: str, etiqueta: str):
         valor = getattr(guia, clave, "") if guia else ""

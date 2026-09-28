@@ -117,7 +117,7 @@ class PresentarEvaluacionWindow(ctk.CTkToplevel):
         ctk.CTkButton(
             pie, text="Enviar evaluación", width=180, height=44, corner_radius=RADIO_BOTON,
             fg_color=COLOR_ACENTO_PRIMARIO, hover_color=COLOR_ACENTO_SECUNDARIO,
-            text_color="#FFFFFF", font=(FONT_FAMILY, 14, "bold"), command=self._enviar,
+            text_color="#0B0F14", font=(FONT_FAMILY, 14, "bold"), command=self._enviar,
         ).grid(row=0, column=1, sticky="e")
 
     # ------------------------------------------------------------------

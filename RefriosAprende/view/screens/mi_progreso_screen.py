@@ -9,6 +9,7 @@ from config.settings import (
     FONT_FAMILY,
     COLOR_FONDO_TARJETA,
     RADIO_TARJETA,
+    RADIO_BOTON,
     GROSOR_BORDE_SUTIL,
     COLOR_BORDE_SUTIL,
     COLOR_TEXTO_PRIMARIO,
@@ -83,7 +84,7 @@ class MiProgresoScreen(ctk.CTkFrame):
         ).grid(row=0, column=1, sticky="e")
 
         barra = ctk.CTkProgressBar(
-            tarjeta, height=10, corner_radius=99, fg_color=COLOR_BORDE_SUTIL,
+            tarjeta, height=10, corner_radius=RADIO_BOTON, fg_color=COLOR_BORDE_SUTIL,
             progress_color=_COLORES_ESTADO.get(estado, COLOR_ACENTO_PRIMARIO),
         )
         barra.set(porcentaje / 100)

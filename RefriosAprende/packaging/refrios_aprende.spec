@@ -30,11 +30,13 @@ _ruta_bd_semilla = os.path.join(PROJECT_ROOT, "database", "refrios.db")
 if os.path.isfile(_ruta_bd_semilla):
     datas.append((_ruta_bd_semilla, "database"))
 
-# Contenidos ya subidos (PDF/imágenes de cursos): se incluyen como semilla solo si existen,
-# para que una instalación de demostración muestre contenido real desde el primer arranque.
-_dir_contenidos_semilla = os.path.join(PROJECT_ROOT, "resources", "contenidos")
-if os.path.isdir(_dir_contenidos_semilla) and os.listdir(_dir_contenidos_semilla):
-    datas.append((_dir_contenidos_semilla, "resources/contenidos"))
+# Contenidos ya subidos (PDF/imágenes de cursos), fotos de perfil y entregas de talleres:
+# se incluyen como semilla solo si existen, para que una instalación de demostración muestre
+# los archivos reales (no solo los registros de la BD) desde el primer arranque.
+for _nombre_subcarpeta in ("contenidos", "fotos_perfil", "entregas"):
+    _dir_semilla = os.path.join(PROJECT_ROOT, "resources", _nombre_subcarpeta)
+    if os.path.isdir(_dir_semilla) and os.listdir(_dir_semilla):
+        datas.append((_dir_semilla, f"resources/{_nombre_subcarpeta}"))
 
 a = Analysis(
     [os.path.join(PROJECT_ROOT, "main.py")],

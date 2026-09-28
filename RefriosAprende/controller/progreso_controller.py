@@ -1,15 +1,19 @@
 """Controlador de seguimiento: calcula el avance de un aprendiz en un curso.
 
 Regla de negocio: el curso se marca COMPLETADO cuando el aprendiz vio todos sus
-contenidos Y (si el curso tiene evaluación final) la aprobó. Si no hay evaluación
-final configurada, ver todos los contenidos ya lo completa.
+contenidos Y (si el curso tiene evaluación final) la aprobó Y (si el curso tiene
+talleres) todos están aprobados por el instructor. Si el curso no tiene evaluación
+final ni talleres, ver todos los contenidos ya lo completa.
 """
 from model.dao.contenido_dao import ContenidoDAO
 from model.dao.contenido_visto_dao import ContenidoVistoDAO
+from model.dao.entrega_taller_dao import EntregaTallerDAO
 from model.dao.evaluacion_dao import EvaluacionDAO
 from model.dao.inscripcion_dao import InscripcionDAO
 from model.dao.progreso_dao import ProgresoDAO
 from model.dao.resultado_dao import ResultadoDAO
+from model.dao.taller_dao import TallerDAO
+from model.entities.entrega_taller import APROBADO as ENTREGA_APROBADA
 from model.entities.progreso import Progreso, NO_INICIADO, COMPLETADO, EN_PROGRESO
 
 
@@ -21,6 +25,8 @@ class ProgresoController:
         self._resultado_dao = ResultadoDAO()
         self._progreso_dao = ProgresoDAO()
         self._inscripcion_dao = InscripcionDAO()
+        self._taller_dao = TallerDAO()
+        self._entrega_taller_dao = EntregaTallerDAO()
 
     def registrar_contenido_visto(self, id_usuario: int, contenido) -> Progreso:
         self._contenido_visto_dao.marcar_visto(id_usuario, contenido.id_contenido)
@@ -56,7 +62,10 @@ class ProgresoController:
             estado = NO_INICIADO
         elif total_contenidos > 0 and vistos >= total_contenidos:
             evaluacion_final = self._evaluacion_dao.obtener_evaluacion_final_por_curso(id_curso)
-            if evaluacion_final is None or self._resultado_dao.existe_aprobado(id_usuario, evaluacion_final.id_evaluacion):
+            evaluacion_aprobada = (
+                evaluacion_final is None or self._resultado_dao.existe_aprobado(id_usuario, evaluacion_final.id_evaluacion)
+            )
+            if evaluacion_aprobada and self._talleres_aprobados(id_usuario, id_curso):
                 estado = COMPLETADO
             else:
                 estado = EN_PROGRESO
@@ -64,6 +73,17 @@ class ProgresoController:
             estado = EN_PROGRESO
 
         return self._progreso_dao.guardar(id_usuario, id_curso, porcentaje, estado)
+
+    def _talleres_aprobados(self, id_usuario: int, id_curso: int) -> bool:
+        """True si el curso no tiene talleres, o si el aprendiz tiene todos aprobados."""
+        talleres = self._taller_dao.listar_por_curso(id_curso)
+        if not talleres:
+            return True
+        for taller in talleres:
+            entrega = self._entrega_taller_dao.obtener_por_taller_y_usuario(taller.id_taller, id_usuario)
+            if entrega is None or entrega.estado != ENTREGA_APROBADA:
+                return False
+        return True
 
     def obtener_progreso(self, id_usuario: int, id_curso: int) -> Progreso | None:
         return self._progreso_dao.obtener_por_usuario_y_curso(id_usuario, id_curso)

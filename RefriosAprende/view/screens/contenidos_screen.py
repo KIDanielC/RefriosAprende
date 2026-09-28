@@ -72,7 +72,7 @@ class ContenidosScreen(ctk.CTkFrame):
 
         ctk.CTkButton(
             barra, text="+  Nuevo contenido", height=38, corner_radius=RADIO_BOTON,
-            fg_color=COLOR_ACENTO_PRIMARIO, hover_color=COLOR_ACENTO_SECUNDARIO,
+            fg_color=COLOR_ACENTO_PRIMARIO, hover_color=COLOR_ACENTO_SECUNDARIO, text_color="#0B0F14",
             font=(FONT_FAMILY, 13, "bold"), command=self._abrir_formulario_creacion,
         ).pack(side="left")
 
@@ -211,8 +211,8 @@ class FormularioContenido(ctk.CTkToplevel):
             ).pack(padx=28, pady=(0, 2), anchor="w")
             self._selector_tipo = ctk.CTkSegmentedButton(
                 self, values=["Texto", "PDF", "Imagen"], command=self._al_cambiar_tipo,
-                fg_color=COLOR_FONDO_APP, selected_color=COLOR_ACENTO_PRIMARIO,
-                selected_hover_color=COLOR_ACENTO_SECUNDARIO, unselected_color=COLOR_FONDO_APP,
+                fg_color=COLOR_FONDO_APP, selected_color=COLOR_BORDE_SUTIL,
+                selected_hover_color=COLOR_FONDO_TARJETA_HOVER, unselected_color=COLOR_FONDO_APP,
                 text_color=COLOR_TEXTO_PRIMARIO, font=(FONT_FAMILY, 13, "bold"),
             )
             self._selector_tipo.set("Texto")
@@ -238,7 +238,7 @@ class FormularioContenido(ctk.CTkToplevel):
 
         ctk.CTkButton(
             self, text="Guardar", width=500, height=44, corner_radius=RADIO_BOTON,
-            fg_color=COLOR_ACENTO_PRIMARIO, hover_color=COLOR_ACENTO_SECUNDARIO,
+            fg_color=COLOR_ACENTO_PRIMARIO, hover_color=COLOR_ACENTO_SECUNDARIO, text_color="#0B0F14",
             font=(FONT_FAMILY, 14, "bold"), command=self._guardar,
         ).pack(padx=28, pady=(16, 24))
 

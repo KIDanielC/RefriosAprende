@@ -5,6 +5,7 @@ según la metodología: aprender -> practicar -> simular -> evaluar."""
 import os
 import subprocess
 import sys
+from tkinter import filedialog
 
 import customtkinter as ctk
 from PIL import Image
@@ -33,16 +34,19 @@ from controller.evaluacion_controller import EvaluacionController
 from controller.guia_aprendizaje_controller import GuiaAprendizajeController
 from controller.progreso_controller import ProgresoController
 from controller.simulacion_controller import SimulacionController
+from controller.taller_controller import DatosTallerInvalidosError, TallerController
 from controller.validacion_controller import ValidacionController
 from model.dao.resultado_dao import ResultadoDAO
 from model.entities.contenido import Contenido
 from model.entities.curso import Curso
+from model.entities.taller import Taller
 from model.entities.usuario import Usuario
 from utils.texto_enriquecido import texto_plano_desde_markup
 from view.components.editor_texto_enriquecido import EditorTextoEnriquecido
 from view.screens.presentar_evaluacion_screen import PresentarEvaluacionWindow
 from view.screens.presentar_simulacion_screen import PresentarCasoWindow
 from view.screens.responder_quiz_screen import ResponderQuizWindow
+from view.screens.talleres_screen import abrir_archivo
 
 
 class CursoAprendizScreen(ctk.CTkFrame):
@@ -60,10 +64,12 @@ class CursoAprendizScreen(ctk.CTkFrame):
         self._simulacion_controlador = SimulacionController()
         self._progreso_controlador = ProgresoController()
         self._guia_controlador = GuiaAprendizajeController()
+        self._taller_controlador = TallerController()
         self._resultado_dao = ResultadoDAO()
 
         self._imagenes_cargadas = []  # referencias vivas: evita que el GC libere las CTkImage en pantalla
         self._casillas_visto = {}
+        self._etiquetas_error_taller = {}
 
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(3, weight=1)
@@ -215,7 +221,7 @@ class CursoAprendizScreen(ctk.CTkFrame):
         casilla_vista = ctk.CTkCheckBox(
             encabezado, text="Ya lo vi", font=(FONT_FAMILY, 12, "bold"), text_color=COLOR_TEXTO_SECUNDARIO,
             fg_color=COLOR_ACENTO_PRIMARIO, hover_color=COLOR_ACENTO_SECUNDARIO, border_color=COLOR_BORDE_SUTIL,
-            checkmark_color="#FFFFFF", width=20, height=20,
+            checkmark_color="#0B0F14", width=20, height=20,
             command=lambda c=contenido: self._alternar_visto(c),
         )
         if self._progreso_controlador.ya_visto(self._usuario_sesion.id_usuario, contenido):
@@ -240,7 +246,7 @@ class CursoAprendizScreen(ctk.CTkFrame):
             ctk.CTkButton(
                 tarjeta, text="📄  Abrir PDF", height=34, corner_radius=RADIO_BOTON,
                 fg_color=COLOR_ACENTO_PRIMARIO, hover_color=COLOR_ACENTO_SECUNDARIO,
-                text_color="#FFFFFF", font=(FONT_FAMILY, 12, "bold"),
+                text_color="#0B0F14", font=(FONT_FAMILY, 12, "bold"),
                 command=lambda c=contenido: self._abrir_pdf(c),
             ).grid(row=fila_siguiente, column=0, sticky="w", padx=18, pady=(0, 12))
             fila_siguiente += 1
@@ -291,8 +297,19 @@ class CursoAprendizScreen(ctk.CTkFrame):
         else:
             subprocess.run(["xdg-open", ruta_absoluta], check=False)
 
-    # -- Practicar: contexto pedagógico -----------------------------------------------------
+    # -- Practicar: contexto pedagógico + talleres con entrega calificable -------------------
     def _construir_pestana_practicar(self, tab, guia):
+        self._tab_practicar = tab
+        self._guia_practicar = guia
+        self._refrescar_pestana_practicar()
+
+    def _refrescar_pestana_practicar(self):
+        tab = self._tab_practicar
+        guia = self._guia_practicar
+        for hijo in tab.winfo_children():
+            hijo.destroy()
+        self._etiquetas_error_taller = {}
+
         tab.grid_columnconfigure(0, weight=1)
         tab.grid_rowconfigure(0, weight=1)
         contenedor = ctk.CTkScrollableFrame(tab, fg_color="transparent")
@@ -309,11 +326,91 @@ class CursoAprendizScreen(ctk.CTkFrame):
         for clave, etiqueta in claves:
             if self._agregar_texto_opcional(contenedor, guia, clave, etiqueta):
                 hay_contenido = True
+
+        talleres = self._taller_controlador.listar_por_curso(self._curso.id_curso)
+        for taller in talleres:
+            hay_contenido = True
+            self._construir_tarjeta_taller(contenedor, taller)
+
         if not hay_contenido:
             ctk.CTkLabel(
                 contenedor, text="El instructor todavía no ha publicado esta sección.",
                 font=(FONT_FAMILY, 14), text_color=COLOR_TEXTO_SECUNDARIO,
             ).pack(pady=20)
+
+    def _construir_tarjeta_taller(self, contenedor, taller: Taller):
+        tarjeta = ctk.CTkFrame(
+            contenedor, fg_color=COLOR_FONDO_TARJETA, corner_radius=RADIO_TARJETA,
+            border_width=GROSOR_BORDE_SUTIL, border_color=COLOR_BORDE_SUTIL,
+        )
+        tarjeta.pack(fill="x", pady=8)
+        ctk.CTkLabel(
+            tarjeta, text=taller.titulo, font=(FONT_FAMILY, 15, "bold"), text_color=COLOR_TEXTO_PRIMARIO, anchor="w",
+        ).pack(anchor="w", padx=18, pady=(14, 4))
+        EditorTextoEnriquecido(
+            tarjeta, valor_inicial=taller.descripcion, solo_lectura=True,
+        ).pack(fill="x", padx=18, pady=(0, 10))
+
+        entrega = self._taller_controlador.obtener_entrega(taller.id_taller, self._usuario_sesion.id_usuario)
+        color_estado = {"PENDIENTE": COLOR_ACENTO_ALTERNO, "APROBADO": COLOR_EXITO, "RECHAZADO": COLOR_ERROR}
+        texto_estado = {
+            "PENDIENTE": "Pendiente de calificar",
+            "APROBADO": "✓ Aprobado",
+            "RECHAZADO": "✗ Rechazado — vuelve a subir tu entrega",
+        }
+        if entrega is not None:
+            ctk.CTkLabel(
+                tarjeta, text=texto_estado.get(entrega.estado, entrega.estado), font=(FONT_FAMILY, 12, "bold"),
+                text_color=color_estado.get(entrega.estado, COLOR_TEXTO_SECUNDARIO), anchor="w",
+            ).pack(anchor="w", padx=18)
+            if entrega.comentario_instructor:
+                ctk.CTkLabel(
+                    tarjeta, text=f"Comentario del instructor: {entrega.comentario_instructor}",
+                    font=(FONT_FAMILY, 11), text_color=COLOR_TEXTO_SECUNDARIO, anchor="w",
+                    justify="left", wraplength=650,
+                ).pack(anchor="w", padx=18, pady=(2, 0))
+
+        barra = ctk.CTkFrame(tarjeta, fg_color="transparent")
+        barra.pack(anchor="w", padx=18, pady=(8, 4))
+        if entrega is not None:
+            ctk.CTkButton(
+                barra, text=f"📎  Ver {entrega.nombre_archivo_original or 'archivo'}", height=32, corner_radius=RADIO_BOTON,
+                fg_color=COLOR_FONDO_TARJETA_HOVER, border_width=1, border_color=COLOR_ACENTO_PRIMARIO,
+                text_color=COLOR_TEXTO_PRIMARIO, font=(FONT_FAMILY, 12, "bold"),
+                command=lambda e=entrega: abrir_archivo(e.ruta_archivo),
+            ).pack(side="left", padx=(0, 8))
+        if entrega is None or entrega.estado != "APROBADO":
+            texto_boton = "Volver a subir" if entrega is not None else "Subir entrega"
+            ctk.CTkButton(
+                barra, text=texto_boton, height=32, corner_radius=RADIO_BOTON,
+                fg_color=COLOR_ACENTO_PRIMARIO, hover_color=COLOR_ACENTO_SECUNDARIO, text_color="#0B0F14",
+                font=(FONT_FAMILY, 12, "bold"),
+                command=lambda t=taller: self._subir_entrega_taller(t),
+            ).pack(side="left")
+
+        etiqueta_error = ctk.CTkLabel(
+            tarjeta, text="", font=(FONT_FAMILY, 11), text_color=COLOR_ERROR, wraplength=650, justify="left", anchor="w",
+        )
+        etiqueta_error.pack(anchor="w", padx=18, pady=(0, 14))
+        self._etiquetas_error_taller[taller.id_taller] = etiqueta_error
+
+    def _subir_entrega_taller(self, taller: Taller):
+        ruta = filedialog.askopenfilename(
+            title="Selecciona tu entrega",
+            filetypes=[("Imágenes, PDF o Word", "*.png *.jpg *.jpeg *.pdf *.doc *.docx")],
+        )
+        if not ruta:
+            return
+
+        try:
+            self._taller_controlador.subir_entrega(taller.id_taller, self._usuario_sesion.id_usuario, ruta)
+        except DatosTallerInvalidosError as error:
+            etiqueta = self._etiquetas_error_taller.get(taller.id_taller)
+            if etiqueta is not None:
+                etiqueta.configure(text=str(error))
+            return
+
+        self._refrescar_pestana_practicar()
 
     # -- Simular: casos reales con acción de practicar ---------------------------------------
     def _construir_pestana_simular(self, tab):
@@ -347,7 +444,7 @@ class CursoAprendizScreen(ctk.CTkFrame):
             ).pack(anchor="w", padx=18, pady=(0, 10))
             ctk.CTkButton(
                 tarjeta, text="Practicar este caso", height=34, corner_radius=RADIO_BOTON,
-                fg_color=COLOR_ACENTO_ALTERNO, hover_color=COLOR_ACENTO_ALTERNO_GLOW, text_color="#FFFFFF",
+                fg_color=COLOR_ACENTO_ALTERNO, hover_color=COLOR_ACENTO_ALTERNO_GLOW, text_color="#0B0F14",
                 font=(FONT_FAMILY, 12, "bold"),
                 command=lambda e=evaluacion, s=simulacion: PresentarCasoWindow(
                     self, evaluacion=e, simulacion=s, usuario_sesion=self._usuario_sesion
@@ -392,7 +489,7 @@ class CursoAprendizScreen(ctk.CTkFrame):
         agotados = intentos_usados >= evaluacion_final.intentos_permitidos
         boton = ctk.CTkButton(
             tarjeta, text="Presentar evaluación", height=34, corner_radius=RADIO_BOTON,
-            fg_color=COLOR_ACENTO_PRIMARIO, hover_color=COLOR_ACENTO_SECUNDARIO, text_color="#FFFFFF",
+            fg_color=COLOR_ACENTO_PRIMARIO, hover_color=COLOR_ACENTO_SECUNDARIO, text_color="#0B0F14",
             font=(FONT_FAMILY, 12, "bold"),
             command=lambda e=evaluacion_final: PresentarEvaluacionWindow(self, evaluacion=e, usuario_sesion=self._usuario_sesion),
         )

@@ -98,7 +98,7 @@ class EvaluacionesAdminScreen(_ListaCursosBase):
         ctk.CTkButton(
             botones, text="Evaluación final", height=36, corner_radius=RADIO_BOTON,
             fg_color=COLOR_ACENTO_PRIMARIO, hover_color=COLOR_ACENTO_SECUNDARIO,
-            text_color="#FFFFFF", font=(FONT_FAMILY, 13, "bold"),
+            text_color="#0B0F14", font=(FONT_FAMILY, 13, "bold"),
             command=lambda c=curso: EvaluacionFinalWindow(self, curso=c),
         ).pack(side="left")
 
@@ -160,7 +160,7 @@ class EvaluacionesAprendizScreen(_ListaCursosBase):
         boton = ctk.CTkButton(
             tarjeta, text="Presentar evaluación", height=36, corner_radius=RADIO_BOTON,
             fg_color=COLOR_ACENTO_PRIMARIO, hover_color=COLOR_ACENTO_SECUNDARIO,
-            text_color="#FFFFFF", font=(FONT_FAMILY, 13, "bold"),
+            text_color="#0B0F14", font=(FONT_FAMILY, 13, "bold"),
             command=lambda e=evaluacion_final: PresentarEvaluacionWindow(self, evaluacion=e, usuario_sesion=self._usuario_sesion),
         )
         boton.grid(row=2, column=0, sticky="w", padx=20, pady=(0, 16))
@@ -196,6 +196,6 @@ class SimulacionesAprendizScreen(_ListaCursosBase):
         ctk.CTkButton(
             tarjeta, text="Ver casos de simulación", height=36, corner_radius=RADIO_BOTON,
             fg_color=COLOR_ACENTO_ALTERNO, hover_color=COLOR_ACENTO_PRIMARIO,
-            text_color="#FFFFFF", font=(FONT_FAMILY, 13, "bold"),
+            text_color="#0B0F14", font=(FONT_FAMILY, 13, "bold"),
             command=lambda c=curso: ListaSimulacionesWindow(self, curso=c, usuario_sesion=self._usuario_sesion),
         ).grid(row=1, column=0, sticky="w", padx=20, pady=(0, 16))

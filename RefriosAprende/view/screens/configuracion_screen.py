@@ -77,7 +77,7 @@ class ConfiguracionScreen(ctk.CTkFrame):
         ctk.CTkButton(
             tarjeta, text="Guardar cambios", width=200, height=42, corner_radius=RADIO_BOTON,
             fg_color=COLOR_ACENTO_PRIMARIO, hover_color=COLOR_ACENTO_SECUNDARIO,
-            text_color="#FFFFFF", font=(FONT_FAMILY, 13, "bold"), command=self._guardar_datos,
+            text_color="#0B0F14", font=(FONT_FAMILY, 13, "bold"), command=self._guardar_datos,
         ).pack(anchor="w", padx=24, pady=(14, 22))
         return tarjeta
 
@@ -133,7 +133,7 @@ class ConfiguracionScreen(ctk.CTkFrame):
             self._avatar.configure(image=imagen, text="")
         else:
             iniciales = "".join(parte[0] for parte in self._usuario_sesion.nombre_completo.split()[:2]).upper()
-            self._avatar.configure(image=None, text=iniciales, font=(FONT_FAMILY, 18, "bold"), text_color="#FFFFFF")
+            self._avatar.configure(image=None, text=iniciales, font=(FONT_FAMILY, 18, "bold"), text_color="#0B0F14")
 
     def _subir_foto(self):
         ruta = filedialog.askopenfilename(title="Selecciona una foto de perfil", filetypes=[("Imagen PNG", "*.png")])

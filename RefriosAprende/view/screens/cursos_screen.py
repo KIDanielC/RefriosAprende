@@ -74,7 +74,7 @@ class CursosScreen(ctk.CTkFrame):
 
         ctk.CTkButton(
             barra, text="+  Nuevo curso", height=40, corner_radius=RADIO_BOTON,
-            fg_color=COLOR_ACENTO_PRIMARIO, hover_color=COLOR_ACENTO_SECUNDARIO,
+            fg_color=COLOR_ACENTO_PRIMARIO, hover_color=COLOR_ACENTO_SECUNDARIO, text_color="#0B0F14",
             font=(FONT_FAMILY, 13, "bold"), command=self._abrir_formulario_creacion,
         ).grid(row=0, column=2, sticky="e")
 
@@ -129,7 +129,14 @@ class CursosScreen(ctk.CTkFrame):
             font=(FONT_FAMILY, 12, "bold"), borderwidth=0, relief="flat",
         )
         estilo.map(
-            "Cursos.Treeview", background=[("selected", COLOR_ACENTO_PRIMARIO)], foreground=[("selected", COLOR_TEXTO_PRIMARIO)],
+            "Cursos.Treeview", background=[("selected", COLOR_ACENTO_PRIMARIO)], foreground=[("selected", "#0B0F14")],
+        )
+        estilo.configure(
+            "Cursos.Vertical.TScrollbar", background=COLOR_FONDO_TARJETA_HOVER, troughcolor=COLOR_FONDO_TARJETA,
+            bordercolor=COLOR_FONDO_TARJETA, arrowcolor=COLOR_TEXTO_SECUNDARIO, relief="flat",
+        )
+        estilo.map(
+            "Cursos.Vertical.TScrollbar", background=[("active", COLOR_BORDE_SUTIL)],
         )
 
         columnas = ("nombre", "categoria", "instructor", "estado", "fecha")
@@ -143,7 +150,9 @@ class CursosScreen(ctk.CTkFrame):
         self._tabla.grid(row=0, column=0, sticky="nsew", padx=1, pady=1)
         self._tabla.bind("<<TreeviewSelect>>", self._al_seleccionar_fila)
 
-        barra_scroll = ttk.Scrollbar(marco, orient="vertical", command=self._tabla.yview)
+        barra_scroll = ttk.Scrollbar(
+            marco, orient="vertical", command=self._tabla.yview, style="Cursos.Vertical.TScrollbar",
+        )
         self._tabla.configure(yscrollcommand=barra_scroll.set)
         barra_scroll.grid(row=0, column=1, sticky="ns")
 
@@ -287,7 +296,7 @@ class FormularioCurso(ctk.CTkToplevel):
             cuerpo, text="Aprendizaje secuencial (bloquea cada contenido hasta ver el anterior)",
             font=(FONT_FAMILY, 12), text_color=COLOR_TEXTO_PRIMARIO,
             fg_color=COLOR_ACENTO_PRIMARIO, hover_color=COLOR_ACENTO_SECUNDARIO,
-            border_color=COLOR_BORDE_SUTIL, checkmark_color="#FFFFFF",
+            border_color=COLOR_BORDE_SUTIL, checkmark_color="#0B0F14",
         )
         self._casilla_secuencial.pack(padx=24, pady=(0, 12), anchor="w")
 
@@ -318,7 +327,7 @@ class FormularioCurso(ctk.CTkToplevel):
                         marco_prerrequisitos, text=curso_otro.nombre_curso, font=(FONT_FAMILY, 12),
                         text_color=COLOR_TEXTO_PRIMARIO, fg_color=COLOR_ACENTO_PRIMARIO,
                         hover_color=COLOR_ACENTO_SECUNDARIO, border_color=COLOR_BORDE_SUTIL,
-                        checkmark_color="#FFFFFF",
+                        checkmark_color="#0B0F14",
                     )
                     casilla.pack(padx=12, pady=6, anchor="w")
                     self._casillas_prerrequisito[curso_otro.id_curso] = casilla
@@ -340,7 +349,7 @@ class FormularioCurso(ctk.CTkToplevel):
 
         ctk.CTkButton(
             cuerpo, text="Guardar", width=380, height=44, corner_radius=RADIO_BOTON,
-            fg_color=COLOR_ACENTO_PRIMARIO, hover_color=COLOR_ACENTO_SECUNDARIO, text_color="#FFFFFF",
+            fg_color=COLOR_ACENTO_PRIMARIO, hover_color=COLOR_ACENTO_SECUNDARIO, text_color="#0B0F14",
             font=(FONT_FAMILY, 14, "bold"), command=self._guardar,
         ).pack(padx=24, pady=(16, 24))
 
