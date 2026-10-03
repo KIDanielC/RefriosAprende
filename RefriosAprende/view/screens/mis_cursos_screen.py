@@ -112,7 +112,7 @@ class MisCursosScreen(ctk.CTkFrame):
         ctk.CTkButton(
             fila_botones, text="Ver curso", height=36, corner_radius=RADIO_BOTON,
             fg_color=COLOR_ACENTO_PRIMARIO, hover_color=COLOR_ACENTO_SECUNDARIO,
-            text_color="#0B0F14", font=(FONT_FAMILY, 13, "bold"),
+            text_color="#FFFFFF", font=(FONT_FAMILY, 13, "bold"),
             command=lambda c=curso: self._mostrar_contenido(c),
         ).pack(side="left")
 
@@ -120,7 +120,7 @@ class MisCursosScreen(ctk.CTkFrame):
             ctk.CTkButton(
                 fila_botones, text="🏆  Ver certificado", height=36, corner_radius=RADIO_BOTON,
                 fg_color=COLOR_EXITO, hover_color=COLOR_EXITO,
-                text_color="#0B0F14", font=(FONT_FAMILY, 13, "bold"),
+                text_color="#FFFFFF", font=(FONT_FAMILY, 13, "bold"),
                 command=lambda c=curso: CertificadoWindow(self, usuario=self._usuario_sesion, curso=c),
             ).pack(side="left", padx=(10, 0))
 

@@ -29,7 +29,7 @@ from controller.reporte_controller import (
     ReporteController,
 )
 
-_COLOR_SEMAFORO = {SEMAFORO_VERDE: COLOR_EXITO, SEMAFORO_AMARILLO: "#E8B339", SEMAFORO_ROJO: COLOR_ERROR}
+_COLOR_SEMAFORO = {SEMAFORO_VERDE: COLOR_EXITO, SEMAFORO_AMARILLO: "#B8860B", SEMAFORO_ROJO: COLOR_ERROR}
 _ETIQUETA_SEMAFORO = {SEMAFORO_VERDE: "Al día", SEMAFORO_AMARILLO: "Atención", SEMAFORO_ROJO: "Crítico"}
 _ORDEN_SEMAFORO = {SEMAFORO_ROJO: 0, SEMAFORO_AMARILLO: 1, SEMAFORO_VERDE: 2}
 
@@ -244,7 +244,7 @@ class ReportesScreen(ctk.CTkFrame):
         )
         estilo.map(
             "Reportes.Treeview", background=[("selected", COLOR_ACENTO_PRIMARIO)],
-            foreground=[("selected", "#0B0F14")],
+            foreground=[("selected", "#FFFFFF")],
         )
 
         columnas = ("curso", "inscritos", "progreso", "evaluaciones", "aprobacion")
@@ -353,7 +353,7 @@ class ReportesScreen(ctk.CTkFrame):
         )
         estilo.map(
             "ReportesEstudiantes.Treeview", background=[("selected", COLOR_ACENTO_PRIMARIO)],
-            foreground=[("selected", "#0B0F14")],
+            foreground=[("selected", "#FFFFFF")],
         )
 
         columnas = ("estudiante", "curso", "dias", "avance", "horas", "estado")
@@ -368,7 +368,7 @@ class ReportesScreen(ctk.CTkFrame):
             tabla.column(columna, width=anchos[columna], anchor="w")
 
         tabla.tag_configure(SEMAFORO_ROJO, foreground=COLOR_ERROR)
-        tabla.tag_configure(SEMAFORO_AMARILLO, foreground="#E8B339")
+        tabla.tag_configure(SEMAFORO_AMARILLO, foreground="#B8860B")
         tabla.tag_configure(SEMAFORO_VERDE, foreground=COLOR_TEXTO_PRIMARIO)
         tabla.grid(row=0, column=0, sticky="nsew", padx=1, pady=1)
 
@@ -456,7 +456,7 @@ class DetalleSeguimientoWindow(ctk.CTkToplevel):
         )
         estilo.map(
             "DetalleSeguimiento.Treeview", background=[("selected", COLOR_ACENTO_PRIMARIO)],
-            foreground=[("selected", "#0B0F14")],
+            foreground=[("selected", "#FFFFFF")],
         )
 
         columnas = ("estudiante", "curso", "dias", "avance", "horas")
@@ -471,7 +471,7 @@ class DetalleSeguimientoWindow(ctk.CTkToplevel):
             tabla.column(columna, width=anchos[columna], anchor="w")
 
         tabla.tag_configure(SEMAFORO_ROJO, foreground=COLOR_ERROR)
-        tabla.tag_configure(SEMAFORO_AMARILLO, foreground="#E8B339")
+        tabla.tag_configure(SEMAFORO_AMARILLO, foreground="#B8860B")
         tabla.tag_configure(SEMAFORO_VERDE, foreground=COLOR_EXITO)
         tabla.grid(row=0, column=0, sticky="nsew", padx=1, pady=1)
 

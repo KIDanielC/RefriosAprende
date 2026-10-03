@@ -91,7 +91,7 @@ class TalleresWindow(ctk.CTkToplevel):
         barra.grid(row=1, column=0, sticky="ew", padx=24, pady=(0, 8))
         ctk.CTkButton(
             barra, text="+  Nuevo taller", height=36, corner_radius=RADIO_BOTON,
-            fg_color=COLOR_ACENTO_PRIMARIO, hover_color=COLOR_ACENTO_SECUNDARIO, text_color="#0B0F14",
+            fg_color=COLOR_ACENTO_PRIMARIO, hover_color=COLOR_ACENTO_SECUNDARIO, text_color="#FFFFFF",
             font=(FONT_FAMILY, 13, "bold"), command=self._abrir_formulario_creacion,
         ).pack(side="left")
 
@@ -264,7 +264,7 @@ class EntregasTallerWindow(ctk.CTkToplevel):
         barra_acciones.grid(row=4, column=0, sticky="w", padx=16, pady=(0, 14))
         ctk.CTkButton(
             barra_acciones, text="✓  Aprobar", width=100, height=32, corner_radius=RADIO_BOTON,
-            fg_color=COLOR_EXITO, hover_color=COLOR_EXITO, text_color="#0B0F14", font=(FONT_FAMILY, 12, "bold"),
+            fg_color=COLOR_EXITO, hover_color=COLOR_EXITO, text_color="#FFFFFF", font=(FONT_FAMILY, 12, "bold"),
             command=lambda e=entrega, c=campo_comentario: self._calificar(e, True, c),
         ).pack(side="left", padx=(0, 8))
         ctk.CTkButton(
@@ -329,7 +329,7 @@ class FormularioTaller(ctk.CTkToplevel):
 
         ctk.CTkButton(
             self, text="Guardar", width=460, height=44, corner_radius=RADIO_BOTON,
-            fg_color=COLOR_ACENTO_PRIMARIO, hover_color=COLOR_ACENTO_SECUNDARIO, text_color="#0B0F14",
+            fg_color=COLOR_ACENTO_PRIMARIO, hover_color=COLOR_ACENTO_SECUNDARIO, text_color="#FFFFFF",
             font=(FONT_FAMILY, 14, "bold"), command=self._guardar,
         ).pack(padx=28, pady=(18, 24))
 

@@ -71,7 +71,7 @@ class UsuariosScreen(ctk.CTkFrame):
 
         ctk.CTkButton(
             encabezado, text="+  Nuevo usuario", height=38, corner_radius=RADIO_BOTON,
-            fg_color=COLOR_ACENTO_PRIMARIO, hover_color=COLOR_ACENTO_SECUNDARIO, text_color="#0B0F14",
+            fg_color=COLOR_ACENTO_PRIMARIO, hover_color=COLOR_ACENTO_SECUNDARIO, text_color="#FFFFFF",
             font=(FONT_FAMILY, 13, "bold"), command=self._abrir_formulario_creacion,
         ).grid(row=0, column=1, sticky="e")
 
@@ -294,7 +294,7 @@ class DialogoConfirmacion(ctk.CTkToplevel):
         ).pack(side="left", padx=8)
         ctk.CTkButton(
             contenedor_botones, text="Eliminar", width=110, height=38, corner_radius=RADIO_BOTON,
-            fg_color=COLOR_ERROR, hover_color="#D1435A", text_color="#FFFFFF",
+            fg_color=COLOR_ERROR, hover_color="#C2352B", text_color="#FFFFFF",
             font=(FONT_FAMILY, 13, "bold"), command=self._confirmar,
         ).pack(side="left", padx=8)
 
@@ -359,7 +359,7 @@ class FormularioUsuario(ctk.CTkToplevel):
 
         ctk.CTkButton(
             self, text="Guardar", width=380, height=44, corner_radius=RADIO_BOTON,
-            fg_color=COLOR_ACENTO_PRIMARIO, hover_color=COLOR_ACENTO_SECUNDARIO, text_color="#0B0F14",
+            fg_color=COLOR_ACENTO_PRIMARIO, hover_color=COLOR_ACENTO_SECUNDARIO, text_color="#FFFFFF",
             font=(FONT_FAMILY, 14, "bold"), command=self._guardar,
         ).pack(padx=28, pady=(16, 24))
 
@@ -455,7 +455,7 @@ class FormularioContrasena(ctk.CTkToplevel):
 
         ctk.CTkButton(
             self, text="Guardar", width=340, height=42, corner_radius=RADIO_BOTON,
-            fg_color=COLOR_ACENTO_PRIMARIO, hover_color=COLOR_ACENTO_SECUNDARIO, text_color="#0B0F14",
+            fg_color=COLOR_ACENTO_PRIMARIO, hover_color=COLOR_ACENTO_SECUNDARIO, text_color="#FFFFFF",
             font=(FONT_FAMILY, 13, "bold"), command=self._guardar,
         ).pack(padx=26, pady=(18, 20))
 

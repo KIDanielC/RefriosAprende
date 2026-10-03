@@ -250,7 +250,7 @@ class CursoAprendizScreen(ctk.CTkFrame):
         casilla_vista = ctk.CTkCheckBox(
             encabezado, text="Ya lo vi", font=(FONT_FAMILY, 12, "bold"), text_color=COLOR_TEXTO_SECUNDARIO,
             fg_color=COLOR_ACENTO_PRIMARIO, hover_color=COLOR_ACENTO_SECUNDARIO, border_color=COLOR_BORDE_SUTIL,
-            checkmark_color="#0B0F14", width=20, height=20,
+            checkmark_color="#FFFFFF", width=20, height=20,
             command=lambda c=contenido: self._alternar_visto(c),
         )
         if self._progreso_controlador.ya_visto(self._usuario_sesion.id_usuario, contenido):
@@ -275,7 +275,7 @@ class CursoAprendizScreen(ctk.CTkFrame):
             ctk.CTkButton(
                 tarjeta, text="📄  Abrir PDF", height=34, corner_radius=RADIO_BOTON,
                 fg_color=COLOR_ACENTO_PRIMARIO, hover_color=COLOR_ACENTO_SECUNDARIO,
-                text_color="#0B0F14", font=(FONT_FAMILY, 12, "bold"),
+                text_color="#FFFFFF", font=(FONT_FAMILY, 12, "bold"),
                 command=lambda c=contenido: self._abrir_pdf(c),
             ).grid(row=fila_siguiente, column=0, sticky="w", padx=18, pady=(0, 12))
             fila_siguiente += 1
@@ -412,7 +412,7 @@ class CursoAprendizScreen(ctk.CTkFrame):
             texto_boton = "Volver a subir" if entrega is not None else "Subir entrega"
             ctk.CTkButton(
                 barra, text=texto_boton, height=32, corner_radius=RADIO_BOTON,
-                fg_color=COLOR_ACENTO_PRIMARIO, hover_color=COLOR_ACENTO_SECUNDARIO, text_color="#0B0F14",
+                fg_color=COLOR_ACENTO_PRIMARIO, hover_color=COLOR_ACENTO_SECUNDARIO, text_color="#FFFFFF",
                 font=(FONT_FAMILY, 12, "bold"),
                 command=lambda t=taller: self._subir_entrega_taller(t),
             ).pack(side="left")
@@ -473,7 +473,7 @@ class CursoAprendizScreen(ctk.CTkFrame):
             ).pack(anchor="w", padx=18, pady=(0, 10))
             ctk.CTkButton(
                 tarjeta, text="Practicar este caso", height=34, corner_radius=RADIO_BOTON,
-                fg_color=COLOR_ACENTO_ALTERNO, hover_color=COLOR_ACENTO_ALTERNO_GLOW, text_color="#0B0F14",
+                fg_color=COLOR_ACENTO_ALTERNO, hover_color=COLOR_ACENTO_ALTERNO_GLOW, text_color="#FFFFFF",
                 font=(FONT_FAMILY, 12, "bold"),
                 command=lambda e=evaluacion, s=simulacion: PresentarCasoWindow(
                     self, evaluacion=e, simulacion=s, usuario_sesion=self._usuario_sesion
@@ -518,7 +518,7 @@ class CursoAprendizScreen(ctk.CTkFrame):
         agotados = intentos_usados >= evaluacion_final.intentos_permitidos
         boton = ctk.CTkButton(
             tarjeta, text="Presentar evaluación", height=34, corner_radius=RADIO_BOTON,
-            fg_color=COLOR_ACENTO_PRIMARIO, hover_color=COLOR_ACENTO_SECUNDARIO, text_color="#0B0F14",
+            fg_color=COLOR_ACENTO_PRIMARIO, hover_color=COLOR_ACENTO_SECUNDARIO, text_color="#FFFFFF",
             font=(FONT_FAMILY, 12, "bold"),
             command=lambda e=evaluacion_final: PresentarEvaluacionWindow(self, evaluacion=e, usuario_sesion=self._usuario_sesion),
         )

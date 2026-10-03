@@ -108,7 +108,7 @@ class DashboardView(ctk.CTk):
         insignia_marca.pack(side="left")
         insignia_marca.pack_propagate(False)
         ctk.CTkLabel(
-            insignia_marca, text="RA", font=(FONT_FAMILY, 13, "bold"), text_color="#0B0F14",
+            insignia_marca, text="RA", font=(FONT_FAMILY, 13, "bold"), text_color="#FFFFFF",
         ).pack(expand=True)
         texto_marca = ctk.CTkFrame(marca, fg_color="transparent")
         texto_marca.pack(side="left", padx=(10, 0))
@@ -145,7 +145,7 @@ class DashboardView(ctk.CTk):
         avatar = ctk.CTkFrame(pie, fg_color=COLOR_ACENTO_ALTERNO, corner_radius=16, width=32, height=32)
         avatar.pack(side="left")
         avatar.pack_propagate(False)
-        self._etiqueta_avatar = ctk.CTkLabel(avatar, text="", font=(FONT_FAMILY, 11, "bold"), text_color="#0B0F14")
+        self._etiqueta_avatar = ctk.CTkLabel(avatar, text="", font=(FONT_FAMILY, 11, "bold"), text_color="#FFFFFF")
         self._etiqueta_avatar.pack(expand=True)
         self._actualizar_avatar()
         texto_pie = ctk.CTkFrame(pie, fg_color="transparent")

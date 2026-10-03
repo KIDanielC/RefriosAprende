@@ -50,44 +50,42 @@ ENTREGAS_DIR = os.path.join(BASE_DIR, "resources", "entregas")
 APP_NAME = "Refrios Aprende"
 APP_VERSION = "1.0.0"
 
-# Paleta "HUD": oscura y minimalista, tipo panel técnico de diagnóstico, en vez de tarjetas
-# cálidas y redondeadas. Fondo casi negro, acentos eléctricos (cian + violeta) y esquinas
-# casi rectas (RADIO_TARJETA/RADIO_BOTON bajos) en toda la app.
-COLOR_FONDO_APP = "#0B0F14"
-COLOR_FONDO_PANEL = "#10151C"
-COLOR_FONDO_TARJETA = "#151B23"
-COLOR_FONDO_TARJETA_HOVER = "#1C232D"
-COLOR_BORDE_SUTIL = "#232B36"
+# Paleta "Manómetro": inspirada en los manómetros de diagnóstico de A/C (azul de baja
+# presión + rojo/cobre de alta presión) sobre un fondo cálido tipo papel técnico, en vez
+# del panel oscuro "HUD" anterior. Pensada para un software educativo: cálida, legible,
+# con esquinas redondeadas y acentos que remiten directamente al oficio (refrigeración
+# automotriz), no a un dashboard de videojuego.
+COLOR_FONDO_APP = "#F3EFE4"           # papel técnico cálido, nunca blanco puro
+COLOR_FONDO_PANEL = "#EAE2CD"         # franjas/paneles (encabezados, fondos de tabla)
+COLOR_FONDO_TARJETA = "#FFFFFF"       # tarjetas: blanco limpio, contraste con el fondo cálido
+COLOR_FONDO_TARJETA_HOVER = "#F6F0E2"
+COLOR_BORDE_SUTIL = "#DCD0AE"         # línea de cuaderno técnico
 
-COLOR_ACENTO_PRIMARIO = "#2FD9FF"     # cian eléctrico: acciones, bordes activos
-COLOR_ACENTO_SECUNDARIO = "#5EE6FF"   # cian claro: hover, énfasis suave
-COLOR_ACENTO_GLOW = "#8FEEFF"
-COLOR_ACENTO_ALTERNO = "#7C5CFF"      # violeta: alertas, insignias, hallazgos importantes
-COLOR_ACENTO_ALTERNO_GLOW = "#A88CFF"
+COLOR_ACENTO_PRIMARIO = "#1C5FA8"     # azul de manómetro (lado de baja presión): acción principal
+COLOR_ACENTO_SECUNDARIO = "#3D7FC4"   # azul claro: hover, énfasis suave
+COLOR_ACENTO_GLOW = "#7FB3E8"
+COLOR_ACENTO_ALTERNO = "#C1442B"      # rojo/cobre de manómetro (lado de alta presión): insignias, simulación
+COLOR_ACENTO_ALTERNO_GLOW = "#DE6A4E"
 
 COLOR_BLANCO = "#FFFFFF"
-COLOR_TEXTO_PRIMARIO = "#E7EDF3"      # casi blanco, no blanco puro
-COLOR_TEXTO_SECUNDARIO = "#8B96A5"    # gris azulado
+COLOR_TEXTO_PRIMARIO = "#241F18"      # tinta grafito cálida, no negro puro
+COLOR_TEXTO_SECUNDARIO = "#6E6554"    # taupe cálido
 
-COLOR_ERROR = "#FF4D6D"
-COLOR_EXITO = "#00E5A0"
+COLOR_ERROR = "#A3271E"
+COLOR_EXITO = "#2E7D4F"
 
-# Radios de esquina: casi rectos, look de panel técnico en vez de tarjetas redondeadas.
-RADIO_TARJETA = 4
-RADIO_BOTON = 2
+# Radios de esquina: tarjetas y botones redondeados, cercanos y educativos.
+RADIO_TARJETA = 14
+RADIO_BOTON = 10
 GROSOR_BORDE_SUTIL = 1
 
-# Navegación (sidebar del Dashboard, panel de marca del Login): mismo tono que el fondo
-# general, ya que toda la app es oscura (no hay un contenido claro que contrastar).
-COLOR_NAV_FONDO = "#0B0F14"
-COLOR_NAV_FONDO_HOVER = "#151B23"
-COLOR_NAV_BORDE = "#232B36"
-COLOR_NAV_TEXTO = "#E7EDF3"
-COLOR_NAV_TEXTO_SECUNDARIO = "#5B6675"
-
-# Texto sobre la foto del panel de marca del Login (imagen sin editar, fondo claro fijo).
-COLOR_NEGRO = "#0A0A0A"
-COLOR_AZUL_OSCURO = "#0B2C4A"
+# Navegación (sidebar del Dashboard): azul pizarra oscuro -tipo cubierta de manual técnico-,
+# deliberadamente distinto del contenido cálido y claro: layout híbrido, no monocromático.
+COLOR_NAV_FONDO = "#1C2B3A"
+COLOR_NAV_FONDO_HOVER = "#263B4E"
+COLOR_NAV_BORDE = "#34495E"
+COLOR_NAV_TEXTO = "#F3EFE4"
+COLOR_NAV_TEXTO_SECUNDARIO = "#9FB3C8"
 
 FONT_FAMILY = "Century Gothic"
 FONT_FAMILY_MONO = "Consolas"

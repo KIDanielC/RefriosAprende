@@ -81,7 +81,7 @@ class ListaSimulacionesWindow(ctk.CTkToplevel):
         ctk.CTkButton(
             tarjeta, text="Practicar este caso", height=34, corner_radius=RADIO_BOTON,
             fg_color=COLOR_ACENTO_ALTERNO, hover_color=COLOR_ACENTO_ALTERNO_GLOW,
-            text_color="#0B0F14",
+            text_color="#FFFFFF",
             font=(FONT_FAMILY, 12, "bold"),
             command=lambda e=evaluacion, s=simulacion: PresentarCasoWindow(
                 self, evaluacion=e, simulacion=s, usuario_sesion=self._usuario_sesion
@@ -171,7 +171,7 @@ class PresentarCasoWindow(ctk.CTkToplevel):
             ctk.CTkButton(
                 pie, text="Diagnosticar", width=160, height=42, corner_radius=RADIO_BOTON,
                 fg_color=COLOR_ACENTO_ALTERNO, hover_color=COLOR_ACENTO_ALTERNO_GLOW,
-                text_color="#0B0F14",
+                text_color="#FFFFFF",
                 font=(FONT_FAMILY, 14, "bold"), command=self._enviar,
             ).grid(row=0, column=1, sticky="e")
 

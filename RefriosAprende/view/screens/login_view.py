@@ -1,4 +1,5 @@
 """Vista de inicio de sesión. No contiene lógica de negocio."""
+import math
 import os
 
 import customtkinter as ctk
@@ -17,7 +18,6 @@ from config.settings import (
     COLOR_FONDO_TARJETA,
     COLOR_NAV_BORDE,
     COLOR_NAV_TEXTO,
-    COLOR_NAV_TEXTO_SECUNDARIO,
     COLOR_TEXTO_PRIMARIO,
     COLOR_TEXTO_SECUNDARIO,
     FONT_FAMILY,
@@ -76,7 +76,7 @@ class LoginView(ctk.CTk):
     la tarjeta del formulario (a la derecha) es una tarjeta de verdad, como es normal en un
     formulario. No contiene lógica de negocio."""
 
-    _PAD_IZQUIERDO = 56
+    _PAD_DERECHO = 56
     _PAD_INFERIOR = 44
     _ANCHO_TEXTO = 420
     _LADO_INSIGNIA = 52
@@ -134,14 +134,14 @@ class LoginView(ctk.CTk):
 
     @staticmethod
     def _oscurecer(imagen: Image.Image) -> Image.Image:
-        """Viñeta suave y radial anclada en la esquina inferior izquierda (donde va el texto
-        de marca): se desvanece de forma continua hacia arriba y hacia la derecha, sin bordes
-        duros de rectángulo, para que el texto que se dibuja encima siga leyéndose sin tapar
-        la foto con una caja de color plano."""
+        """Viñeta suave y radial anclada en la esquina inferior derecha (donde va el texto
+        de marca): se desvanece de forma continua hacia arriba y hacia la izquierda, sin
+        bordes duros de rectángulo, para que el texto que se dibuja encima siga leyéndose sin
+        tapar la foto con una caja de color plano."""
         ancho, alto = imagen.size
-        u = np.linspace(0, 1, ancho)
+        lejania_derecha = 1 - np.linspace(0, 1, ancho)
         cercania_abajo = 1 - np.linspace(0, 1, alto)
-        uu, cc = np.meshgrid(u, cercania_abajo)
+        uu, cc = np.meshgrid(lejania_derecha, cercania_abajo)
         radio = np.sqrt((uu / 0.55) ** 2 + (cc / 0.95) ** 2)
         factor = np.clip(1 - radio, 0, 1) ** 1.3
         alpha = (factor * 145).astype("uint8")
@@ -158,10 +158,10 @@ class LoginView(ctk.CTk):
         draw = ImageDraw.Draw(imagen)
         ancho_imagen, alto_imagen = imagen.size
 
-        lineas_titulo = ["Formación técnica que", "se mide, no se supone."]
+        lineas_titulo = ["Educación técnica", "certificada en refrigeración."]
         lineas_texto = _envolver_texto(
-            "Cursos, evaluaciones y simulaciones de diagnóstico para el equipo técnico de "
-            "Refrios — con seguimiento de avance en tiempo real.",
+            "Cursos, evaluaciones y simulaciones de diagnóstico para formar al equipo técnico "
+            "de Refrios — con seguimiento de avance en tiempo real.",
             self._fuente_texto, self._ANCHO_TEXTO,
         )
         estadisticas = (("18", "Cursos activos"), ("92%", "Aprobación"), ("236", "Aprendices"))
@@ -185,32 +185,47 @@ class LoginView(ctk.CTk):
             + alto_valor_estadistica + gap_valor_etiqueta + alto_etiqueta_estadistica
         )
         y = max(24, alto_imagen - self._PAD_INFERIOR - alto_total)
-        x = self._PAD_IZQUIERDO
+        x = ancho_imagen - self._PAD_DERECHO - self._ANCHO_TEXTO
 
-        # Insignia "RA"
+        # Insignia: copo de nieve (identidad de Refrios Aprende: refrigeración + formación),
+        # dibujado con líneas en vez de un glifo de fuente (no todas las fuentes traen "❄").
         color_acento = _hex_a_rgb(COLOR_ACENTO_PRIMARIO)
         draw.rounded_rectangle(
             (x, y, x + self._LADO_INSIGNIA, y + self._LADO_INSIGNIA), radius=RADIO_BOTON, fill=color_acento,
         )
-        caja_ra = draw.textbbox((0, 0), "RA", font=self._fuente_insignia)
-        ancho_ra, alto_ra = caja_ra[2] - caja_ra[0], caja_ra[3] - caja_ra[1]
-        draw.text(
-            (x + (self._LADO_INSIGNIA - ancho_ra) / 2 - caja_ra[0], y + (self._LADO_INSIGNIA - alto_ra) / 2 - caja_ra[1]),
-            "RA", font=self._fuente_insignia, fill=(11, 15, 20),
-        )
+        cx, cy = x + self._LADO_INSIGNIA / 2, y + self._LADO_INSIGNIA / 2
+        radio_copo = self._LADO_INSIGNIA * 0.32
+        for angulo_grados in (90, 210, 330):
+            ang = math.radians(angulo_grados)
+            dx, dy = math.cos(ang) * radio_copo, math.sin(ang) * radio_copo
+            draw.line((cx - dx, cy - dy, cx + dx, cy + dy), fill=(255, 255, 255), width=4)
+            for punta_signo in (-1, 1):
+                px, py = cx + punta_signo * dx, cy + punta_signo * dy
+                largo_rama = radio_copo * 0.4
+                for delta in (28, -28):
+                    ang_rama = ang + math.radians(delta)
+                    draw.line(
+                        (px, py, px - punta_signo * largo_rama * math.cos(ang_rama), py - punta_signo * largo_rama * math.sin(ang_rama)),
+                        fill=(255, 255, 255), width=3,
+                    )
         y += self._LADO_INSIGNIA + gap_tras_insignia
+
+        # Todo el texto lleva un contorno oscuro (como un subtítulo de video): así se sigue
+        # leyendo sin importar qué haya detrás en la foto (ropa clara, guantes, metal brillante…),
+        # en vez de depender solo del degradado para el contraste.
+        color_contorno = (10, 14, 19)
 
         # Titular
         color_titulo = _hex_a_rgb(COLOR_NAV_TEXTO)
         for linea in lineas_titulo:
-            draw.text((x, y), linea, font=self._fuente_titulo, fill=color_titulo)
+            draw.text((x, y), linea, font=self._fuente_titulo, fill=color_titulo, stroke_width=2, stroke_fill=color_contorno)
             y += alto_linea_titulo
         y += gap_tras_titulo
 
-        # Descripción
-        color_secundario = _hex_a_rgb(COLOR_NAV_TEXTO_SECUNDARIO)
+        # Descripción (blanco, no gris, para que no se pierda sobre zonas claras de la foto)
+        color_descripcion = _hex_a_rgb(COLOR_NAV_TEXTO)
         for linea in lineas_texto:
-            draw.text((x, y), linea, font=self._fuente_texto, fill=color_secundario)
+            draw.text((x, y), linea, font=self._fuente_texto, fill=color_descripcion, stroke_width=1, stroke_fill=color_contorno)
             y += alto_linea_texto
         y += gap_tras_texto
 
@@ -222,10 +237,14 @@ class LoginView(ctk.CTk):
         color_glow = _hex_a_rgb(COLOR_ACENTO_GLOW)
         x_columna = x
         for valor, etiqueta in estadisticas:
-            draw.text((x_columna, y), valor, font=self._fuente_estadistica_valor, fill=color_glow)
+            draw.text(
+                (x_columna, y), valor, font=self._fuente_estadistica_valor, fill=color_glow,
+                stroke_width=2, stroke_fill=color_contorno,
+            )
             draw.text(
                 (x_columna, y + alto_valor_estadistica + gap_valor_etiqueta), etiqueta,
-                font=self._fuente_estadistica_etiqueta, fill=color_secundario,
+                font=self._fuente_estadistica_etiqueta, fill=color_descripcion,
+                stroke_width=1, stroke_fill=color_contorno,
             )
             ancho_columna = max(
                 self._fuente_estadistica_valor.getlength(valor),
@@ -261,7 +280,7 @@ class LoginView(ctk.CTk):
             self.after_cancel(self._tarea_redimensionar_fondo)
         self._tarea_redimensionar_fondo = self.after(60, self._actualizar_fondo)
 
-    # -- Tarjeta de login: flota sobre el fondo, del lado derecho ---------------------------
+    # -- Tarjeta de login: flota sobre el fondo, del lado izquierdo -------------------------
     def _construir_panel_formulario(self):
         tarjeta = ctk.CTkFrame(
             self,
@@ -271,7 +290,7 @@ class LoginView(ctk.CTk):
             border_width=GROSOR_BORDE_SUTIL,
             border_color=COLOR_BORDE_SUTIL,
         )
-        tarjeta.place(relx=0.77, rely=0.5, anchor="center")
+        tarjeta.place(relx=0.23, rely=0.5, anchor="center")
         tarjeta.grid_columnconfigure(0, weight=1)
 
         ctk.CTkLabel(
@@ -330,7 +349,7 @@ class LoginView(ctk.CTk):
             corner_radius=RADIO_BOTON,
             fg_color=COLOR_ACENTO_PRIMARIO,
             hover_color=COLOR_ACENTO_SECUNDARIO,
-            text_color="#0B0F14",
+            text_color="#FFFFFF",
             font=(FONT_FAMILY, 16, "bold"),
             command=self._manejar_inicio_sesion,
         )

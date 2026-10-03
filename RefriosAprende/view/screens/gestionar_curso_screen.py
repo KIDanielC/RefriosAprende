@@ -107,7 +107,7 @@ class GestionarCursoWindow(ctk.CTkToplevel):
         ctk.CTkButton(
             pie, text="Guardar guía", width=160, height=42, corner_radius=RADIO_BOTON,
             fg_color=COLOR_ACENTO_PRIMARIO, hover_color=COLOR_ACENTO_SECUNDARIO,
-            text_color="#0B0F14", font=(FONT_FAMILY, 14, "bold"), command=self._guardar,
+            text_color="#FFFFFF", font=(FONT_FAMILY, 14, "bold"), command=self._guardar,
         ).grid(row=0, column=1, sticky="e")
 
     # -- Encabezado fijo: info del curso + lo transversal a toda la metodología ------------

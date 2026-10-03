@@ -62,7 +62,7 @@ class PreguntasValidacionWindow(ctk.CTkToplevel):
         barra.grid(row=1, column=0, sticky="e", padx=24, pady=(0, 8))
         ctk.CTkButton(
             barra, text="+  Nueva pregunta", height=36, corner_radius=RADIO_BOTON,
-            fg_color=COLOR_ACENTO_PRIMARIO, hover_color=COLOR_ACENTO_SECUNDARIO, text_color="#0B0F14",
+            fg_color=COLOR_ACENTO_PRIMARIO, hover_color=COLOR_ACENTO_SECUNDARIO, text_color="#FFFFFF",
             font=(FONT_FAMILY, 13, "bold"), command=self._abrir_formulario_creacion,
         ).pack(side="right")
 
