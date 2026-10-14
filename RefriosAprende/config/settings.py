@@ -23,18 +23,44 @@ else:
 
 
 def _preparar_datos_usuario() -> None:
-    """Primer arranque de la versión empaquetada: copia el esquema, la base de datos
-    precargada (si el instalador la incluyó) y los recursos originales desde la carpeta
-    de solo lectura del instalador hacia BASE_DIR (escribible). No hace nada si BASE_DIR
-    ya existe, para nunca pisar datos reales que el usuario ya haya generado."""
-    if not _en_modo_congelado() or os.path.isdir(BASE_DIR):
+    """Sincroniza BASE_DIR (escribible, fuera de Program Files) con lo que trae esta versión
+    empaquetada. Dos tipos de contenido, con reglas distintas:
+
+    - Recursos propios de la aplicación (iconos, imágenes de marca, schema.sql): se
+      reemplazan en CADA arranque. Nunca los edita el usuario, así que una reinstalación
+      con una versión nueva (ej. un rediseño de paleta o del login) se ve reflejada de
+      inmediato, sin que quede una copia vieja atascada en %LOCALAPPDATA%.
+    - Datos reales del usuario (la base de datos, los contenidos subidos, las fotos de
+      perfil, las entregas de talleres): solo se copian la primera vez. Una vez existen,
+      nunca se pisan, para no perder información real de la empresa."""
+    if not _en_modo_congelado():
         return
+
     os.makedirs(BASE_DIR, exist_ok=True)
-    for carpeta in ("database", "resources"):
-        origen = os.path.join(_DIR_RECURSOS_EMPAQUETADOS, carpeta)
-        destino = os.path.join(BASE_DIR, carpeta)
+
+    for ruta_relativa in (os.path.join("resources", "icons"), os.path.join("resources", "images")):
+        origen = os.path.join(_DIR_RECURSOS_EMPAQUETADOS, ruta_relativa)
+        destino = os.path.join(BASE_DIR, ruta_relativa)
         if os.path.isdir(origen):
-            shutil.copytree(origen, destino, dirs_exist_ok=True)
+            shutil.rmtree(destino, ignore_errors=True)
+            shutil.copytree(origen, destino)
+
+    origen_schema = os.path.join(_DIR_RECURSOS_EMPAQUETADOS, "database", "schema.sql")
+    destino_schema = os.path.join(BASE_DIR, "database", "schema.sql")
+    if os.path.isfile(origen_schema):
+        os.makedirs(os.path.dirname(destino_schema), exist_ok=True)
+        shutil.copyfile(origen_schema, destino_schema)
+
+    origen_bd = os.path.join(_DIR_RECURSOS_EMPAQUETADOS, "database", "refrios.db")
+    destino_bd = os.path.join(BASE_DIR, "database", "refrios.db")
+    if os.path.isfile(origen_bd) and not os.path.isfile(destino_bd):
+        shutil.copyfile(origen_bd, destino_bd)
+
+    for carpeta in ("contenidos", "fotos_perfil", "entregas"):
+        origen = os.path.join(_DIR_RECURSOS_EMPAQUETADOS, "resources", carpeta)
+        destino = os.path.join(BASE_DIR, "resources", carpeta)
+        if os.path.isdir(origen) and not os.path.isdir(destino):
+            shutil.copytree(origen, destino)
 
 
 _preparar_datos_usuario()
