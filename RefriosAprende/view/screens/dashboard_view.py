@@ -33,7 +33,6 @@ from controller.evaluacion_controller import EvaluacionController
 from controller.inscripcion_controller import InscripcionController
 from controller.progreso_controller import ProgresoController
 from controller.usuario_controller import UsuarioController
-from model.dao.resultado_dao import ResultadoDAO
 from model.entities.usuario import Usuario
 from view.components.avatar import cargar_imagen_perfil
 from view.screens.configuracion_screen import ConfiguracionScreen
@@ -592,7 +591,6 @@ class DashboardView(ctk.CTk):
 
         evaluacion_controlador = EvaluacionController()
         progreso_controlador = ProgresoController()
-        resultado_dao = ResultadoDAO()
         cursos_matriculados = InscripcionController().listar_cursos_matriculados(self._usuario.id_usuario)
 
         cursos_completados = 0
@@ -602,7 +600,7 @@ class DashboardView(ctk.CTk):
             if progreso and progreso.porcentaje_avance >= 100:
                 cursos_completados += 1
             evaluacion_final = evaluacion_controlador.obtener_evaluacion_final(curso.id_curso)
-            if evaluacion_final and resultado_dao.existe_aprobado(self._usuario.id_usuario, evaluacion_final.id_evaluacion):
+            if evaluacion_final and evaluacion_controlador.aprobo_evaluacion(self._usuario.id_usuario, evaluacion_final.id_evaluacion):
                 evaluaciones_aprobadas += 1
 
         return [
@@ -627,7 +625,6 @@ class DashboardView(ctk.CTk):
         cursos_matriculados = InscripcionController().listar_cursos_matriculados(self._usuario.id_usuario)
         evaluacion_controlador = EvaluacionController()
         progreso_controlador = ProgresoController()
-        resultado_dao = ResultadoDAO()
 
         evaluaciones_pendientes = 0
         porcentajes = []
@@ -636,7 +633,7 @@ class DashboardView(ctk.CTk):
             porcentajes.append(progreso.porcentaje_avance if progreso else 0.0)
 
             evaluacion_final = evaluacion_controlador.obtener_evaluacion_final(curso.id_curso)
-            if evaluacion_final is not None and not resultado_dao.existe_aprobado(self._usuario.id_usuario, evaluacion_final.id_evaluacion):
+            if evaluacion_final is not None and not evaluacion_controlador.aprobo_evaluacion(self._usuario.id_usuario, evaluacion_final.id_evaluacion):
                 evaluaciones_pendientes += 1
 
         progreso_promedio = sum(porcentajes) / len(porcentajes) if porcentajes else 0.0

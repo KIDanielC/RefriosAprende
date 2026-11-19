@@ -25,7 +25,6 @@ from config.settings import (
 from controller.curso_controller import CursoController
 from controller.evaluacion_controller import EvaluacionController
 from controller.inscripcion_controller import InscripcionController
-from model.dao.resultado_dao import ResultadoDAO
 from model.entities.curso import Curso
 from view.screens.evaluacion_final_screen import EvaluacionFinalWindow
 from view.screens.presentar_evaluacion_screen import PresentarEvaluacionWindow
@@ -120,7 +119,6 @@ class EvaluacionesAprendizScreen(_ListaCursosBase):
         self._usuario_sesion = usuario_sesion
         self._inscripcion_controlador = InscripcionController()
         self._evaluacion_controlador = EvaluacionController()
-        self._resultado_dao = ResultadoDAO()
         self._cargar()
 
     def _cargar(self):
@@ -149,7 +147,7 @@ class EvaluacionesAprendizScreen(_ListaCursosBase):
         intentos_usados = self._evaluacion_controlador.intentos_usados(
             self._usuario_sesion.id_usuario, evaluacion_final.id_evaluacion
         )
-        aprobado = self._resultado_dao.existe_aprobado(self._usuario_sesion.id_usuario, evaluacion_final.id_evaluacion)
+        aprobado = self._evaluacion_controlador.aprobo_evaluacion(self._usuario_sesion.id_usuario, evaluacion_final.id_evaluacion)
         color_estado = COLOR_EXITO if aprobado else COLOR_TEXTO_SECUNDARIO
         texto_estado = "✓ Aprobada" if aprobado else f"Intentos usados: {intentos_usados} / {evaluacion_final.intentos_permitidos}"
         ctk.CTkLabel(

@@ -38,7 +38,6 @@ from controller.simulacion_controller import SimulacionController
 from controller.taller_controller import DatosTallerInvalidosError, TallerController
 from controller.tiempo_uso_controller import TiempoUsoController
 from controller.validacion_controller import ValidacionController
-from model.dao.resultado_dao import ResultadoDAO
 from model.entities.contenido import Contenido
 from model.entities.curso import Curso
 from model.entities.taller import Taller
@@ -68,7 +67,6 @@ class CursoAprendizScreen(ctk.CTkFrame):
         self._guia_controlador = GuiaAprendizajeController()
         self._taller_controlador = TallerController()
         self._tiempo_uso_controlador = TiempoUsoController()
-        self._resultado_dao = ResultadoDAO()
 
         self._imagenes_cargadas = []  # referencias vivas: evita que el GC libere las CTkImage en pantalla
         self._casillas_visto = {}
@@ -507,7 +505,7 @@ class CursoAprendizScreen(ctk.CTkFrame):
         ).pack(anchor="w", padx=18, pady=(14, 4))
 
         intentos_usados = self._evaluacion_controlador.intentos_usados(self._usuario_sesion.id_usuario, evaluacion_final.id_evaluacion)
-        aprobado = self._resultado_dao.existe_aprobado(self._usuario_sesion.id_usuario, evaluacion_final.id_evaluacion)
+        aprobado = self._evaluacion_controlador.aprobo_evaluacion(self._usuario_sesion.id_usuario, evaluacion_final.id_evaluacion)
         color_estado = COLOR_EXITO if aprobado else COLOR_TEXTO_SECUNDARIO
         texto_estado = "✓ Aprobada" if aprobado else f"Intentos usados: {intentos_usados} / {evaluacion_final.intentos_permitidos}"
         ctk.CTkLabel(

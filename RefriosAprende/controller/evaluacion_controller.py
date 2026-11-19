@@ -88,6 +88,9 @@ class EvaluacionController:
     def intentos_usados(self, id_usuario: int, id_evaluacion: int) -> int:
         return len(self._resultado_dao.listar_por_usuario_y_evaluacion(id_usuario, id_evaluacion))
 
+    def aprobo_evaluacion(self, id_usuario: int, id_evaluacion: int) -> bool:
+        return self._resultado_dao.existe_aprobado(id_usuario, id_evaluacion)
+
     def presentar_evaluacion(
         self, id_usuario: int, evaluacion: Evaluacion, respuestas: dict[int, int]
     ) -> Resultado:
