@@ -112,6 +112,30 @@ class ContenidoController:
         if contenido and contenido.ruta_archivo:
             self._eliminar_archivo_fisico(contenido.ruta_archivo)
 
+    def mover_contenido(self, id_contenido: int, direccion: str) -> None:
+        """direccion: 'subir' o 'bajar'. No hace nada si ya está en el extremo correspondiente
+        (primero no sube, último no baja)."""
+        if direccion not in ("subir", "bajar"):
+            raise DatosContenidoInvalidosError("La dirección debe ser 'subir' o 'bajar'.")
+
+        contenido = self._contenido_dao.obtener_por_id(id_contenido)
+        if contenido is None:
+            raise DatosContenidoInvalidosError("El contenido ya no existe.")
+
+        contenidos_del_curso = self._contenido_dao.listar_por_curso(contenido.id_curso)
+        indice = next(i for i, c in enumerate(contenidos_del_curso) if c.id_contenido == id_contenido)
+
+        if direccion == "subir":
+            if indice == 0:
+                return
+            vecino = contenidos_del_curso[indice - 1]
+        else:
+            if indice == len(contenidos_del_curso) - 1:
+                return
+            vecino = contenidos_del_curso[indice + 1]
+
+        self._contenido_dao.intercambiar_orden(id_contenido, vecino.id_contenido)
+
     def _eliminar_archivo_fisico(self, ruta_relativa: str) -> None:
         from config.settings import BASE_DIR
         ruta_absoluta = os.path.join(BASE_DIR, ruta_relativa)

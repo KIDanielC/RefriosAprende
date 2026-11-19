@@ -70,3 +70,14 @@ class ContenidoDAO:
         cursor = self._conexion.obtener_cursor()
         cursor.execute("DELETE FROM contenidos WHERE id_contenido = ?", (id_contenido,))
         self._conexion.confirmar()
+
+    def intercambiar_orden(self, id_a: int, id_b: int) -> None:
+        cursor = self._conexion.obtener_cursor()
+        cursor.execute("SELECT orden FROM contenidos WHERE id_contenido = ?", (id_a,))
+        orden_a = cursor.fetchone()["orden"]
+        cursor.execute("SELECT orden FROM contenidos WHERE id_contenido = ?", (id_b,))
+        orden_b = cursor.fetchone()["orden"]
+
+        cursor.execute("UPDATE contenidos SET orden = ? WHERE id_contenido = ?", (orden_b, id_a))
+        cursor.execute("UPDATE contenidos SET orden = ? WHERE id_contenido = ?", (orden_a, id_b))
+        self._conexion.confirmar()

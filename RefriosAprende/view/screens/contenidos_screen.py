@@ -96,9 +96,9 @@ class ContenidosScreen(ctk.CTkFrame):
             return
 
         for indice, contenido in enumerate(contenidos):
-            self._construir_tarjeta_contenido(indice, contenido)
+            self._construir_tarjeta_contenido(indice, contenido, es_primero=(indice == 0), es_ultimo=(indice == len(contenidos) - 1))
 
-    def _construir_tarjeta_contenido(self, fila: int, contenido: Contenido):
+    def _construir_tarjeta_contenido(self, fila: int, contenido: Contenido, es_primero: bool, es_ultimo: bool):
         tarjeta = ctk.CTkFrame(
             self._lista, fg_color=COLOR_FONDO_TARJETA, corner_radius=RADIO_TARJETA,
             border_width=GROSOR_BORDE_SUTIL, border_color=COLOR_BORDE_SUTIL,
@@ -138,6 +138,20 @@ class ContenidosScreen(ctk.CTkFrame):
         barra_acciones.grid(row=2, column=0, sticky="w", padx=18, pady=(0, 14))
 
         ctk.CTkButton(
+            barra_acciones, text="▲", width=32, height=30, corner_radius=RADIO_BOTON,
+            fg_color=COLOR_FONDO_TARJETA_HOVER, border_width=1, border_color=COLOR_BORDE_SUTIL,
+            text_color=COLOR_TEXTO_PRIMARIO, font=(FONT_FAMILY, 12, "bold"),
+            state="disabled" if es_primero else "normal",
+            command=lambda c=contenido: self._mover_contenido(c, "subir"),
+        ).pack(side="left", padx=(0, 2))
+        ctk.CTkButton(
+            barra_acciones, text="▼", width=32, height=30, corner_radius=RADIO_BOTON,
+            fg_color=COLOR_FONDO_TARJETA_HOVER, border_width=1, border_color=COLOR_BORDE_SUTIL,
+            text_color=COLOR_TEXTO_PRIMARIO, font=(FONT_FAMILY, 12, "bold"),
+            state="disabled" if es_ultimo else "normal",
+            command=lambda c=contenido: self._mover_contenido(c, "bajar"),
+        ).pack(side="left", padx=(2, 10))
+        ctk.CTkButton(
             barra_acciones, text="Editar", width=90, height=30, corner_radius=RADIO_BOTON,
             fg_color=COLOR_FONDO_TARJETA_HOVER, border_width=1, border_color=COLOR_ACENTO_SECUNDARIO,
             text_color=COLOR_TEXTO_PRIMARIO, font=(FONT_FAMILY, 12, "bold"),
@@ -157,6 +171,10 @@ class ContenidosScreen(ctk.CTkFrame):
     # ------------------------------------------------------------------
     def _eliminar_contenido(self, contenido: Contenido):
         self._controlador.eliminar_contenido(contenido.id_contenido)
+        self._cargar_contenidos()
+
+    def _mover_contenido(self, contenido: Contenido, direccion: str):
+        self._controlador.mover_contenido(contenido.id_contenido, direccion)
         self._cargar_contenidos()
 
     def _abrir_preguntas_validacion(self, contenido: Contenido):
