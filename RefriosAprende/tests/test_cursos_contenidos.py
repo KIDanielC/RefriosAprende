@@ -8,6 +8,7 @@ from controller.contenido_controller import (
     TIPO_IMAGEN,
     TIPO_PDF,
     TIPO_TEXTO,
+    TIPO_VIDEO,
     ContenidoController,
     DatosContenidoInvalidosError,
 )
@@ -117,6 +118,45 @@ def test_crear_contenido_imagen_extension_invalida_falla(curso, tmp_path):
     ruta_txt.write_text("hola")
     with pytest.raises(DatosContenidoInvalidosError):
         ctrl.crear_contenido_imagen(curso.id_curso, "Titulo valido", "desc", str(ruta_txt))
+
+
+def test_crear_contenido_video(curso, tmp_path):
+    ctrl = ContenidoController()
+    ruta_video = tmp_path / "procedimiento.mp4"
+    ruta_video.write_bytes(b"contenido de prueba de un video")
+
+    contenido = ctrl.crear_contenido_video(curso.id_curso, "Procedimiento de carga", "Descripcion", str(ruta_video))
+    assert contenido.tipo_contenido == TIPO_VIDEO
+    ruta_copiada = os.path.join(BASE_DIR, contenido.ruta_archivo)
+    assert os.path.isfile(ruta_copiada)
+
+    ctrl.eliminar_contenido(contenido.id_contenido)
+    assert not os.path.isfile(ruta_copiada)
+
+
+def test_crear_contenido_video_extension_invalida_falla(curso, tmp_path):
+    ctrl = ContenidoController()
+    ruta_txt = tmp_path / "no_es_video.txt"
+    ruta_txt.write_text("hola")
+    with pytest.raises(DatosContenidoInvalidosError):
+        ctrl.crear_contenido_video(curso.id_curso, "Titulo valido", "desc", str(ruta_txt))
+
+
+def test_crear_contenido_video_archivo_inexistente_falla(curso):
+    ctrl = ContenidoController()
+    with pytest.raises(DatosContenidoInvalidosError):
+        ctrl.crear_contenido_video(curso.id_curso, "Titulo valido", "desc", "no_existe.mp4")
+
+
+def test_crear_contenido_video_demasiado_grande_falla(curso, tmp_path, monkeypatch):
+    import controller.contenido_controller as contenido_controller_module
+    monkeypatch.setattr(contenido_controller_module, "_TAMANO_MAXIMO_VIDEO_BYTES", 10)
+
+    ctrl = ContenidoController()
+    ruta_video = tmp_path / "demasiado_grande.mp4"
+    ruta_video.write_bytes(b"este archivo pesa mas de 10 bytes")
+    with pytest.raises(DatosContenidoInvalidosError):
+        ctrl.crear_contenido_video(curso.id_curso, "Titulo valido", "desc", str(ruta_video))
 
 
 def test_eliminar_curso_elimina_contenidos_en_cascada(curso):

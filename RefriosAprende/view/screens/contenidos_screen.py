@@ -23,6 +23,7 @@ from controller.contenido_controller import (
     TIPO_IMAGEN,
     TIPO_PDF,
     TIPO_TEXTO,
+    TIPO_VIDEO,
     ContenidoController,
     DatosContenidoInvalidosError,
 )
@@ -126,6 +127,10 @@ class ContenidosScreen(ctk.CTkFrame):
             ctk.CTkLabel(
                 encabezado, text="🖼 Imagen", font=(FONT_FAMILY, 11, "bold"), text_color=COLOR_ACENTO_ALTERNO,
             ).grid(row=0, column=2, padx=(10, 0))
+        elif contenido.tipo_contenido == TIPO_VIDEO:
+            ctk.CTkLabel(
+                encabezado, text="🎬 Video", font=(FONT_FAMILY, 11, "bold"), text_color=COLOR_ACENTO_ALTERNO,
+            ).grid(row=0, column=2, padx=(10, 0))
 
         texto = texto_plano_desde_markup(contenido.contenido_texto or "")
         extracto = texto[:160] + ("…" if len(texto) > 160 else "") if texto else "Sin descripción."
@@ -228,7 +233,7 @@ class FormularioContenido(ctk.CTkToplevel):
                 self, text="Tipo de contenido", font=(FONT_FAMILY, 12), text_color=COLOR_TEXTO_SECUNDARIO
             ).pack(padx=28, pady=(0, 2), anchor="w")
             self._selector_tipo = ctk.CTkSegmentedButton(
-                self, values=["Texto", "PDF", "Imagen"], command=self._al_cambiar_tipo,
+                self, values=["Texto", "PDF", "Imagen", "Video"], command=self._al_cambiar_tipo,
                 fg_color=COLOR_FONDO_APP, selected_color=COLOR_BORDE_SUTIL,
                 selected_hover_color=COLOR_FONDO_TARJETA_HOVER, unselected_color=COLOR_FONDO_APP,
                 text_color=COLOR_TEXTO_PRIMARIO, font=(FONT_FAMILY, 13, "bold"),
@@ -261,7 +266,7 @@ class FormularioContenido(ctk.CTkToplevel):
         ).pack(padx=28, pady=(16, 24))
 
     def _al_cambiar_tipo(self, valor: str):
-        self._tipo_seleccionado = {"PDF": TIPO_PDF, "Imagen": TIPO_IMAGEN}.get(valor, TIPO_TEXTO)
+        self._tipo_seleccionado = {"PDF": TIPO_PDF, "Imagen": TIPO_IMAGEN, "Video": TIPO_VIDEO}.get(valor, TIPO_TEXTO)
         for hijo in self._area_dinamica.winfo_children():
             hijo.destroy()
         if self._tipo_seleccionado == TIPO_PDF:
@@ -270,6 +275,10 @@ class FormularioContenido(ctk.CTkToplevel):
             self._construir_area_archivo(
                 "Archivo de imagen", "Elegir imagen…",
                 [("Imágenes", "*.png *.jpg *.jpeg *.gif *.bmp")],
+            )
+        elif self._tipo_seleccionado == TIPO_VIDEO:
+            self._construir_area_archivo(
+                "Archivo de video", "Elegir video…", [("Videos", "*.mp4 *.avi *.mkv")],
             )
         else:
             self._construir_area_texto()
@@ -330,6 +339,15 @@ class FormularioContenido(ctk.CTkToplevel):
             if contenido.contenido_texto:
                 self._campo_texto.cargar_markup(contenido.contenido_texto)
             self._etiqueta_archivo.configure(text="Archivo ya cargado (no se puede reemplazar aquí; elimina y crea de nuevo).")
+        elif contenido.tipo_contenido == TIPO_VIDEO:
+            for hijo in self._area_dinamica.winfo_children():
+                hijo.destroy()
+            self._construir_area_archivo(
+                "Archivo de video", "Elegir video…", [("Videos", "*.mp4 *.avi *.mkv")],
+            )
+            if contenido.contenido_texto:
+                self._campo_texto.cargar_markup(contenido.contenido_texto)
+            self._etiqueta_archivo.configure(text="Archivo ya cargado (no se puede reemplazar aquí; elimina y crea de nuevo).")
         elif contenido.contenido_texto:
             self._campo_texto.cargar_markup(contenido.contenido_texto)
 
@@ -346,6 +364,8 @@ class FormularioContenido(ctk.CTkToplevel):
                 self._controlador.crear_contenido_pdf(self._id_curso, titulo, texto, self._ruta_archivo_seleccionado)
             elif self._tipo_seleccionado == TIPO_IMAGEN:
                 self._controlador.crear_contenido_imagen(self._id_curso, titulo, texto, self._ruta_archivo_seleccionado)
+            elif self._tipo_seleccionado == TIPO_VIDEO:
+                self._controlador.crear_contenido_video(self._id_curso, titulo, texto, self._ruta_archivo_seleccionado)
             else:
                 self._controlador.crear_contenido_texto(self._id_curso, titulo, texto)
         except DatosContenidoInvalidosError as error:

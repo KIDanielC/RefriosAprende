@@ -1,4 +1,4 @@
-"""Controlador de gestión de contenidos de un curso (tipo TEXTO, PDF o IMAGEN)."""
+"""Controlador de gestión de contenidos de un curso (tipo TEXTO, PDF, IMAGEN o VIDEO_LOCAL)."""
 import logging
 import os
 import shutil
@@ -14,9 +14,12 @@ _logger = logging.getLogger(__name__)
 TIPO_TEXTO = "TEXTO"
 TIPO_PDF = "PDF"
 TIPO_IMAGEN = "IMAGEN"
+TIPO_VIDEO = "VIDEO_LOCAL"
 
 _EXTENSIONES_IMAGEN = (".png", ".jpg", ".jpeg", ".gif", ".bmp")
+_EXTENSIONES_VIDEO = (".mp4", ".avi", ".mkv")
 _TAMANO_MAXIMO_BYTES = 20 * 1024 * 1024  # 20 MB
+_TAMANO_MAXIMO_VIDEO_BYTES = 200 * 1024 * 1024  # 200 MB
 
 
 class DatosContenidoInvalidosError(Exception):
@@ -78,6 +81,24 @@ class ContenidoController:
         orden = self._contenido_dao.obtener_siguiente_orden(id_curso)
         id_contenido = self._contenido_dao.crear(
             id_curso, titulo.strip(), TIPO_IMAGEN, ruta_relativa, (descripcion or "").strip(), orden
+        )
+        return self._contenido_dao.obtener_por_id(id_contenido)
+
+    # -- Contenido de tipo VIDEO_LOCAL --------------------------------------
+    def crear_contenido_video(self, id_curso: int, titulo: str, descripcion: str, ruta_video_origen: str) -> Contenido:
+        self._validar_titulo(titulo)
+        if not ruta_video_origen or not os.path.isfile(ruta_video_origen):
+            raise DatosContenidoInvalidosError("Selecciona un archivo de video válido.")
+        extension = os.path.splitext(ruta_video_origen)[1].lower()
+        if extension not in _EXTENSIONES_VIDEO:
+            raise DatosContenidoInvalidosError("El video debe ser MP4, AVI o MKV.")
+        if os.path.getsize(ruta_video_origen) > _TAMANO_MAXIMO_VIDEO_BYTES:
+            raise DatosContenidoInvalidosError("El video no puede superar los 200 MB.")
+
+        ruta_relativa = self._copiar_archivo_a_recursos(ruta_video_origen, extension)
+        orden = self._contenido_dao.obtener_siguiente_orden(id_curso)
+        id_contenido = self._contenido_dao.crear(
+            id_curso, titulo.strip(), TIPO_VIDEO, ruta_relativa, (descripcion or "").strip(), orden
         )
         return self._contenido_dao.obtener_por_id(id_contenido)
 

@@ -30,7 +30,7 @@ from config.settings import (
     COLOR_EXITO,
     COLOR_ERROR,
 )
-from controller.contenido_controller import TIPO_IMAGEN, TIPO_PDF, ContenidoController
+from controller.contenido_controller import TIPO_IMAGEN, TIPO_PDF, TIPO_VIDEO, ContenidoController
 from controller.evaluacion_controller import EvaluacionController
 from controller.guia_aprendizaje_controller import GuiaAprendizajeController
 from controller.progreso_controller import ProgresoController
@@ -274,7 +274,16 @@ class CursoAprendizScreen(ctk.CTkFrame):
                 tarjeta, text="📄  Abrir PDF", height=34, corner_radius=RADIO_BOTON,
                 fg_color=COLOR_ACENTO_PRIMARIO, hover_color=COLOR_ACENTO_SECUNDARIO,
                 text_color="#FFFFFF", font=(FONT_FAMILY, 12, "bold"),
-                command=lambda c=contenido: self._abrir_pdf(c),
+                command=lambda c=contenido: self._abrir_archivo(c),
+            ).grid(row=fila_siguiente, column=0, sticky="w", padx=18, pady=(0, 12))
+            fila_siguiente += 1
+
+        if contenido.tipo_contenido == TIPO_VIDEO:
+            ctk.CTkButton(
+                tarjeta, text="🎬  Abrir video", height=34, corner_radius=RADIO_BOTON,
+                fg_color=COLOR_ACENTO_PRIMARIO, hover_color=COLOR_ACENTO_SECUNDARIO,
+                text_color="#FFFFFF", font=(FONT_FAMILY, 12, "bold"),
+                command=lambda c=contenido: self._abrir_archivo(c),
             ).grid(row=fila_siguiente, column=0, sticky="w", padx=18, pady=(0, 12))
             fila_siguiente += 1
 
@@ -313,7 +322,7 @@ class CursoAprendizScreen(ctk.CTkFrame):
         self._imagenes_cargadas.append(imagen_ctk)
         return ctk.CTkLabel(tarjeta, image=imagen_ctk, text="")
 
-    def _abrir_pdf(self, contenido: Contenido):
+    def _abrir_archivo(self, contenido: Contenido):
         ruta_absoluta = os.path.join(BASE_DIR, contenido.ruta_archivo)
         if not os.path.isfile(ruta_absoluta):
             return
