@@ -20,23 +20,25 @@ datas = [
     (os.path.join(PROJECT_ROOT, "resources", "images"), "resources/images"),
 ]
 
-# Base de datos precargada (opcional): si al compilar existe database/refrios.db, se
-# incluye como semilla de fábrica. En el primer arranque, config/settings.py la copia a
-# la carpeta de datos del usuario (%LOCALAPPDATA%\RefriosAprende). Si no existe, la app
-# arranca con un esquema vacío (se crea solo a partir de schema.sql). Para publicar una
-# versión "de demostración" con datos de ejemplo, colocar el refrios.db deseado en
-# database/ antes de compilar; para una versión "en blanco", renombrarlo o borrarlo antes.
-_ruta_bd_semilla = os.path.join(PROJECT_ROOT, "database", "refrios.db")
-if os.path.isfile(_ruta_bd_semilla):
-    datas.append((_ruta_bd_semilla, "database"))
+# Base de datos semilla: SIEMPRE packaging/semilla/refrios.db (generada con
+# 'py -m utils.crear_semilla'), nunca database/refrios.db. Esa última es la base real de
+# desarrollo/demostración de quien compila, y empaquetarla metía usuarios, cursos y
+# resultados de ejemplo dentro de un instalador que se iba a entregar como limpio. La
+# semilla solo trae el esquema y los roles fijos (ADMINISTRADOR, APRENDIZ); el primer
+# arranque abre la ventana de creación del primer administrador.
+_ruta_bd_semilla = os.path.join(PROJECT_ROOT, "packaging", "semilla", "refrios.db")
+if not os.path.isfile(_ruta_bd_semilla):
+    raise FileNotFoundError(
+        "Falta la base de datos semilla para empaquetar. Genera "
+        f"{_ruta_bd_semilla} antes de compilar: 'py -m utils.crear_semilla' "
+        "desde la raíz de RefriosAprende."
+    )
+datas.append((_ruta_bd_semilla, "database"))
 
-# Contenidos ya subidos (PDF/imágenes de cursos), fotos de perfil y entregas de talleres:
-# se incluyen como semilla solo si existen, para que una instalación de demostración muestre
-# los archivos reales (no solo los registros de la BD) desde el primer arranque.
-for _nombre_subcarpeta in ("contenidos", "fotos_perfil", "entregas"):
-    _dir_semilla = os.path.join(PROJECT_ROOT, "resources", _nombre_subcarpeta)
-    if os.path.isdir(_dir_semilla) and os.listdir(_dir_semilla):
-        datas.append((_dir_semilla, f"resources/{_nombre_subcarpeta}"))
+# A propósito, NO se empaquetan resources/contenidos, fotos_perfil ni entregas: son
+# archivos subidos por usuarios reales de una instalación concreta, nunca contenido de
+# fábrica. Un paquete de demostración con datos de ejemplo, si se necesita, se arma aparte
+# (ver documentation/EMPAQUETADO.md), nunca mezclado con el instalador que se entrega al taller.
 
 a = Analysis(
     [os.path.join(PROJECT_ROOT, "main.py")],
