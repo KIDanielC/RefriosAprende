@@ -1,14 +1,20 @@
 """Ventana modal: certificado de finalización de un curso para el aprendiz."""
+from tkinter import filedialog
+
 import customtkinter as ctk
 
 from config.settings import (
     COLOR_FONDO_APP,
     COLOR_FONDO_TARJETA,
     RADIO_TARJETA,
+    RADIO_BOTON,
     COLOR_ACENTO_PRIMARIO,
+    COLOR_ACENTO_SECUNDARIO,
     FONT_FAMILY,
     COLOR_TEXTO_SECUNDARIO,
     COLOR_TEXTO_PRIMARIO,
+    COLOR_EXITO,
+    COLOR_ERROR,
     APP_NAME,
 )
 from controller.certificado_controller import CertificadoController
@@ -20,11 +26,13 @@ class CertificadoWindow(ctk.CTkToplevel):
     def __init__(self, master, usuario, curso):
         super().__init__(master)
         self._controlador = CertificadoController()
+        self._usuario = usuario
+        self._curso = curso
 
         self.title(f"Certificado — {curso.nombre_curso}")
         self.configure(fg_color=COLOR_FONDO_APP)
-        self.geometry("640x520")
-        self.minsize(560, 460)
+        self.geometry("640x580")
+        self.minsize(560, 520)
         self.transient(master)
         self.grab_set()
 
@@ -82,4 +90,28 @@ class CertificadoWindow(ctk.CTkToplevel):
         ctk.CTkLabel(
             marco, text=f"Emitido el {datos['fecha_emision']}  ·  {APP_NAME}", font=(FONT_FAMILY, 10.5),
             text_color=COLOR_TEXTO_SECUNDARIO,
-        ).grid(row=7, column=0, pady=(20, 32))
+        ).grid(row=7, column=0, pady=(20, 16))
+
+        self._etiqueta_estado = ctk.CTkLabel(marco, text="", font=(FONT_FAMILY, 11), text_color=COLOR_EXITO)
+        self._etiqueta_estado.grid(row=8, column=0, pady=(0, 4))
+
+        ctk.CTkButton(
+            marco, text="Guardar como PDF", width=220, height=38, corner_radius=RADIO_BOTON,
+            fg_color=COLOR_ACENTO_PRIMARIO, hover_color=COLOR_ACENTO_SECUNDARIO, text_color="#FFFFFF",
+            font=(FONT_FAMILY, 12, "bold"), command=self._guardar_como_pdf,
+        ).grid(row=9, column=0, pady=(0, 28))
+
+    def _guardar_como_pdf(self):
+        ruta_destino = filedialog.asksaveasfilename(
+            parent=self, title="Guardar certificado", defaultextension=".pdf",
+            filetypes=[("Documento PDF", "*.pdf")],
+            initialfile=f"Certificado - {self._curso.nombre_curso}.pdf",
+        )
+        if not ruta_destino:
+            return
+        try:
+            self._controlador.exportar_certificado(self._usuario, self._curso, ruta_destino)
+        except Exception as error:
+            self._etiqueta_estado.configure(text=f"No se pudo guardar: {error}", text_color=COLOR_ERROR)
+            return
+        self._etiqueta_estado.configure(text=f"Guardado en: {ruta_destino}", text_color=COLOR_EXITO)

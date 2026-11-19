@@ -113,3 +113,59 @@ def test_certificado_se_genera_cuando_el_curso_esta_completado(curso, aprendiz):
     assert datos["nombre_aprendiz"] == aprendiz.nombre_completo
     assert datos["nombre_curso"] == curso.nombre_curso
     assert datos["nota_obtenida"] is None  # este curso no tiene evaluación final
+
+
+def test_exportar_certificado_falla_si_curso_no_completado(curso, aprendiz, tmp_path):
+    certificado_controlador = CertificadoController()
+    with pytest.raises(CursoNoCompletadoError):
+        certificado_controlador.exportar_certificado(aprendiz, curso, str(tmp_path / "certificado.pdf"))
+    assert not (tmp_path / "certificado.pdf").exists()
+
+
+def test_exportar_certificado_crea_un_pdf_valido(curso, aprendiz, tmp_path):
+    pc = ProgresoController()
+    contenido_controlador = ContenidoController()
+    certificado_controlador = CertificadoController()
+
+    contenido = contenido_controlador.crear_contenido_texto(
+        curso.id_curso, "Único contenido", "Texto con longitud suficiente para pasar la validación."
+    )
+    pc.registrar_contenido_visto(aprendiz.id_usuario, contenido)
+
+    ruta_destino = tmp_path / "certificado.pdf"
+    ruta_devuelta = certificado_controlador.exportar_certificado(aprendiz, curso, str(ruta_destino))
+
+    assert ruta_devuelta == str(ruta_destino)
+    assert ruta_destino.is_file()
+    with open(ruta_destino, "rb") as archivo:
+        assert archivo.read(4) == b"%PDF"
+
+
+def test_dibujar_certificado_funciona_sin_duracion_ni_nota():
+    certificado_controlador = CertificadoController()
+    datos = {
+        "nombre_aprendiz": "Aprendiz de Prueba",
+        "documento": "1000000002",
+        "nombre_curso": "Curso de Prueba",
+        "nombre_instructor": "Admin de Prueba",
+        "duracion_horas": None,
+        "nota_obtenida": None,
+        "fecha_emision": "01/01/2026",
+    }
+    imagen = certificado_controlador._dibujar_certificado(datos)
+    assert imagen.size == (1754, 1240)
+
+
+def test_dibujar_certificado_funciona_con_duracion_y_nota():
+    certificado_controlador = CertificadoController()
+    datos = {
+        "nombre_aprendiz": "Aprendiz de Prueba",
+        "documento": "1000000002",
+        "nombre_curso": "Curso de Prueba",
+        "nombre_instructor": "Admin de Prueba",
+        "duracion_horas": 20,
+        "nota_obtenida": 4.5,
+        "fecha_emision": "01/01/2026",
+    }
+    imagen = certificado_controlador._dibujar_certificado(datos)
+    assert imagen.size == (1754, 1240)
