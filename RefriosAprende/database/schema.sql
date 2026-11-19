@@ -303,10 +303,10 @@ CREATE INDEX IF NOT EXISTS idx_tiempo_uso_curso_usuario_curso ON tiempo_uso_curs
 -- idx_cursos_categoria se crea en la migración (connection.py), no aquí: en bases ya
 -- existentes la columna cursos.id_categoria todavía no existe cuando este script corre.
 
--- Una sola evaluacion final (CUESTIONARIO) por curso; las SIMULACION no tienen este limite.
-CREATE UNIQUE INDEX IF NOT EXISTS idx_evaluaciones_final_unica_por_curso
-    ON evaluaciones (id_curso)
-    WHERE id_contenido IS NULL AND tipo_evaluacion = 'CUESTIONARIO';
+-- idx_evaluaciones_contenido_unico e idx_evaluaciones_final_unica_por_curso (una sola
+-- evaluacion final tipo CUESTIONARIO por curso) también se crean en la migración, por la
+-- misma razón: dependen de evaluaciones.id_contenido, que en una base antigua todavía no
+-- existe cuando este script corre.
 
 -- ---------------------------------------------------------
 -- Datos semilla: roles fijos del sistema
