@@ -19,10 +19,17 @@ import sys
 import zipfile
 from datetime import datetime
 
-from config.settings import APP_VERSION
-
 _RAIZ_PROYECTO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 _RAIZ_REPOSITORIO = os.path.dirname(_RAIZ_PROYECTO)
+
+# 'packaging/' no es un paquete Python normal con __init__.py: al correr este archivo
+# directamente ('py packaging/generar_ficha_entrega.py'), su propio directorio queda en
+# sys.path pero la raíz del proyecto no, así que "from config.settings import ..." fallaría
+# con ModuleNotFoundError. Se agrega explícitamente, antes de ese import.
+if _RAIZ_PROYECTO not in sys.path:
+    sys.path.insert(0, _RAIZ_PROYECTO)
+
+from config.settings import APP_VERSION  # noqa: E402 (tiene que ir después del sys.path.insert)
 _DIR_DIST = os.path.join(_RAIZ_PROYECTO, "dist", "RefriosAprende")
 _DIR_SALIDA = os.path.join(_RAIZ_PROYECTO, "packaging", "salida")
 _DIR_ENTREGA = os.path.join(_DIR_SALIDA, "entrega")
