@@ -9,7 +9,7 @@ from config.settings import BASE_DIR, FOTOS_PERFIL_DIR
 from model.dao.rol_dao import RolDAO
 from model.dao.usuario_dao import UsuarioDAO, UsuarioYaExisteError, UsuarioReferenciadoError
 from model.entities.usuario import Usuario
-from utils.seguridad import generar_hash
+from utils.seguridad import ContrasenaInvalidaError, generar_hash, validar_contrasena
 
 _logger = logging.getLogger(__name__)
 _PATRON_CORREO = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
@@ -56,8 +56,10 @@ class UsuarioController:
 
         if not usuario or len(usuario.strip()) < 4:
             raise DatosInvalidosError("El usuario debe tener al menos 4 caracteres.")
-        if not contrasena or len(contrasena) < 6:
-            raise DatosInvalidosError("La contraseña debe tener al menos 6 caracteres.")
+        try:
+            validar_contrasena(contrasena)
+        except ContrasenaInvalidaError as error:
+            raise DatosInvalidosError(str(error)) from error
         if self._rol_dao.obtener_por_id(id_rol) is None:
             raise DatosInvalidosError("El rol seleccionado no es válido.")
 
@@ -107,8 +109,10 @@ class UsuarioController:
         return self._usuario_dao.obtener_por_id(id_usuario)
 
     def cambiar_contrasena(self, id_usuario: int, contrasena_nueva: str) -> None:
-        if not contrasena_nueva or len(contrasena_nueva) < 6:
-            raise DatosInvalidosError("La contraseña debe tener al menos 6 caracteres.")
+        try:
+            validar_contrasena(contrasena_nueva)
+        except ContrasenaInvalidaError as error:
+            raise DatosInvalidosError(str(error)) from error
         self._usuario_dao.actualizar_contrasena(id_usuario, generar_hash(contrasena_nueva))
 
     def actualizar_foto_perfil(self, id_usuario: int, ruta_imagen_origen: str) -> Usuario:

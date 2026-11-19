@@ -47,7 +47,7 @@ def restablecer_admin() -> None:
         print("Cancelado.")
         return
 
-    nueva_contrasena = getpass.getpass("Nueva contraseña (mínimo 6 caracteres): ")
+    nueva_contrasena = getpass.getpass("Nueva contraseña (mínimo 6 caracteres, máximo 72 bytes): ")
     repetir = getpass.getpass("Repite la nueva contraseña: ")
     if nueva_contrasena != repetir:
         print("Las contraseñas no coinciden. Cancelado.")

@@ -372,6 +372,12 @@ class LoginView(ctk.CTk):
         except (CredencialesInvalidasError, UsuarioInactivoError) as error:
             self._etiqueta_error.configure(text=str(error))
             return
+        except ValueError:
+            # Red de seguridad: verificar_contrasena ya descarta una entrada demasiado larga
+            # antes de llegar a bcrypt, pero si algo más abajo fallara de todos modos, el
+            # inicio de sesión no debe reventar con una traza visible para el usuario.
+            self._etiqueta_error.configure(text="Usuario o contraseña incorrectos.")
+            return
 
         self._etiqueta_error.configure(text="")
         self.destroy()
