@@ -52,3 +52,27 @@ def test_medir_tiempos_respuesta_produce_un_reporte(tmp_path):
     assert "Reportes" in contenido
 
     connection_module.ConexionBD._instancia = None
+
+
+def test_medir_operaciones_produce_un_resumen_por_operacion(tmp_path):
+    """Prueba de humo (una sola repetición, volumen pequeño): confirma que cada operación
+    de negocio se puede cronometrar de punta a punta sin romperse. La medición real, con
+    muchas repeticiones y los tres volúmenes, se corre aparte y no en la suite de pruebas
+    (ver utils/medir_tiempos_operaciones.py)."""
+    import utils.medir_tiempos_operaciones as modulo_medicion
+    import utils.poblar_carga as modulo_carga
+
+    ruta_bd = tmp_path / "bd_carga_pequena.db"
+    modulo_carga.poblar("pequeno", str(ruta_bd))
+    connection_module.ConexionBD._instancia = None
+
+    resultados = modulo_medicion.medir_operaciones(str(ruta_bd), repeticiones=1)
+
+    assert "Cursos - crear_curso (borrador)" in resultados
+    assert "Reportes - resumen_general" in resultados
+    assert "Certificado - exportar_certificado (PDF)" in resultados
+    for resumen in resultados.values():
+        assert resumen["n"] == 1
+        assert resumen["min_ms"] >= 0
+
+    connection_module.ConexionBD._instancia = None
