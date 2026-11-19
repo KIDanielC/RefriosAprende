@@ -74,7 +74,7 @@ FOTOS_PERFIL_DIR = os.path.join(BASE_DIR, "resources", "fotos_perfil")
 ENTREGAS_DIR = os.path.join(BASE_DIR, "resources", "entregas")
 
 APP_NAME = "Refrios Aprende"
-APP_VERSION = "1.0.0"
+APP_VERSION = "1.0.1"
 
 # Paleta "Manómetro": inspirada en los manómetros de diagnóstico de A/C (azul de baja
 # presión + rojo/cobre de alta presión) sobre un fondo cálido tipo papel técnico, en vez

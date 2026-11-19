@@ -3,6 +3,9 @@ __pycache__/
 .venv/
 venv/
 .pytest_cache/
+RefriosAprende/.coverage
+RefriosAprende/cobertura.txt
+RefriosAprende/pruebas.txt
 RefriosAprende/database/refrios.db
 RefriosAprende/resources/images/Logo_Interfaz.png
 RefriosAprende/resources/contenidos/
