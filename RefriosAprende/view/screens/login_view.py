@@ -9,14 +9,12 @@ from PIL import Image, ImageDraw, ImageFont
 from config.settings import (
     APP_NAME,
     IMAGES_DIR,
-    COLOR_ACENTO_GLOW,
     COLOR_ACENTO_PRIMARIO,
     COLOR_ACENTO_SECUNDARIO,
     COLOR_BORDE_SUTIL,
     COLOR_ERROR,
     COLOR_FONDO_APP,
     COLOR_FONDO_TARJETA,
-    COLOR_NAV_BORDE,
     COLOR_NAV_TEXTO,
     COLOR_TEXTO_PRIMARIO,
     COLOR_TEXTO_SECUNDARIO,
@@ -99,8 +97,6 @@ class LoginView(ctk.CTk):
         self._fuente_insignia = _cargar_fuente("GOTHICB.TTF", 20)
         self._fuente_titulo = _cargar_fuente("GOTHICB.TTF", 30)
         self._fuente_texto = _cargar_fuente("GOTHIC.TTF", 14)
-        self._fuente_estadistica_valor = _cargar_fuente("GOTHICB.TTF", 20)
-        self._fuente_estadistica_etiqueta = _cargar_fuente("GOTHIC.TTF", 11)
 
         self._construir_fondo()
         self._construir_panel_formulario()
@@ -164,25 +160,16 @@ class LoginView(ctk.CTk):
             "de Refrios — con seguimiento de avance en tiempo real.",
             self._fuente_texto, self._ANCHO_TEXTO,
         )
-        estadisticas = (("18", "Cursos activos"), ("92%", "Aprobación"), ("236", "Aprendices"))
-
         alto_linea_titulo = round(self._fuente_titulo.size * 1.3)
         alto_linea_texto = round(self._fuente_texto.size * 1.55)
-        alto_valor_estadistica = round(self._fuente_estadistica_valor.size * 1.3)
-        alto_etiqueta_estadistica = round(self._fuente_estadistica_etiqueta.size * 1.3)
 
         gap_tras_insignia = 20
         gap_tras_titulo = 12
-        gap_tras_texto = 22
-        gap_tras_separador = 18
-        gap_valor_etiqueta = 4
 
         alto_total = (
             self._LADO_INSIGNIA + gap_tras_insignia
             + alto_linea_titulo * len(lineas_titulo) + gap_tras_titulo
-            + alto_linea_texto * len(lineas_texto) + gap_tras_texto
-            + 1 + gap_tras_separador
-            + alto_valor_estadistica + gap_valor_etiqueta + alto_etiqueta_estadistica
+            + alto_linea_texto * len(lineas_texto)
         )
         y = max(24, alto_imagen - self._PAD_INFERIOR - alto_total)
         x = ancho_imagen - self._PAD_DERECHO - self._ANCHO_TEXTO
@@ -227,30 +214,6 @@ class LoginView(ctk.CTk):
         for linea in lineas_texto:
             draw.text((x, y), linea, font=self._fuente_texto, fill=color_descripcion, stroke_width=1, stroke_fill=color_contorno)
             y += alto_linea_texto
-        y += gap_tras_texto
-
-        # Separador
-        draw.line((x, y, x + self._ANCHO_TEXTO, y), fill=_hex_a_rgb(COLOR_NAV_BORDE), width=1)
-        y += 1 + gap_tras_separador
-
-        # Estadísticas
-        color_glow = _hex_a_rgb(COLOR_ACENTO_GLOW)
-        x_columna = x
-        for valor, etiqueta in estadisticas:
-            draw.text(
-                (x_columna, y), valor, font=self._fuente_estadistica_valor, fill=color_glow,
-                stroke_width=2, stroke_fill=color_contorno,
-            )
-            draw.text(
-                (x_columna, y + alto_valor_estadistica + gap_valor_etiqueta), etiqueta,
-                font=self._fuente_estadistica_etiqueta, fill=color_descripcion,
-                stroke_width=1, stroke_fill=color_contorno,
-            )
-            ancho_columna = max(
-                self._fuente_estadistica_valor.getlength(valor),
-                self._fuente_estadistica_etiqueta.getlength(etiqueta),
-            )
-            x_columna += ancho_columna + 34
 
         return imagen
 
