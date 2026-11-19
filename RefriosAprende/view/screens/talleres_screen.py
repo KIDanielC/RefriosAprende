@@ -59,9 +59,10 @@ class TalleresWindow(ctk.CTkToplevel):
     """Lista los talleres de un curso; permite crear, editar, eliminar y abrir la
     cola de calificación de entregas de cada uno."""
 
-    def __init__(self, master, curso: Curso):
+    def __init__(self, master, curso: Curso, usuario_sesion):
         super().__init__(master)
         self._curso = curso
+        self._usuario_sesion = usuario_sesion
         self._controlador = TallerController()
 
         self.title(f"Talleres — {curso.nombre_curso}")
@@ -160,7 +161,9 @@ class TalleresWindow(ctk.CTkToplevel):
         self._cargar_talleres()
 
     def _abrir_entregas(self, taller: Taller):
-        EntregasTallerWindow(self, taller=taller, al_calificar=self._cargar_talleres)
+        EntregasTallerWindow(
+            self, taller=taller, al_calificar=self._cargar_talleres, usuario_sesion=self._usuario_sesion
+        )
 
     def _abrir_formulario_creacion(self):
         FormularioTaller(self, controlador=self._controlador, id_curso=self._curso.id_curso, al_guardar=self._cargar_talleres)
@@ -176,10 +179,11 @@ class EntregasTallerWindow(ctk.CTkToplevel):
     """Cola de calificación: lista las entregas de los aprendices para un taller, con
     acción de Aprobar/Rechazar + comentario para cada una."""
 
-    def __init__(self, master, taller: Taller, al_calificar):
+    def __init__(self, master, taller: Taller, al_calificar, usuario_sesion):
         super().__init__(master)
         self._taller = taller
         self._al_calificar = al_calificar
+        self._usuario_sesion = usuario_sesion
         self._controlador = TallerController()
 
         self.title(f"Entregas — {taller.titulo}")
@@ -275,7 +279,9 @@ class EntregasTallerWindow(ctk.CTkToplevel):
         ).pack(side="left")
 
     def _calificar(self, entrega: EntregaTaller, aprobado: bool, campo_comentario: ctk.CTkEntry):
-        self._controlador.calificar_entrega(entrega.id_entrega, aprobado, campo_comentario.get())
+        self._controlador.calificar_entrega(
+            entrega.id_entrega, aprobado, campo_comentario.get(), usuario_actor=self._usuario_sesion
+        )
         self._cargar_entregas()
         self._al_calificar()
 

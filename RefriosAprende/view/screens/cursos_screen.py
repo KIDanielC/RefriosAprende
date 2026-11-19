@@ -195,7 +195,7 @@ class CursosScreen(ctk.CTkFrame):
     # ------------------------------------------------------------------
     def _abrir_gestionar_curso(self):
         if self._curso_seleccionado is not None:
-            GestionarCursoWindow(self, curso=self._curso_seleccionado)
+            GestionarCursoWindow(self, curso=self._curso_seleccionado, usuario_sesion=self._usuario_sesion)
 
     def _eliminar_curso(self):
         if self._curso_seleccionado is None:

@@ -51,9 +51,10 @@ _CAMPOS_ENCABEZADO = (
 class GestionarCursoWindow(ctk.CTkToplevel):
     """Punto de entrada único del administrador a todo lo pedagógico de un curso."""
 
-    def __init__(self, master, curso: Curso):
+    def __init__(self, master, curso: Curso, usuario_sesion):
         super().__init__(master)
         self._curso = curso
+        self._usuario_sesion = usuario_sesion
         self._controlador = GuiaAprendizajeController()
         self._contenido_controlador = ContenidoController()
         self._simulacion_controlador = SimulacionController()
@@ -263,7 +264,7 @@ class GestionarCursoWindow(ctk.CTkToplevel):
         EvaluacionFinalWindow(self, curso=self._curso)
 
     def _abrir_talleres(self):
-        TalleresWindow(self, curso=self._curso)
+        TalleresWindow(self, curso=self._curso, usuario_sesion=self._usuario_sesion)
 
     def _agregar_campo(self, contenedor, guia, clave: str, etiqueta: str):
         valor = getattr(guia, clave, "") if guia else ""

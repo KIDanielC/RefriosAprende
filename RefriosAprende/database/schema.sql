@@ -26,6 +26,8 @@ CREATE TABLE IF NOT EXISTS usuarios (
     id_rol          INTEGER NOT NULL,
     activo          INTEGER NOT NULL DEFAULT 1 CHECK (activo IN (0, 1)),
     foto_perfil     TEXT,
+    intentos_fallidos INTEGER NOT NULL DEFAULT 0,
+    bloqueado_hasta TEXT,
     fecha_creacion  TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
     FOREIGN KEY (id_rol) REFERENCES roles (id_rol)
         ON UPDATE CASCADE ON DELETE RESTRICT

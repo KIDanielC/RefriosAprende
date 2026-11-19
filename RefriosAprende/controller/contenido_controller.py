@@ -16,6 +16,7 @@ TIPO_PDF = "PDF"
 TIPO_IMAGEN = "IMAGEN"
 
 _EXTENSIONES_IMAGEN = (".png", ".jpg", ".jpeg", ".gif", ".bmp")
+_TAMANO_MAXIMO_BYTES = 20 * 1024 * 1024  # 20 MB
 
 
 class DatosContenidoInvalidosError(Exception):
@@ -52,6 +53,8 @@ class ContenidoController:
             raise DatosContenidoInvalidosError("Selecciona un archivo PDF válido.")
         if not ruta_pdf_origen.lower().endswith(".pdf"):
             raise DatosContenidoInvalidosError("El archivo seleccionado debe ser un PDF.")
+        if os.path.getsize(ruta_pdf_origen) > _TAMANO_MAXIMO_BYTES:
+            raise DatosContenidoInvalidosError("El PDF no puede superar los 20 MB.")
 
         ruta_relativa = self._copiar_archivo_a_recursos(ruta_pdf_origen, ".pdf")
         orden = self._contenido_dao.obtener_siguiente_orden(id_curso)
@@ -68,6 +71,8 @@ class ContenidoController:
         extension = os.path.splitext(ruta_imagen_origen)[1].lower()
         if extension not in _EXTENSIONES_IMAGEN:
             raise DatosContenidoInvalidosError("La imagen debe ser PNG, JPG, JPEG, GIF o BMP.")
+        if os.path.getsize(ruta_imagen_origen) > _TAMANO_MAXIMO_BYTES:
+            raise DatosContenidoInvalidosError("La imagen no puede superar los 20 MB.")
 
         ruta_relativa = self._copiar_archivo_a_recursos(ruta_imagen_origen, extension)
         orden = self._contenido_dao.obtener_siguiente_orden(id_curso)

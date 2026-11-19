@@ -14,6 +14,7 @@ from utils.seguridad import ContrasenaInvalidaError, generar_hash, validar_contr
 _logger = logging.getLogger(__name__)
 _PATRON_CORREO = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 _NOMBRE_ROL_ADMINISTRADOR = "ADMINISTRADOR"
+_TAMANO_MAXIMO_FOTO_BYTES = 5 * 1024 * 1024  # 5 MB
 
 
 class DatosInvalidosError(Exception):
@@ -129,6 +130,8 @@ class UsuarioController:
             raise DatosInvalidosError("Selecciona un archivo de imagen válido.")
         if not ruta_imagen_origen.lower().endswith(".png"):
             raise DatosInvalidosError("La foto de perfil debe ser un archivo PNG.")
+        if os.path.getsize(ruta_imagen_origen) > _TAMANO_MAXIMO_FOTO_BYTES:
+            raise DatosInvalidosError("La foto de perfil no puede superar los 5 MB.")
 
         usuario_actual = self._usuario_dao.obtener_por_id(id_usuario)
         if usuario_actual is None:

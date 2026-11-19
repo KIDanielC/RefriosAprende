@@ -13,9 +13,11 @@ from model.dao.entrega_taller_dao import EntregaTallerDAO
 from model.dao.taller_dao import TallerDAO
 from model.entities.entrega_taller import APROBADO, EntregaTaller, RECHAZADO
 from model.entities.taller import Taller
+from utils.autorizacion import exigir_administrador
 
 _logger = logging.getLogger(__name__)
 _EXTENSIONES_PERMITIDAS = (".png", ".jpg", ".jpeg", ".pdf", ".doc", ".docx")
+_TAMANO_MAXIMO_BYTES = 20 * 1024 * 1024  # 20 MB
 
 
 class DatosTallerInvalidosError(Exception):
@@ -62,6 +64,8 @@ class TallerController:
         extension = os.path.splitext(ruta_origen)[1].lower()
         if extension not in _EXTENSIONES_PERMITIDAS:
             raise DatosTallerInvalidosError("El archivo debe ser una imagen (PNG/JPG), un PDF o un Word (DOC/DOCX).")
+        if os.path.getsize(ruta_origen) > _TAMANO_MAXIMO_BYTES:
+            raise DatosTallerInvalidosError("El archivo no puede superar los 20 MB.")
 
         entrega_existente = self._entrega_dao.obtener_por_taller_y_usuario(id_taller, id_usuario)
 
@@ -90,7 +94,9 @@ class TallerController:
     def listar_entregas_por_taller(self, id_taller: int) -> list[EntregaTaller]:
         return self._entrega_dao.listar_por_taller(id_taller)
 
-    def calificar_entrega(self, id_entrega: int, aprobado: bool, comentario: str) -> EntregaTaller:
+    def calificar_entrega(self, id_entrega: int, aprobado: bool, comentario: str, usuario_actor=None) -> EntregaTaller:
+        exigir_administrador(usuario_actor)
+
         entrega = self._entrega_dao.obtener_por_id(id_entrega)
         if entrega is None:
             raise DatosTallerInvalidosError("La entrega ya no existe.")

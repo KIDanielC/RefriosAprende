@@ -6,7 +6,8 @@ from model.entities.usuario import Usuario
 
 _SELECT_BASE = """
     SELECT u.id_usuario, u.nombre_completo, u.documento, u.correo, u.usuario,
-           u.contrasena_hash, u.id_rol, u.activo, u.fecha_creacion, u.foto_perfil, r.nombre_rol
+           u.contrasena_hash, u.id_rol, u.activo, u.fecha_creacion, u.foto_perfil,
+           u.intentos_fallidos, u.bloqueado_hasta, r.nombre_rol
     FROM usuarios u
     INNER JOIN roles r ON r.id_rol = u.id_rol
 """
@@ -37,6 +38,8 @@ class UsuarioDAO:
             fecha_creacion=fila["fecha_creacion"],
             nombre_rol=fila["nombre_rol"],
             foto_perfil=fila["foto_perfil"],
+            intentos_fallidos=fila["intentos_fallidos"],
+            bloqueado_hasta=fila["bloqueado_hasta"],
         )
 
     def obtener_por_usuario(self, usuario: str) -> Usuario | None:
@@ -140,3 +143,19 @@ class UsuarioDAO:
             (id_rol,),
         )
         return cursor.fetchone()["total"]
+
+    def registrar_intento_fallido(self, id_usuario: int, intentos_fallidos: int, bloqueado_hasta: str | None) -> None:
+        cursor = self._conexion.obtener_cursor()
+        cursor.execute(
+            "UPDATE usuarios SET intentos_fallidos = ?, bloqueado_hasta = ? WHERE id_usuario = ?",
+            (intentos_fallidos, bloqueado_hasta, id_usuario),
+        )
+        self._conexion.confirmar()
+
+    def resetear_intentos_fallidos(self, id_usuario: int) -> None:
+        cursor = self._conexion.obtener_cursor()
+        cursor.execute(
+            "UPDATE usuarios SET intentos_fallidos = 0, bloqueado_hasta = NULL WHERE id_usuario = ?",
+            (id_usuario,),
+        )
+        self._conexion.confirmar()

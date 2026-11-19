@@ -113,22 +113,22 @@ def test_subir_entrega_reemplaza_y_borra_la_anterior(curso, aprendiz, carpeta_en
 
 
 # -- Calificación del instructor ------------------------------------------------------------
-def test_calificar_entrega_aprobada(curso, aprendiz, carpeta_entregas):
+def test_calificar_entrega_aprobada(curso, aprendiz, admin, carpeta_entregas):
     tc = TallerController()
     taller = tc.crear_taller(curso.id_curso, "Taller", "Descripción suficientemente larga del taller.")
     entrega = tc.subir_entrega(taller.id_taller, aprendiz.id_usuario, _crear_archivo_de_prueba(carpeta_entregas))
 
-    calificada = tc.calificar_entrega(entrega.id_entrega, aprobado=True, comentario="Excelente trabajo")
+    calificada = tc.calificar_entrega(entrega.id_entrega, aprobado=True, comentario="Excelente trabajo", usuario_actor=admin)
 
     assert calificada.estado == "APROBADO"
     assert calificada.comentario_instructor == "Excelente trabajo"
 
 
-def test_calificar_entrega_rechazada_permite_volver_a_subir(curso, aprendiz, carpeta_entregas):
+def test_calificar_entrega_rechazada_permite_volver_a_subir(curso, aprendiz, admin, carpeta_entregas):
     tc = TallerController()
     taller = tc.crear_taller(curso.id_curso, "Taller", "Descripción suficientemente larga del taller.")
     entrega = tc.subir_entrega(taller.id_taller, aprendiz.id_usuario, _crear_archivo_de_prueba(carpeta_entregas, "v1.png"))
-    tc.calificar_entrega(entrega.id_entrega, aprobado=False, comentario="Falta el paso 3")
+    tc.calificar_entrega(entrega.id_entrega, aprobado=False, comentario="Falta el paso 3", usuario_actor=admin)
 
     rechazada = tc.obtener_entrega(taller.id_taller, aprendiz.id_usuario)
     assert rechazada.estado == "RECHAZADO"
@@ -140,7 +140,7 @@ def test_calificar_entrega_rechazada_permite_volver_a_subir(curso, aprendiz, car
 
 
 # -- Requisito de finalización del curso ----------------------------------------------------
-def test_curso_no_se_completa_hasta_aprobar_todos_los_talleres(curso, aprendiz, carpeta_entregas):
+def test_curso_no_se_completa_hasta_aprobar_todos_los_talleres(curso, aprendiz, admin, carpeta_entregas):
     ic = InscripcionController()
     cc = ContenidoController()
     tc = TallerController()
@@ -158,7 +158,7 @@ def test_curso_no_se_completa_hasta_aprobar_todos_los_talleres(curso, aprendiz, 
     entrega = tc.subir_entrega(taller.id_taller, aprendiz.id_usuario, _crear_archivo_de_prueba(carpeta_entregas))
     assert pc.obtener_progreso(aprendiz.id_usuario, curso.id_curso).estado == "EN_PROGRESO"  # entrega pendiente
 
-    tc.calificar_entrega(entrega.id_entrega, aprobado=True, comentario="Aprobado")
+    tc.calificar_entrega(entrega.id_entrega, aprobado=True, comentario="Aprobado", usuario_actor=admin)
 
     assert pc.obtener_progreso(aprendiz.id_usuario, curso.id_curso).estado == "COMPLETADO"
 

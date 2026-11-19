@@ -169,7 +169,7 @@ def entregar_taller(id_usuario, taller, aprobar=None, comentario=""):
         return
     entrega = talleres.subir_entrega(taller.id_taller, id_usuario, _ARCHIVO_ENTREGA_DEMO)
     if aprobar is not None:
-        talleres.calificar_entrega(entrega.id_entrega, aprobar, comentario)
+        talleres.calificar_entrega(entrega.id_entrega, aprobar, comentario, usuario_actor=admin_actor)
     progreso.recalcular_progreso(id_usuario, taller.id_curso)
 
 
@@ -190,6 +190,7 @@ log(f"  8 aprendices nuevos listos (contraseña demo: {PASSWORD_DEMO}). Se reuti
 
 id_admin_1 = next(u.id_usuario for u in usuarios.listar_usuarios() if u.usuario == "admin")
 id_admin_2 = next(u.id_usuario for u in usuarios.listar_usuarios() if u.usuario == "Danrodriguez95")
+admin_actor = next(u for u in usuarios.listar_usuarios() if u.id_usuario == id_admin_1)
 
 # ============================================================================================
 # 2. Cursos nuevos (4) + completar los que estaban vacíos

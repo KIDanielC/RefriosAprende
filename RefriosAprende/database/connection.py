@@ -79,11 +79,23 @@ class ConexionBD:
         self._migrar_guia_aprendizaje_secciones_ampliadas()
         self._migrar_guia_aprendizaje_quitar_retroalimentar_reforzar_registrar()
         self._migrar_usuarios_foto_perfil()
+        self._migrar_usuarios_bloqueo_login()
 
     def _migrar_usuarios_foto_perfil(self):
         columnas_usuarios = {fila["name"] for fila in self._conexion.execute("PRAGMA table_info(usuarios)")}
         if "foto_perfil" not in columnas_usuarios:
             self._conexion.execute("ALTER TABLE usuarios ADD COLUMN foto_perfil TEXT")
+
+    def _migrar_usuarios_bloqueo_login(self):
+        """Soporte para el bloqueo temporal tras varios inicios de sesión fallidos
+        (AutenticacionController)."""
+        columnas_usuarios = {fila["name"] for fila in self._conexion.execute("PRAGMA table_info(usuarios)")}
+        if "intentos_fallidos" not in columnas_usuarios:
+            self._conexion.execute(
+                "ALTER TABLE usuarios ADD COLUMN intentos_fallidos INTEGER NOT NULL DEFAULT 0"
+            )
+        if "bloqueado_hasta" not in columnas_usuarios:
+            self._conexion.execute("ALTER TABLE usuarios ADD COLUMN bloqueado_hasta TEXT")
 
     def _migrar_matricula_desde_progreso(self):
         """La matrícula (tabla inscripciones) se agregó después de que ya existían cursos con
