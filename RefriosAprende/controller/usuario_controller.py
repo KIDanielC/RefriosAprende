@@ -35,6 +35,15 @@ class UsuarioController:
     def listar_roles(self):
         return self._rol_dao.listar_todos()
 
+    def existe_administrador_activo(self) -> bool:
+        """False en el primerísimo arranque (base recién creada, sin usuarios todavía):
+        la app debe mostrar la ventana de creación del primer administrador en vez de
+        un formulario de inicio de sesión que nadie podría usar."""
+        rol_admin = self._rol_dao.obtener_por_nombre(_NOMBRE_ROL_ADMINISTRADOR)
+        if rol_admin is None:
+            return False
+        return self._usuario_dao.contar_activos_por_rol(rol_admin.id_rol) > 0
+
     def _validar_datos_basicos(self, nombre_completo, documento, correo):
         if not nombre_completo or len(nombre_completo.strip()) < 3:
             raise DatosInvalidosError("El nombre completo debe tener al menos 3 caracteres.")
