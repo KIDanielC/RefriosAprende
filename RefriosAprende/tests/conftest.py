@@ -38,11 +38,13 @@ def admin(id_rol_admin):
 
 
 @pytest.fixture
-def aprendiz(id_rol_aprendiz):
+def aprendiz(id_rol_aprendiz, admin):
+    """Depende de `admin` a propósito: crear un usuario que no sea el primero ya exige
+    que quien lo crea sea administrador (ver utils/autorizacion.py)."""
     uc = UsuarioController()
     return uc.crear_usuario(
         "Aprendiz de Prueba", "1000000002", "aprendiz.prueba@refrios.local", "aprendiz.prueba", "clave123",
-        id_rol_aprendiz,
+        id_rol_aprendiz, usuario_actor=admin,
     )
 
 
@@ -51,8 +53,10 @@ def curso(admin):
     """Curso ya publicado (ACTIVO): los cursos nacen en BORRADOR, así que esta fixture lo
     publica de inmediato, porque la mayoría de pruebas asumen un curso visible y matriculable."""
     cc = CursoController()
-    curso_creado = cc.crear_curso("Curso de Prueba", "Descripción del curso de prueba", admin.id_usuario)
+    curso_creado = cc.crear_curso(
+        "Curso de Prueba", "Descripción del curso de prueba", admin.id_usuario, usuario_actor=admin,
+    )
     return cc.actualizar_curso(
         curso_creado.id_curso, curso_creado.nombre_curso, curso_creado.descripcion,
-        admin.id_usuario, "ACTIVO",
+        admin.id_usuario, "ACTIVO", usuario_actor=admin,
     )

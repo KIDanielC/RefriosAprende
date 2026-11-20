@@ -1,6 +1,7 @@
 """Controlador de la Guía de Aprendizaje de un curso: valida y coordina Vista <-> Modelo."""
 from model.dao.guia_aprendizaje_dao import GuiaAprendizajeDAO, COLUMNAS_TEXTO_LIBRE
 from model.entities.guia_aprendizaje import GuiaAprendizaje
+from utils.autorizacion import exigir_administrador
 from utils.texto_enriquecido import texto_plano_desde_markup
 
 # Única fuente de verdad de qué campos de texto libre existen en la guía; la vista construye
@@ -19,10 +20,11 @@ class GuiaAprendizajeController:
     def obtener_guia(self, id_curso: int) -> GuiaAprendizaje | None:
         return self._guia_dao.obtener_por_curso(id_curso)
 
-    def guardar_guia(self, id_curso: int, campos: dict[str, str], duracion_horas: str) -> GuiaAprendizaje:
+    def guardar_guia(self, id_curso: int, campos: dict[str, str], duracion_horas: str, usuario_actor=None) -> GuiaAprendizaje:
         """`campos` trae (algunas o todas) las claves de CAMPOS_TEXTO_GUIA. Solo el objetivo
         general es obligatorio: el resto puede quedar vacío y completarse más adelante, para
         que generar la guía sea rápido y no se sienta como un formulario de 15 campos obligatorios."""
+        exigir_administrador(usuario_actor)
         campos_limpios = {clave: (campos.get(clave) or "").strip() for clave in CAMPOS_TEXTO_GUIA}
 
         if len(texto_plano_desde_markup(campos_limpios["objetivo_general"])) < 10:

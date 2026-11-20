@@ -9,6 +9,7 @@ from config.settings import BASE_DIR, FOTOS_PERFIL_DIR
 from model.dao.rol_dao import RolDAO
 from model.dao.usuario_dao import UsuarioDAO, UsuarioYaExisteError, UsuarioReferenciadoError
 from model.entities.usuario import Usuario
+from utils.autorizacion import AccesoNoAutorizadoError, exigir_administrador
 from utils.seguridad import ContrasenaInvalidaError, generar_hash, validar_contrasena
 
 _logger = logging.getLogger(__name__)
@@ -61,7 +62,12 @@ class UsuarioController:
         usuario: str,
         contrasena: str,
         id_rol: int,
+        usuario_actor=None,
     ) -> Usuario:
+        # Si ya existe un administrador activo, crear usuarios es cosa suya; si no existe
+        # ninguno todavía, se permite sin actor porque es la ventana de arranque del primer administrador.
+        if self.existe_administrador_activo():
+            exigir_administrador(usuario_actor)
         self._validar_datos_basicos(nombre_completo, documento, correo)
 
         if not usuario or len(usuario.strip()) < 4:
@@ -87,6 +93,12 @@ class UsuarioController:
 
         return self._usuario_dao.obtener_por_id(id_usuario)
 
+    def _exigir_propio_o_administrador(self, usuario_actor, id_usuario_objetivo: int) -> None:
+        """Editar el propio perfil no requiere ser administrador; editar el de alguien más, sí."""
+        es_el_mismo = usuario_actor is not None and usuario_actor.id_usuario == id_usuario_objetivo
+        if not es_el_mismo and (usuario_actor is None or not usuario_actor.es_administrador()):
+            raise AccesoNoAutorizadoError("Esta operación requiere ser el propio usuario o una cuenta de administrador.")
+
     def actualizar_usuario(
         self,
         id_usuario: int,
@@ -95,7 +107,9 @@ class UsuarioController:
         correo: str,
         id_rol: int,
         activo: bool,
+        usuario_actor=None,
     ) -> Usuario:
+        self._exigir_propio_o_administrador(usuario_actor, id_usuario)
         self._validar_datos_basicos(nombre_completo, documento, correo)
         if self._rol_dao.obtener_por_id(id_rol) is None:
             raise DatosInvalidosError("El rol seleccionado no es válido.")
@@ -118,7 +132,8 @@ class UsuarioController:
 
         return self._usuario_dao.obtener_por_id(id_usuario)
 
-    def cambiar_contrasena(self, id_usuario: int, contrasena_nueva: str) -> None:
+    def cambiar_contrasena(self, id_usuario: int, contrasena_nueva: str, usuario_actor=None) -> None:
+        self._exigir_propio_o_administrador(usuario_actor, id_usuario)
         try:
             validar_contrasena(contrasena_nueva)
         except ContrasenaInvalidaError as error:
@@ -156,7 +171,8 @@ class UsuarioController:
             except OSError:
                 _logger.warning("No se pudo eliminar la foto de perfil anterior: %s", ruta_absoluta, exc_info=True)
 
-    def eliminar_usuario(self, id_usuario: int) -> None:
+    def eliminar_usuario(self, id_usuario: int, usuario_actor=None) -> None:
+        exigir_administrador(usuario_actor)
         usuario = self._usuario_dao.obtener_por_id(id_usuario)
         if usuario is not None and usuario.es_administrador() and usuario.activo and self._es_ultimo_administrador_activo(id_usuario):
             raise UltimoAdministradorError(

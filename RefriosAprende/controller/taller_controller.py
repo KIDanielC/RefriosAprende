@@ -33,17 +33,20 @@ class TallerController:
     def listar_por_curso(self, id_curso: int) -> list[Taller]:
         return self._taller_dao.listar_por_curso(id_curso)
 
-    def crear_taller(self, id_curso: int, titulo: str, descripcion: str) -> Taller:
+    def crear_taller(self, id_curso: int, titulo: str, descripcion: str, usuario_actor=None) -> Taller:
+        exigir_administrador(usuario_actor)
         self._validar_datos(titulo, descripcion)
         id_taller = self._taller_dao.crear(id_curso, titulo.strip(), descripcion.strip())
         return self._taller_dao.obtener_por_id(id_taller)
 
-    def actualizar_taller(self, id_taller: int, titulo: str, descripcion: str) -> Taller:
+    def actualizar_taller(self, id_taller: int, titulo: str, descripcion: str, usuario_actor=None) -> Taller:
+        exigir_administrador(usuario_actor)
         self._validar_datos(titulo, descripcion)
         self._taller_dao.actualizar(id_taller, titulo.strip(), descripcion.strip())
         return self._taller_dao.obtener_por_id(id_taller)
 
-    def eliminar_taller(self, id_taller: int) -> None:
+    def eliminar_taller(self, id_taller: int, usuario_actor=None) -> None:
+        exigir_administrador(usuario_actor)
         for entrega in self._entrega_dao.listar_por_taller(id_taller):
             self._eliminar_archivo_fisico(entrega.ruta_archivo)
         self._taller_dao.eliminar(id_taller)

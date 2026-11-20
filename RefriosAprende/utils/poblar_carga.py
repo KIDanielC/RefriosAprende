@@ -62,7 +62,7 @@ def poblar(nombre_volumen: str, ruta_bd: str) -> dict:
     aprendices = [
         uc.crear_usuario(
             f"Aprendiz de Carga {i + 1}", f"800{i:07d}", f"aprendiz.carga{i + 1}@refrios.local",
-            f"aprendiz.carga{i + 1}", "ClaveCarga1", rol_aprendiz.id_rol,
+            f"aprendiz.carga{i + 1}", "ClaveCarga1", rol_aprendiz.id_rol, usuario_actor=admin,
         )
         for i in range(especificacion["usuarios"])
     ]
@@ -70,11 +70,13 @@ def poblar(nombre_volumen: str, ruta_bd: str) -> dict:
     cc = CursoController()
     cursos = []
     for i in range(especificacion["cursos"]):
-        curso_creado = cc.crear_curso(f"Curso de Carga {i + 1}", "Curso generado para medir rendimiento.", admin.id_usuario)
+        curso_creado = cc.crear_curso(
+            f"Curso de Carga {i + 1}", "Curso generado para medir rendimiento.", admin.id_usuario, usuario_actor=admin,
+        )
         cursos.append(
             cc.actualizar_curso(
                 curso_creado.id_curso, curso_creado.nombre_curso, curso_creado.descripcion,
-                admin.id_usuario, "ACTIVO",
+                admin.id_usuario, "ACTIVO", usuario_actor=admin,
             )
         )
 
@@ -86,12 +88,14 @@ def poblar(nombre_volumen: str, ruta_bd: str) -> dict:
     for curso in cursos:
         contenido_controlador.crear_contenido_texto(
             curso.id_curso, "Contenido de carga", "Texto de ejemplo para medir rendimiento. " * 10,
+            usuario_actor=admin,
         )
         evaluacion = evaluacion_controlador.crear_evaluacion_final(
-            curso.id_curso, "Evaluación de carga", 3.0, especificacion["resultados"]
+            curso.id_curso, "Evaluación de carga", 3.0, especificacion["resultados"], usuario_actor=admin,
         )
         evaluacion_controlador.crear_pregunta(
             evaluacion.id_evaluacion, "¿Cuál opción es correcta?", [("Correcta", True), ("Incorrecta", False)],
+            usuario_actor=admin,
         )
         evaluaciones_por_curso[curso.id_curso] = evaluacion
 
@@ -102,7 +106,7 @@ def poblar(nombre_volumen: str, ruta_bd: str) -> dict:
         curso = cursos[indice % len(cursos)]
         evaluacion = evaluaciones_por_curso[curso.id_curso]
 
-        inscripcion_controlador.matricular(aprendiz.id_usuario, curso.id_curso)
+        inscripcion_controlador.matricular(aprendiz.id_usuario, curso.id_curso, usuario_actor=admin)
         pregunta = evaluacion_controlador.listar_preguntas(evaluacion.id_evaluacion)[0]
         evaluacion_controlador.presentar_evaluacion(
             aprendiz.id_usuario, evaluacion, {pregunta.id_pregunta: pregunta.opcion_correcta().id_opcion},

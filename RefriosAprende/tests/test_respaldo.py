@@ -29,13 +29,14 @@ def test_respaldo_y_restauracion_conservan_los_datos_reales(tmp_path, monkeypatc
     monkeypatch.setattr(taller_controller_module, "BASE_DIR", str(carpeta_datos))
     monkeypatch.setattr(taller_controller_module, "ENTREGAS_DIR", str(ruta_entregas))
 
-    InscripcionController().matricular(aprendiz.id_usuario, curso.id_curso)
-    ContenidoController().crear_contenido_texto(curso.id_curso, "Introducción", "Texto de ejemplo.")
+    InscripcionController().matricular(aprendiz.id_usuario, curso.id_curso, usuario_actor=admin)
+    ContenidoController().crear_contenido_texto(curso.id_curso, "Introducción", "Texto de ejemplo.", usuario_actor=admin)
 
     evaluacion_controlador = EvaluacionController()
-    evaluacion = evaluacion_controlador.crear_evaluacion_final(curso.id_curso, "Evaluación final", 3.0, 1)
+    evaluacion = evaluacion_controlador.crear_evaluacion_final(curso.id_curso, "Evaluación final", 3.0, 1, usuario_actor=admin)
     pregunta = evaluacion_controlador.crear_pregunta(
-        evaluacion.id_evaluacion, "¿Cuál opción es correcta?", [("Correcta", True), ("Incorrecta", False)]
+        evaluacion.id_evaluacion, "¿Cuál opción es correcta?", [("Correcta", True), ("Incorrecta", False)],
+        usuario_actor=admin,
     )
     resultado = evaluacion_controlador.presentar_evaluacion(
         aprendiz.id_usuario, evaluacion, {pregunta.id_pregunta: pregunta.opcion_correcta().id_opcion},
@@ -43,7 +44,9 @@ def test_respaldo_y_restauracion_conservan_los_datos_reales(tmp_path, monkeypatc
     assert resultado.aprobado is True
 
     taller_controlador = TallerController()
-    taller = taller_controlador.crear_taller(curso.id_curso, "Taller de prueba", "Descripción suficientemente larga.")
+    taller = taller_controlador.crear_taller(
+        curso.id_curso, "Taller de prueba", "Descripción suficientemente larga.", usuario_actor=admin,
+    )
     archivo_adjunto = tmp_path / "entrega_original.png"
     archivo_adjunto.write_bytes(b"contenido real de una entrega de taller")
     taller_controlador.subir_entrega(taller.id_taller, aprendiz.id_usuario, str(archivo_adjunto))

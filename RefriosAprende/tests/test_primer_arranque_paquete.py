@@ -45,7 +45,7 @@ def test_primer_administrador_se_crea_ingresa_y_cambia_su_contrasena():
     autenticado = controlador_sesion.iniciar_sesion("jefe.refrios", "ClaveInicial1")
     assert autenticado.id_usuario == administrador.id_usuario
 
-    controlador_usuarios.cambiar_contrasena(administrador.id_usuario, "ClaveNueva2")
+    controlador_usuarios.cambiar_contrasena(administrador.id_usuario, "ClaveNueva2", usuario_actor=administrador)
 
     controlador_sesion_nueva = AutenticacionController()
     autenticado_de_nuevo = controlador_sesion_nueva.iniciar_sesion("jefe.refrios", "ClaveNueva2")

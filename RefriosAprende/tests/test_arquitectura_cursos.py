@@ -11,7 +11,9 @@ from controller.progreso_controller import ProgresoController
 
 
 def _publicar(cc, curso, admin):
-    return cc.actualizar_curso(curso.id_curso, curso.nombre_curso, curso.descripcion, admin.id_usuario, "ACTIVO")
+    return cc.actualizar_curso(
+        curso.id_curso, curso.nombre_curso, curso.descripcion, admin.id_usuario, "ACTIVO", usuario_actor=admin,
+    )
 
 
 # ---------------------------------------------------------------------
@@ -21,11 +23,11 @@ def test_matricular_sin_prerrequisito_completado_falla(curso, aprendiz, admin):
     cc = CursoController()
     ic = InscripcionController()
 
-    curso_basico = _publicar(cc, cc.crear_curso("Curso Básico", "Fundamentos", admin.id_usuario), admin)
-    cc.guardar_prerrequisitos(curso.id_curso, [curso_basico.id_curso])
+    curso_basico = _publicar(cc, cc.crear_curso("Curso Básico", "Fundamentos", admin.id_usuario, usuario_actor=admin), admin)
+    cc.guardar_prerrequisitos(curso.id_curso, [curso_basico.id_curso], usuario_actor=admin)
 
     with pytest.raises(PrerrequisitosIncompletosError):
-        ic.matricular(aprendiz.id_usuario, curso.id_curso)
+        ic.matricular(aprendiz.id_usuario, curso.id_curso, usuario_actor=admin)
 
 
 def test_matricular_con_prerrequisito_completado_funciona(curso, aprendiz, admin):
@@ -34,16 +36,17 @@ def test_matricular_con_prerrequisito_completado_funciona(curso, aprendiz, admin
     pc = ProgresoController()
     contenido_controlador = ContenidoController()
 
-    curso_basico = _publicar(cc, cc.crear_curso("Curso Básico", "Fundamentos", admin.id_usuario), admin)
+    curso_basico = _publicar(cc, cc.crear_curso("Curso Básico", "Fundamentos", admin.id_usuario, usuario_actor=admin), admin)
     contenido = contenido_controlador.crear_contenido_texto(
-        curso_basico.id_curso, "Único contenido", "Texto con longitud suficiente para pasar la validación."
+        curso_basico.id_curso, "Único contenido", "Texto con longitud suficiente para pasar la validación.",
+        usuario_actor=admin,
     )
-    ic.matricular(aprendiz.id_usuario, curso_basico.id_curso)
+    ic.matricular(aprendiz.id_usuario, curso_basico.id_curso, usuario_actor=admin)
     progreso = pc.registrar_contenido_visto(aprendiz.id_usuario, contenido)
     assert progreso.estado == "COMPLETADO"  # sin evaluación final, ver todo el contenido ya completa el curso
 
-    cc.guardar_prerrequisitos(curso.id_curso, [curso_basico.id_curso])
-    ic.matricular(aprendiz.id_usuario, curso.id_curso)  # no debe lanzar
+    cc.guardar_prerrequisitos(curso.id_curso, [curso_basico.id_curso], usuario_actor=admin)
+    ic.matricular(aprendiz.id_usuario, curso.id_curso, usuario_actor=admin)  # no debe lanzar
     assert curso.id_curso in [c.id_curso for c in ic.listar_cursos_matriculados(aprendiz.id_usuario)]
 
 
@@ -62,13 +65,15 @@ def test_contenido_bloqueado_hasta_completar_el_anterior(curso, aprendiz, admin)
 
     curso_secuencial = cc.actualizar_curso(
         curso.id_curso, curso.nombre_curso, curso.descripcion, admin.id_usuario, "ACTIVO",
-        aprendizaje_secuencial=True,
+        aprendizaje_secuencial=True, usuario_actor=admin,
     )
     contenido_1 = contenido_controlador.crear_contenido_texto(
-        curso_secuencial.id_curso, "Primero", "Texto con longitud suficiente para pasar la validación."
+        curso_secuencial.id_curso, "Primero", "Texto con longitud suficiente para pasar la validación.",
+        usuario_actor=admin,
     )
     contenido_2 = contenido_controlador.crear_contenido_texto(
-        curso_secuencial.id_curso, "Segundo", "Texto con longitud suficiente para pasar la validación."
+        curso_secuencial.id_curso, "Segundo", "Texto con longitud suficiente para pasar la validación.",
+        usuario_actor=admin,
     )
 
     assert pc.contenido_bloqueado(aprendiz.id_usuario, contenido_1, curso_secuencial) is False
@@ -78,14 +83,14 @@ def test_contenido_bloqueado_hasta_completar_el_anterior(curso, aprendiz, admin)
     assert pc.contenido_bloqueado(aprendiz.id_usuario, contenido_2, curso_secuencial) is False
 
 
-def test_contenido_no_se_bloquea_si_curso_no_es_secuencial(curso, aprendiz):
+def test_contenido_no_se_bloquea_si_curso_no_es_secuencial(curso, aprendiz, admin):
     pc = ProgresoController()
     contenido_controlador = ContenidoController()
     contenido_1 = contenido_controlador.crear_contenido_texto(
-        curso.id_curso, "Primero", "Texto con longitud suficiente para pasar la validación."
+        curso.id_curso, "Primero", "Texto con longitud suficiente para pasar la validación.", usuario_actor=admin,
     )
     contenido_2 = contenido_controlador.crear_contenido_texto(
-        curso.id_curso, "Segundo", "Texto con longitud suficiente para pasar la validación."
+        curso.id_curso, "Segundo", "Texto con longitud suficiente para pasar la validación.", usuario_actor=admin,
     )
     assert pc.contenido_bloqueado(aprendiz.id_usuario, contenido_2, curso) is False
 
@@ -99,13 +104,14 @@ def test_certificado_falla_si_curso_no_completado(curso, aprendiz):
         certificado_controlador.obtener_datos_certificado(aprendiz, curso)
 
 
-def test_certificado_se_genera_cuando_el_curso_esta_completado(curso, aprendiz):
+def test_certificado_se_genera_cuando_el_curso_esta_completado(curso, aprendiz, admin):
     pc = ProgresoController()
     contenido_controlador = ContenidoController()
     certificado_controlador = CertificadoController()
 
     contenido = contenido_controlador.crear_contenido_texto(
-        curso.id_curso, "Único contenido", "Texto con longitud suficiente para pasar la validación."
+        curso.id_curso, "Único contenido", "Texto con longitud suficiente para pasar la validación.",
+        usuario_actor=admin,
     )
     pc.registrar_contenido_visto(aprendiz.id_usuario, contenido)
 
@@ -122,13 +128,14 @@ def test_exportar_certificado_falla_si_curso_no_completado(curso, aprendiz, tmp_
     assert not (tmp_path / "certificado.pdf").exists()
 
 
-def test_exportar_certificado_crea_un_pdf_valido(curso, aprendiz, tmp_path):
+def test_exportar_certificado_crea_un_pdf_valido(curso, aprendiz, admin, tmp_path):
     pc = ProgresoController()
     contenido_controlador = ContenidoController()
     certificado_controlador = CertificadoController()
 
     contenido = contenido_controlador.crear_contenido_texto(
-        curso.id_curso, "Único contenido", "Texto con longitud suficiente para pasar la validación."
+        curso.id_curso, "Único contenido", "Texto con longitud suficiente para pasar la validación.",
+        usuario_actor=admin,
     )
     pc.registrar_contenido_visto(aprendiz.id_usuario, contenido)
 

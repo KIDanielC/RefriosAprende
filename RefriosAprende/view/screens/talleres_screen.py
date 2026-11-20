@@ -157,7 +157,7 @@ class TalleresWindow(ctk.CTkToplevel):
 
     # ------------------------------------------------------------------
     def _eliminar_taller(self, taller: Taller):
-        self._controlador.eliminar_taller(taller.id_taller)
+        self._controlador.eliminar_taller(taller.id_taller, usuario_actor=self._usuario_sesion)
         self._cargar_talleres()
 
     def _abrir_entregas(self, taller: Taller):
@@ -166,12 +166,15 @@ class TalleresWindow(ctk.CTkToplevel):
         )
 
     def _abrir_formulario_creacion(self):
-        FormularioTaller(self, controlador=self._controlador, id_curso=self._curso.id_curso, al_guardar=self._cargar_talleres)
+        FormularioTaller(
+            self, controlador=self._controlador, id_curso=self._curso.id_curso, al_guardar=self._cargar_talleres,
+            usuario_sesion=self._usuario_sesion,
+        )
 
     def _abrir_formulario_edicion(self, taller: Taller):
         FormularioTaller(
             self, controlador=self._controlador, id_curso=self._curso.id_curso,
-            al_guardar=self._cargar_talleres, taller_existente=taller,
+            al_guardar=self._cargar_talleres, taller_existente=taller, usuario_sesion=self._usuario_sesion,
         )
 
 
@@ -289,12 +292,16 @@ class EntregasTallerWindow(ctk.CTkToplevel):
 class FormularioTaller(ctk.CTkToplevel):
     """Formulario modal para crear o editar un taller (ejercicio práctico)."""
 
-    def __init__(self, master, controlador: TallerController, id_curso: int, al_guardar, taller_existente: Taller = None):
+    def __init__(
+        self, master, controlador: TallerController, id_curso: int, al_guardar,
+        taller_existente: Taller = None, usuario_sesion=None,
+    ):
         super().__init__(master)
         self._controlador = controlador
         self._id_curso = id_curso
         self._al_guardar = al_guardar
         self._taller_existente = taller_existente
+        self._usuario_sesion = usuario_sesion
 
         self.title("Editar taller" if taller_existente else "Nuevo taller")
         self.configure(fg_color=COLOR_FONDO_TARJETA)
@@ -349,9 +356,11 @@ class FormularioTaller(ctk.CTkToplevel):
 
         try:
             if self._taller_existente:
-                self._controlador.actualizar_taller(self._taller_existente.id_taller, titulo, descripcion)
+                self._controlador.actualizar_taller(
+                    self._taller_existente.id_taller, titulo, descripcion, usuario_actor=self._usuario_sesion
+                )
             else:
-                self._controlador.crear_taller(self._id_curso, titulo, descripcion)
+                self._controlador.crear_taller(self._id_curso, titulo, descripcion, usuario_actor=self._usuario_sesion)
         except DatosTallerInvalidosError as error:
             self._etiqueta_error.configure(text=str(error))
             return

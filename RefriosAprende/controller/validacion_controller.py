@@ -9,6 +9,7 @@ from model.dao.opcion_dao import OpcionDAO
 from model.dao.pregunta_dao import PreguntaDAO
 from model.entities.contenido import Contenido
 from model.entities.pregunta import Pregunta
+from utils.autorizacion import exigir_administrador
 
 _MINIMO_OPCIONES = 2
 _MAXIMO_OPCIONES = 4
@@ -45,8 +46,9 @@ class ValidacionController:
         return opciones_con_texto
 
     def crear_pregunta(
-        self, contenido: Contenido, enunciado: str, opciones: list[tuple[str, bool]]
+        self, contenido: Contenido, enunciado: str, opciones: list[tuple[str, bool]], usuario_actor=None
     ) -> Pregunta:
+        exigir_administrador(usuario_actor)
         if not enunciado or len(enunciado.strip()) < 5:
             raise DatosPreguntaInvalidosError("El enunciado debe tener al menos 5 caracteres.")
         opciones_validas = self._validar_opciones(opciones)
@@ -63,8 +65,9 @@ class ValidacionController:
         return self._pregunta_dao.obtener_por_id(id_pregunta)
 
     def actualizar_pregunta(
-        self, id_pregunta: int, enunciado: str, opciones: list[tuple[str, bool]]
+        self, id_pregunta: int, enunciado: str, opciones: list[tuple[str, bool]], usuario_actor=None
     ) -> Pregunta:
+        exigir_administrador(usuario_actor)
         if not enunciado or len(enunciado.strip()) < 5:
             raise DatosPreguntaInvalidosError("El enunciado debe tener al menos 5 caracteres.")
         opciones_validas = self._validar_opciones(opciones)
@@ -76,5 +79,6 @@ class ValidacionController:
 
         return self._pregunta_dao.obtener_por_id(id_pregunta)
 
-    def eliminar_pregunta(self, id_pregunta: int) -> None:
+    def eliminar_pregunta(self, id_pregunta: int, usuario_actor=None) -> None:
+        exigir_administrador(usuario_actor)
         self._pregunta_dao.eliminar(id_pregunta)

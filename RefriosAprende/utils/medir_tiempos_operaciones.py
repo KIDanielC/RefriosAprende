@@ -148,7 +148,7 @@ def medir_operaciones(ruta_bd: str, repeticiones: int = REPETICIONES_POR_DEFECTO
         return uc.crear_usuario(
             f"Aprendiz Medicion {prefijo}-{n}", f"7{prefijo_numerico}{n:06d}",
             f"med.{prefijo}.{n}@refrios.local", f"med_{prefijo}_{n}", "ClaveMedicion1",
-            rol_aprendiz.id_rol,
+            rol_aprendiz.id_rol, usuario_actor=admin,
         )
 
     resultados = {}
@@ -169,17 +169,19 @@ def medir_operaciones(ruta_bd: str, repeticiones: int = REPETICIONES_POR_DEFECTO
 
     # -- Cursos -------------------------------------------------------------
     resultados["Cursos - crear_curso (borrador)"] = _resumen(_cronometrar(
-        repeticiones, lambda i: cc.crear_curso(f"Curso Medicion {prefijo}-{i}", "Curso para medir tiempos.", admin.id_usuario)
+        repeticiones, lambda i: cc.crear_curso(
+            f"Curso Medicion {prefijo}-{i}", "Curso para medir tiempos.", admin.id_usuario, usuario_actor=admin,
+        )
     ))
 
     cursos_para_publicar = [
-        cc.crear_curso(f"Curso Publicar {prefijo}-{i}", "Curso para medir publicación.", admin.id_usuario)
+        cc.crear_curso(f"Curso Publicar {prefijo}-{i}", "Curso para medir publicación.", admin.id_usuario, usuario_actor=admin)
         for i in range(repeticiones)
     ]
     resultados["Cursos - actualizar_curso (publicar a ACTIVO)"] = _resumen(_cronometrar(
         repeticiones, lambda i: cc.actualizar_curso(
             cursos_para_publicar[i].id_curso, cursos_para_publicar[i].nombre_curso,
-            cursos_para_publicar[i].descripcion, admin.id_usuario, "ACTIVO",
+            cursos_para_publicar[i].descripcion, admin.id_usuario, "ACTIVO", usuario_actor=admin,
         )
     ))
     resultados["Cursos - listar_cursos_activos (lectura)"] = _resumen(_cronometrar(
@@ -187,17 +189,18 @@ def medir_operaciones(ruta_bd: str, repeticiones: int = REPETICIONES_POR_DEFECTO
     ))
 
     # -- Contenidos ------------------------------------------------------------
-    curso_contenidos = cc.crear_curso(f"Curso Contenidos {prefijo}", "Curso para medir contenidos.", admin.id_usuario)
+    curso_contenidos = cc.crear_curso(f"Curso Contenidos {prefijo}", "Curso para medir contenidos.", admin.id_usuario, usuario_actor=admin)
     resultados["Contenidos - crear_contenido_texto"] = _resumen(_cronometrar(
         repeticiones, lambda i: contenido_ctrl.crear_contenido_texto(
             curso_contenidos.id_curso, f"Texto {i}", "Texto con longitud suficiente para pasar la validación. " * 3,
+            usuario_actor=admin,
         )
     ))
 
     ruta_pdf = _archivo_temporal(".pdf", b"%PDF-1.4\n%%EOF")
     resultados["Contenidos - crear_contenido_pdf"] = _resumen(_cronometrar(
         repeticiones, lambda i: contenido_ctrl.crear_contenido_pdf(
-            curso_contenidos.id_curso, f"PDF {i}", "Manual técnico.", ruta_pdf,
+            curso_contenidos.id_curso, f"PDF {i}", "Manual técnico.", ruta_pdf, usuario_actor=admin,
         )
     ))
 
@@ -205,14 +208,14 @@ def medir_operaciones(ruta_bd: str, repeticiones: int = REPETICIONES_POR_DEFECTO
     Image.new("RGB", (400, 200), color=(10, 20, 30)).save(ruta_imagen)
     resultados["Contenidos - crear_contenido_imagen"] = _resumen(_cronometrar(
         repeticiones, lambda i: contenido_ctrl.crear_contenido_imagen(
-            curso_contenidos.id_curso, f"Imagen {i}", "Diagrama.", ruta_imagen,
+            curso_contenidos.id_curso, f"Imagen {i}", "Diagrama.", ruta_imagen, usuario_actor=admin,
         )
     ))
 
     ruta_video = _archivo_temporal(".mp4", b"contenido de prueba de video" * 100)
     resultados["Contenidos - crear_contenido_video"] = _resumen(_cronometrar(
         repeticiones, lambda i: contenido_ctrl.crear_contenido_video(
-            curso_contenidos.id_curso, f"Video {i}", "Procedimiento en video.", ruta_video,
+            curso_contenidos.id_curso, f"Video {i}", "Procedimiento en video.", ruta_video, usuario_actor=admin,
         )
     ))
 
@@ -221,42 +224,51 @@ def medir_operaciones(ruta_bd: str, repeticiones: int = REPETICIONES_POR_DEFECTO
 
     def _bajar_y_medir(i):
         inicio = time.perf_counter()
-        contenido_ctrl.mover_contenido(id_primero, "bajar")
+        contenido_ctrl.mover_contenido(id_primero, "bajar", usuario_actor=admin)
         duracion_ms = (time.perf_counter() - inicio) * 1000
-        contenido_ctrl.mover_contenido(id_primero, "subir")  # deja el orden como estaba, fuera del cronómetro
+        contenido_ctrl.mover_contenido(id_primero, "subir", usuario_actor=admin)  # deja el orden como estaba, fuera del cronómetro
         return duracion_ms
 
     tiempos_mover = [_bajar_y_medir(i) for i in range(repeticiones)]
     resultados["Contenidos - mover_contenido (reordenar, 'bajar')"] = _resumen(tiempos_mover)
 
     # -- Matrícula ------------------------------------------------------------
-    curso_matricula = cc.crear_curso(f"Curso Matricula {prefijo}", "Curso para medir matrícula.", admin.id_usuario)
+    curso_matricula = cc.crear_curso(f"Curso Matricula {prefijo}", "Curso para medir matrícula.", admin.id_usuario, usuario_actor=admin)
     aprendices_para_matricular = [_siguiente_aprendiz() for _ in range(repeticiones)]
     resultados["Matrícula - matricular"] = _resumen(_cronometrar(
-        repeticiones, lambda i: inscripcion_ctrl.matricular(aprendices_para_matricular[i].id_usuario, curso_matricula.id_curso)
+        repeticiones, lambda i: inscripcion_ctrl.matricular(
+            aprendices_para_matricular[i].id_usuario, curso_matricula.id_curso, usuario_actor=admin,
+        )
     ))
 
     # -- Evaluaciones -----------------------------------------------------------
     cursos_para_evaluacion = [
-        cc.crear_curso(f"Curso Evaluacion {prefijo}-{i}", "Curso para medir evaluaciones.", admin.id_usuario)
+        cc.crear_curso(f"Curso Evaluacion {prefijo}-{i}", "Curso para medir evaluaciones.", admin.id_usuario, usuario_actor=admin)
         for i in range(repeticiones)
     ]
     resultados["Evaluaciones - crear_evaluacion_final"] = _resumen(_cronometrar(
         repeticiones, lambda i: evaluacion_ctrl.crear_evaluacion_final(
-            cursos_para_evaluacion[i].id_curso, "Evaluación final", 3.0, 999,
+            cursos_para_evaluacion[i].id_curso, "Evaluación final", 3.0, 999, usuario_actor=admin,
         )
     ))
     evaluaciones_creadas = [evaluacion_ctrl.obtener_evaluacion_final(c.id_curso) for c in cursos_para_evaluacion]
     resultados["Evaluaciones - crear_pregunta"] = _resumen(_cronometrar(
         repeticiones, lambda i: evaluacion_ctrl.crear_pregunta(
             evaluaciones_creadas[i].id_evaluacion, "¿Cuál opción es correcta?",
-            [("Correcta", True), ("Incorrecta", False)],
+            [("Correcta", True), ("Incorrecta", False)], usuario_actor=admin,
         )
     ))
 
-    curso_presentar = cc.crear_curso(f"Curso Presentar {prefijo}", "Curso para medir presentación de evaluación.", admin.id_usuario)
-    evaluacion_presentar = evaluacion_ctrl.crear_evaluacion_final(curso_presentar.id_curso, "Evaluación final", 3.0, repeticiones + 10)
-    evaluacion_ctrl.crear_pregunta(evaluacion_presentar.id_evaluacion, "¿Cuál opción es correcta?", [("Correcta", True), ("Incorrecta", False)])
+    curso_presentar = cc.crear_curso(
+        f"Curso Presentar {prefijo}", "Curso para medir presentación de evaluación.", admin.id_usuario, usuario_actor=admin,
+    )
+    evaluacion_presentar = evaluacion_ctrl.crear_evaluacion_final(
+        curso_presentar.id_curso, "Evaluación final", 3.0, repeticiones + 10, usuario_actor=admin,
+    )
+    evaluacion_ctrl.crear_pregunta(
+        evaluacion_presentar.id_evaluacion, "¿Cuál opción es correcta?", [("Correcta", True), ("Incorrecta", False)],
+        usuario_actor=admin,
+    )
     pregunta_presentar = evaluacion_ctrl.listar_preguntas(evaluacion_presentar.id_evaluacion)[0]
     aprendiz_presentar = _siguiente_aprendiz()
     resultados["Evaluaciones - presentar_evaluacion"] = _resumen(_cronometrar(
@@ -267,12 +279,16 @@ def medir_operaciones(ruta_bd: str, repeticiones: int = REPETICIONES_POR_DEFECTO
     ))
 
     # -- Talleres ----------------------------------------------------------
-    curso_talleres = cc.crear_curso(f"Curso Talleres {prefijo}", "Curso para medir talleres.", admin.id_usuario)
+    curso_talleres = cc.crear_curso(f"Curso Talleres {prefijo}", "Curso para medir talleres.", admin.id_usuario, usuario_actor=admin)
     resultados["Talleres - crear_taller"] = _resumen(_cronometrar(
-        repeticiones, lambda i: taller_ctrl.crear_taller(curso_talleres.id_curso, f"Taller {i}", "Actividad práctica de ejemplo.")
+        repeticiones, lambda i: taller_ctrl.crear_taller(
+            curso_talleres.id_curso, f"Taller {i}", "Actividad práctica de ejemplo.", usuario_actor=admin,
+        )
     ))
 
-    taller_para_entregas = taller_ctrl.crear_taller(curso_talleres.id_curso, "Taller de entregas", "Actividad práctica de ejemplo.")
+    taller_para_entregas = taller_ctrl.crear_taller(
+        curso_talleres.id_curso, "Taller de entregas", "Actividad práctica de ejemplo.", usuario_actor=admin,
+    )
     ruta_entrega = _archivo_temporal(".png", b"")
     Image.new("RGB", (200, 200), color=(50, 50, 50)).save(ruta_entrega)
     aprendices_para_entregas = [_siguiente_aprendiz() for _ in range(repeticiones)]
@@ -290,9 +306,12 @@ def medir_operaciones(ruta_bd: str, repeticiones: int = REPETICIONES_POR_DEFECTO
     ))
 
     # -- Certificado ------------------------------------------------------------
-    curso_certificado = cc.crear_curso(f"Curso Certificado {prefijo}", "Curso para medir certificado.", admin.id_usuario)
+    curso_certificado = cc.crear_curso(
+        f"Curso Certificado {prefijo}", "Curso para medir certificado.", admin.id_usuario, usuario_actor=admin,
+    )
     contenido_certificado = contenido_ctrl.crear_contenido_texto(
         curso_certificado.id_curso, "Único contenido", "Texto con longitud suficiente para pasar la validación.",
+        usuario_actor=admin,
     )
     aprendiz_certificado = _siguiente_aprendiz()
     progreso_ctrl.registrar_contenido_visto(aprendiz_certificado.id_usuario, contenido_certificado)

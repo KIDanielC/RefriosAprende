@@ -15,6 +15,7 @@ from model.entities.evaluacion import Evaluacion
 from model.entities.pregunta import Pregunta
 from model.entities.resultado import Resultado
 from model.entities.simulacion import Simulacion
+from utils.autorizacion import exigir_administrador
 from utils.texto_enriquecido import texto_plano_desde_markup
 
 _NOTA_MAXIMA = 5.0
@@ -44,8 +45,9 @@ class SimulacionController:
         return [(evaluacion, self._simulacion_dao.obtener_por_evaluacion(evaluacion.id_evaluacion)) for evaluacion in evaluaciones]
 
     def crear_caso(
-        self, id_curso: int, titulo_caso: str, descripcion_escenario: str, diagnostico_correcto: str
+        self, id_curso: int, titulo_caso: str, descripcion_escenario: str, diagnostico_correcto: str, usuario_actor=None
     ) -> tuple[Evaluacion, Simulacion]:
+        exigir_administrador(usuario_actor)
         self._validar_datos(titulo_caso, descripcion_escenario, diagnostico_correcto)
 
         id_evaluacion = self._evaluacion_dao.crear_evaluacion_curso(
@@ -58,8 +60,9 @@ class SimulacionController:
         return evaluacion, simulacion
 
     def actualizar_caso(
-        self, simulacion: Simulacion, titulo_caso: str, descripcion_escenario: str, diagnostico_correcto: str
+        self, simulacion: Simulacion, titulo_caso: str, descripcion_escenario: str, diagnostico_correcto: str, usuario_actor=None
     ) -> Simulacion:
+        exigir_administrador(usuario_actor)
         self._validar_datos(titulo_caso, descripcion_escenario, diagnostico_correcto)
         self._simulacion_dao.actualizar(simulacion.id_simulacion, titulo_caso.strip(), descripcion_escenario.strip(), diagnostico_correcto.strip())
         self._evaluacion_dao.actualizar_evaluacion_curso(
@@ -67,7 +70,8 @@ class SimulacionController:
         )
         return self._simulacion_dao.obtener_por_evaluacion(simulacion.id_evaluacion)
 
-    def eliminar_caso(self, id_evaluacion: int) -> None:
+    def eliminar_caso(self, id_evaluacion: int, usuario_actor=None) -> None:
+        exigir_administrador(usuario_actor)
         self._evaluacion_dao.eliminar(id_evaluacion)
 
     def _validar_datos(self, titulo_caso: str, descripcion_escenario: str, diagnostico_correcto: str):
@@ -82,13 +86,16 @@ class SimulacionController:
     def listar_preguntas(self, id_evaluacion: int) -> list[Pregunta]:
         return self._pregunta_dao.listar_por_evaluacion(id_evaluacion)
 
-    def crear_pregunta(self, id_evaluacion: int, enunciado: str, opciones: list[tuple[str, bool]]) -> Pregunta:
+    def crear_pregunta(self, id_evaluacion: int, enunciado: str, opciones: list[tuple[str, bool]], usuario_actor=None) -> Pregunta:
+        exigir_administrador(usuario_actor)
         return crear_pregunta_con_opciones(self._pregunta_dao, self._opcion_dao, id_evaluacion, enunciado, opciones)
 
-    def actualizar_pregunta(self, id_pregunta: int, enunciado: str, opciones: list[tuple[str, bool]]) -> Pregunta:
+    def actualizar_pregunta(self, id_pregunta: int, enunciado: str, opciones: list[tuple[str, bool]], usuario_actor=None) -> Pregunta:
+        exigir_administrador(usuario_actor)
         return actualizar_pregunta_con_opciones(self._pregunta_dao, self._opcion_dao, id_pregunta, enunciado, opciones)
 
-    def eliminar_pregunta(self, id_pregunta: int) -> None:
+    def eliminar_pregunta(self, id_pregunta: int, usuario_actor=None) -> None:
+        exigir_administrador(usuario_actor)
         self._pregunta_dao.eliminar(id_pregunta)
 
     # -- Resultados (Administrador) -----------------------------------------

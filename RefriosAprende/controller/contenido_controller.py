@@ -7,6 +7,7 @@ import uuid
 from config.settings import CONTENIDOS_DIR
 from model.dao.contenido_dao import ContenidoDAO
 from model.entities.contenido import Contenido
+from utils.autorizacion import exigir_administrador
 from utils.texto_enriquecido import texto_plano_desde_markup
 
 _logger = logging.getLogger(__name__)
@@ -38,7 +39,8 @@ class ContenidoController:
             raise DatosContenidoInvalidosError("El título debe tener al menos 3 caracteres.")
 
     # -- Contenido de tipo TEXTO -----------------------------------------
-    def crear_contenido_texto(self, id_curso: int, titulo: str, contenido_texto: str) -> Contenido:
+    def crear_contenido_texto(self, id_curso: int, titulo: str, contenido_texto: str, usuario_actor=None) -> Contenido:
+        exigir_administrador(usuario_actor)
         self._validar_titulo(titulo)
         if not contenido_texto or len(texto_plano_desde_markup(contenido_texto).strip()) < 10:
             raise DatosContenidoInvalidosError("El contenido debe tener al menos 10 caracteres.")
@@ -50,7 +52,8 @@ class ContenidoController:
         return self._contenido_dao.obtener_por_id(id_contenido)
 
     # -- Contenido de tipo PDF --------------------------------------------
-    def crear_contenido_pdf(self, id_curso: int, titulo: str, descripcion: str, ruta_pdf_origen: str) -> Contenido:
+    def crear_contenido_pdf(self, id_curso: int, titulo: str, descripcion: str, ruta_pdf_origen: str, usuario_actor=None) -> Contenido:
+        exigir_administrador(usuario_actor)
         self._validar_titulo(titulo)
         if not ruta_pdf_origen or not os.path.isfile(ruta_pdf_origen):
             raise DatosContenidoInvalidosError("Selecciona un archivo PDF válido.")
@@ -67,7 +70,8 @@ class ContenidoController:
         return self._contenido_dao.obtener_por_id(id_contenido)
 
     # -- Contenido de tipo IMAGEN ------------------------------------------
-    def crear_contenido_imagen(self, id_curso: int, titulo: str, descripcion: str, ruta_imagen_origen: str) -> Contenido:
+    def crear_contenido_imagen(self, id_curso: int, titulo: str, descripcion: str, ruta_imagen_origen: str, usuario_actor=None) -> Contenido:
+        exigir_administrador(usuario_actor)
         self._validar_titulo(titulo)
         if not ruta_imagen_origen or not os.path.isfile(ruta_imagen_origen):
             raise DatosContenidoInvalidosError("Selecciona un archivo de imagen válido.")
@@ -85,7 +89,8 @@ class ContenidoController:
         return self._contenido_dao.obtener_por_id(id_contenido)
 
     # -- Contenido de tipo VIDEO_LOCAL --------------------------------------
-    def crear_contenido_video(self, id_curso: int, titulo: str, descripcion: str, ruta_video_origen: str) -> Contenido:
+    def crear_contenido_video(self, id_curso: int, titulo: str, descripcion: str, ruta_video_origen: str, usuario_actor=None) -> Contenido:
+        exigir_administrador(usuario_actor)
         self._validar_titulo(titulo)
         if not ruta_video_origen or not os.path.isfile(ruta_video_origen):
             raise DatosContenidoInvalidosError("Selecciona un archivo de video válido.")
@@ -110,7 +115,8 @@ class ContenidoController:
         return os.path.join("resources", "contenidos", nombre_unico)
 
     # -- Comunes ------------------------------------------------------------
-    def actualizar_contenido(self, id_contenido: int, titulo: str, contenido_texto: str, orden: int) -> Contenido:
+    def actualizar_contenido(self, id_contenido: int, titulo: str, contenido_texto: str, orden: int, usuario_actor=None) -> Contenido:
+        exigir_administrador(usuario_actor)
         self._validar_titulo(titulo)
 
         contenido_existente = self._contenido_dao.obtener_por_id(id_contenido)
@@ -127,15 +133,17 @@ class ContenidoController:
         )
         return self._contenido_dao.obtener_por_id(id_contenido)
 
-    def eliminar_contenido(self, id_contenido: int) -> None:
+    def eliminar_contenido(self, id_contenido: int, usuario_actor=None) -> None:
+        exigir_administrador(usuario_actor)
         contenido = self._contenido_dao.obtener_por_id(id_contenido)
         self._contenido_dao.eliminar(id_contenido)
         if contenido and contenido.ruta_archivo:
             self._eliminar_archivo_fisico(contenido.ruta_archivo)
 
-    def mover_contenido(self, id_contenido: int, direccion: str) -> None:
+    def mover_contenido(self, id_contenido: int, direccion: str, usuario_actor=None) -> None:
         """direccion: 'subir' o 'bajar'. No hace nada si ya está en el extremo correspondiente
         (primero no sube, último no baja)."""
+        exigir_administrador(usuario_actor)
         if direccion not in ("subir", "bajar"):
             raise DatosContenidoInvalidosError("La dirección debe ser 'subir' o 'bajar'.")
 

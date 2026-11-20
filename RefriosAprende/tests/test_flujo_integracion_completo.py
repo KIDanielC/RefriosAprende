@@ -18,29 +18,31 @@ def test_flujo_completo_aprendiz_aprueba_el_curso(admin, aprendiz):
     reporte_controlador = ReporteController()
 
     # 1. El administrador crea un curso con dos contenidos y una evaluación final.
-    curso = curso_controlador.crear_curso("Refrigerantes R134a", "Curso integral", admin.id_usuario)
+    curso = curso_controlador.crear_curso("Refrigerantes R134a", "Curso integral", admin.id_usuario, usuario_actor=admin)
     contenido_1 = contenido_controlador.crear_contenido_texto(
-        curso.id_curso, "Propiedades del refrigerante", "Texto con longitud suficiente para pasar la validación."
+        curso.id_curso, "Propiedades del refrigerante", "Texto con longitud suficiente para pasar la validación.",
+        usuario_actor=admin,
     )
     contenido_2 = contenido_controlador.crear_contenido_texto(
-        curso.id_curso, "Presiones de operación", "Texto con longitud suficiente para pasar la validación."
+        curso.id_curso, "Presiones de operación", "Texto con longitud suficiente para pasar la validación.",
+        usuario_actor=admin,
     )
-    evaluacion = evaluacion_controlador.crear_evaluacion_final(curso.id_curso, "Evaluación final", 3.5, 2)
+    evaluacion = evaluacion_controlador.crear_evaluacion_final(curso.id_curso, "Evaluación final", 3.5, 2, usuario_actor=admin)
     pregunta = evaluacion_controlador.crear_pregunta(
         evaluacion.id_evaluacion, "¿Cuál es la presión de baja típica?",
-        [("Entre 25 y 45 PSI", True), ("Entre 100 y 150 PSI", False)],
+        [("Entre 25 y 45 PSI", True), ("Entre 100 y 150 PSI", False)], usuario_actor=admin,
     )
 
     # 1.b El curso nace en BORRADOR; el administrador lo publica cuando ya tiene contenido listo.
     curso = curso_controlador.actualizar_curso(
-        curso.id_curso, curso.nombre_curso, curso.descripcion, admin.id_usuario, "ACTIVO"
+        curso.id_curso, curso.nombre_curso, curso.descripcion, admin.id_usuario, "ACTIVO", usuario_actor=admin,
     )
 
     # 2. Antes de matricular, el aprendiz no debe ver el curso.
     assert curso.id_curso not in [c.id_curso for c in inscripcion_controlador.listar_cursos_matriculados(aprendiz.id_usuario)]
 
     # 3. El administrador matricula al aprendiz.
-    inscripcion_controlador.matricular(aprendiz.id_usuario, curso.id_curso)
+    inscripcion_controlador.matricular(aprendiz.id_usuario, curso.id_curso, usuario_actor=admin)
     assert curso.id_curso in [c.id_curso for c in inscripcion_controlador.listar_cursos_matriculados(aprendiz.id_usuario)]
 
     # 4. El aprendiz aún no ha marcado nada como visto: progreso 0.

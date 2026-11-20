@@ -32,11 +32,12 @@ def test_inicio_sesion_campos_vacios():
 def test_inicio_sesion_usuario_inactivo(admin, id_rol_aprendiz):
     uc = UsuarioController()
     inactivo = uc.crear_usuario(
-        "Usuario Inactivo", "1000000099", "inactivo@refrios.local", "inactivo", "clave123", id_rol_aprendiz
+        "Usuario Inactivo", "1000000099", "inactivo@refrios.local", "inactivo", "clave123", id_rol_aprendiz,
+        usuario_actor=admin,
     )
     uc.actualizar_usuario(
         inactivo.id_usuario, inactivo.nombre_completo, inactivo.documento, inactivo.correo,
-        inactivo.id_rol, activo=False,
+        inactivo.id_rol, activo=False, usuario_actor=admin,
     )
     with pytest.raises(UsuarioInactivoError):
         AutenticacionController().iniciar_sesion("inactivo", "clave123")

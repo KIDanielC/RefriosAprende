@@ -26,9 +26,10 @@ from view.screens.formulario_pregunta import FormularioPregunta
 class PreguntasValidacionWindow(ctk.CTkToplevel):
     """Lista y administra las preguntas de validación de un contenido específico."""
 
-    def __init__(self, master, contenido: Contenido):
+    def __init__(self, master, contenido: Contenido, usuario_sesion=None):
         super().__init__(master)
         self._contenido = contenido
+        self._usuario_sesion = usuario_sesion
         self._controlador = ValidacionController()
 
         self.title(f"Preguntas de validación — {contenido.titulo}")
@@ -125,14 +126,14 @@ class PreguntasValidacionWindow(ctk.CTkToplevel):
 
     # ------------------------------------------------------------------
     def _eliminar_pregunta(self, pregunta: Pregunta):
-        self._controlador.eliminar_pregunta(pregunta.id_pregunta)
+        self._controlador.eliminar_pregunta(pregunta.id_pregunta, usuario_actor=self._usuario_sesion)
         self._cargar_preguntas()
 
     def _abrir_formulario_creacion(self):
         FormularioPregunta(
             self,
             guardar_pregunta=lambda enunciado, opciones: self._controlador.crear_pregunta(
-                self._contenido, enunciado, opciones
+                self._contenido, enunciado, opciones, usuario_actor=self._usuario_sesion
             ),
             al_guardar=self._cargar_preguntas,
         )
@@ -141,7 +142,7 @@ class PreguntasValidacionWindow(ctk.CTkToplevel):
         FormularioPregunta(
             self,
             guardar_pregunta=lambda enunciado, opciones: self._controlador.actualizar_pregunta(
-                pregunta.id_pregunta, enunciado, opciones
+                pregunta.id_pregunta, enunciado, opciones, usuario_actor=self._usuario_sesion
             ),
             al_guardar=self._cargar_preguntas, pregunta_existente=pregunta,
         )

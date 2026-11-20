@@ -129,7 +129,7 @@ class GestionarCursoWindow(ctk.CTkToplevel):
             fg_color="transparent", hover_color=COLOR_FONDO_TARJETA,
             border_width=GROSOR_BORDE_SUTIL, border_color=COLOR_ACENTO_PRIMARIO,
             text_color=COLOR_TEXTO_PRIMARIO, font=(FONT_FAMILY, 12, "bold"),
-            command=lambda: MatriculaWindow(self, curso=self._curso),
+            command=lambda: MatriculaWindow(self, curso=self._curso, usuario_sesion=self._usuario_sesion),
         ).grid(row=0, column=1, sticky="e")
 
         info = f"Instructor: {self._curso.nombre_instructor or '—'}  ·  Categoría: {self._curso.nombre_categoria or 'Sin categoría'}"
@@ -255,13 +255,15 @@ class GestionarCursoWindow(ctk.CTkToplevel):
         ventana.grab_set()
         ventana.grid_columnconfigure(0, weight=1)
         ventana.grid_rowconfigure(0, weight=1)
-        ContenidosScreen(ventana, curso=self._curso, al_volver=ventana.destroy).grid(row=0, column=0, sticky="nsew")
+        ContenidosScreen(
+            ventana, curso=self._curso, al_volver=ventana.destroy, usuario_sesion=self._usuario_sesion,
+        ).grid(row=0, column=0, sticky="nsew")
 
     def _abrir_simulaciones(self):
-        SimulacionesWindow(self, curso=self._curso)
+        SimulacionesWindow(self, curso=self._curso, usuario_sesion=self._usuario_sesion)
 
     def _abrir_evaluacion_final(self):
-        EvaluacionFinalWindow(self, curso=self._curso)
+        EvaluacionFinalWindow(self, curso=self._curso, usuario_sesion=self._usuario_sesion)
 
     def _abrir_talleres(self):
         TalleresWindow(self, curso=self._curso, usuario_sesion=self._usuario_sesion)
@@ -331,7 +333,7 @@ class GestionarCursoWindow(ctk.CTkToplevel):
         duracion = self._campo_duracion.get()
 
         try:
-            self._controlador.guardar_guia(self._curso.id_curso, valores, duracion)
+            self._controlador.guardar_guia(self._curso.id_curso, valores, duracion, usuario_actor=self._usuario_sesion)
         except DatosGuiaInvalidosError as error:
             self._etiqueta_estado.configure(text=str(error), text_color=COLOR_ERROR)
             return

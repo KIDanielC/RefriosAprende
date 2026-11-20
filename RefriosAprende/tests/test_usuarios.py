@@ -48,18 +48,20 @@ def test_crear_usuario_contrasena_corta(id_rol_aprendiz):
         uc.crear_usuario("Nombre Valido", "123456789", "ok@refrios.local", "ok.usuario", "123", id_rol_aprendiz)
 
 
-def test_crear_usuario_duplicado(aprendiz, id_rol_aprendiz):
+def test_crear_usuario_duplicado(aprendiz, admin, id_rol_aprendiz):
     uc = UsuarioController()
     with pytest.raises(DatosInvalidosError):
         uc.crear_usuario(
-            "Otro Nombre", aprendiz.documento, "otro@refrios.local", "otro.usuario", "clave123", id_rol_aprendiz
+            "Otro Nombre", aprendiz.documento, "otro@refrios.local", "otro.usuario", "clave123", id_rol_aprendiz,
+            usuario_actor=admin,
         )
 
 
 def test_actualizar_usuario(aprendiz):
     uc = UsuarioController()
     actualizado = uc.actualizar_usuario(
-        aprendiz.id_usuario, "Nombre Actualizado", aprendiz.documento, aprendiz.correo, aprendiz.id_rol, activo=True
+        aprendiz.id_usuario, "Nombre Actualizado", aprendiz.documento, aprendiz.correo, aprendiz.id_rol, activo=True,
+        usuario_actor=aprendiz,
     )
     assert actualizado.nombre_completo == "Nombre Actualizado"
 
@@ -67,12 +69,12 @@ def test_actualizar_usuario(aprendiz):
 def test_cambiar_contrasena_corta_falla(aprendiz):
     uc = UsuarioController()
     with pytest.raises(DatosInvalidosError):
-        uc.cambiar_contrasena(aprendiz.id_usuario, "123")
+        uc.cambiar_contrasena(aprendiz.id_usuario, "123", usuario_actor=aprendiz)
 
 
-def test_eliminar_usuario(aprendiz):
+def test_eliminar_usuario(aprendiz, admin):
     uc = UsuarioController()
-    uc.eliminar_usuario(aprendiz.id_usuario)
+    uc.eliminar_usuario(aprendiz.id_usuario, usuario_actor=admin)
     assert all(u.id_usuario != aprendiz.id_usuario for u in uc.listar_usuarios())
 
 
@@ -80,23 +82,26 @@ def test_no_se_puede_desactivar_al_ultimo_administrador(admin):
     uc = UsuarioController()
     with pytest.raises(UltimoAdministradorError):
         uc.actualizar_usuario(
-            admin.id_usuario, admin.nombre_completo, admin.documento, admin.correo, admin.id_rol, activo=False
+            admin.id_usuario, admin.nombre_completo, admin.documento, admin.correo, admin.id_rol, activo=False,
+            usuario_actor=admin,
         )
 
 
 def test_no_se_puede_eliminar_al_ultimo_administrador(admin):
     uc = UsuarioController()
     with pytest.raises(UltimoAdministradorError):
-        uc.eliminar_usuario(admin.id_usuario)
+        uc.eliminar_usuario(admin.id_usuario, usuario_actor=admin)
 
 
 def test_se_puede_desactivar_administrador_si_hay_otro_activo(admin, id_rol_admin):
     uc = UsuarioController()
     otro_admin = uc.crear_usuario(
-        "Otro Admin", "1000000099", "otro.admin@refrios.local", "otro.admin", "clave123", id_rol_admin
+        "Otro Admin", "1000000099", "otro.admin@refrios.local", "otro.admin", "clave123", id_rol_admin,
+        usuario_actor=admin,
     )
     actualizado = uc.actualizar_usuario(
-        admin.id_usuario, admin.nombre_completo, admin.documento, admin.correo, admin.id_rol, activo=False
+        admin.id_usuario, admin.nombre_completo, admin.documento, admin.correo, admin.id_rol, activo=False,
+        usuario_actor=admin,
     )
     assert actualizado.activo is False
     assert otro_admin.activo is True
@@ -106,12 +111,13 @@ def test_no_se_puede_eliminar_usuario_instructor_de_un_curso(admin, id_rol_admin
     uc = UsuarioController()
     cc = CursoController()
     otro_admin = uc.crear_usuario(
-        "Instructor de Prueba", "1000000098", "instructor.prueba@refrios.local", "instructor.prueba", "clave123", id_rol_admin
+        "Instructor de Prueba", "1000000098", "instructor.prueba@refrios.local", "instructor.prueba", "clave123", id_rol_admin,
+        usuario_actor=admin,
     )
-    cc.crear_curso("Curso con instructor", "Descripción del curso de prueba", otro_admin.id_usuario)
+    cc.crear_curso("Curso con instructor", "Descripción del curso de prueba", otro_admin.id_usuario, usuario_actor=admin)
 
     with pytest.raises(DatosInvalidosError):
-        uc.eliminar_usuario(otro_admin.id_usuario)
+        uc.eliminar_usuario(otro_admin.id_usuario, usuario_actor=admin)
 
 
 def test_actualizar_foto_perfil_valida(aprendiz, carpeta_fotos_perfil):

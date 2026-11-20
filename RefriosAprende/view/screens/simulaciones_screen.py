@@ -32,9 +32,10 @@ class SimulacionesWindow(ctk.CTkToplevel):
     """Lista los casos de simulación de un curso; permite crear, editar, eliminar
     y gestionar las preguntas de diagnóstico de cada caso."""
 
-    def __init__(self, master, curso: Curso):
+    def __init__(self, master, curso: Curso, usuario_sesion=None):
         super().__init__(master)
         self._curso = curso
+        self._usuario_sesion = usuario_sesion
         self._controlador = SimulacionController()
 
         self.title(f"Simulaciones — {curso.nombre_curso}")
@@ -139,11 +140,11 @@ class SimulacionesWindow(ctk.CTkToplevel):
 
     # ------------------------------------------------------------------
     def _eliminar_caso(self, evaluacion: Evaluacion):
-        self._controlador.eliminar_caso(evaluacion.id_evaluacion)
+        self._controlador.eliminar_caso(evaluacion.id_evaluacion, usuario_actor=self._usuario_sesion)
         self._cargar_casos()
 
     def _abrir_preguntas(self, evaluacion: Evaluacion):
-        PreguntasCasoWindow(self, controlador=self._controlador, evaluacion=evaluacion)
+        PreguntasCasoWindow(self, controlador=self._controlador, evaluacion=evaluacion, usuario_sesion=self._usuario_sesion)
 
     def _ver_resultados(self, evaluacion: Evaluacion):
         resultados = self._controlador.listar_resultados_detalle(evaluacion.id_evaluacion)
@@ -152,22 +153,26 @@ class SimulacionesWindow(ctk.CTkToplevel):
         )
 
     def _abrir_formulario_creacion(self):
-        FormularioCaso(self, controlador=self._controlador, id_curso=self._curso.id_curso, al_guardar=self._cargar_casos)
+        FormularioCaso(
+            self, controlador=self._controlador, id_curso=self._curso.id_curso, al_guardar=self._cargar_casos,
+            usuario_sesion=self._usuario_sesion,
+        )
 
     def _abrir_formulario_edicion(self, simulacion: Simulacion):
         FormularioCaso(
             self, controlador=self._controlador, id_curso=self._curso.id_curso,
-            al_guardar=self._cargar_casos, simulacion_existente=simulacion,
+            al_guardar=self._cargar_casos, simulacion_existente=simulacion, usuario_sesion=self._usuario_sesion,
         )
 
 
 class PreguntasCasoWindow(ctk.CTkToplevel):
     """Gestión de preguntas de diagnóstico (opción múltiple) de un caso de simulación."""
 
-    def __init__(self, master, controlador: SimulacionController, evaluacion: Evaluacion):
+    def __init__(self, master, controlador: SimulacionController, evaluacion: Evaluacion, usuario_sesion=None):
         super().__init__(master)
         self._controlador = controlador
         self._evaluacion = evaluacion
+        self._usuario_sesion = usuario_sesion
 
         self.title(f"Preguntas — {evaluacion.titulo}")
         self.configure(fg_color=COLOR_FONDO_APP)
@@ -194,7 +199,7 @@ class PreguntasCasoWindow(ctk.CTkToplevel):
             command=lambda: FormularioPregunta(
                 self,
                 guardar_pregunta=lambda enunciado, opciones: self._controlador.crear_pregunta(
-                    self._evaluacion.id_evaluacion, enunciado, opciones
+                    self._evaluacion.id_evaluacion, enunciado, opciones, usuario_actor=self._usuario_sesion
                 ),
                 al_guardar=self._refrescar,
             ),
@@ -244,7 +249,7 @@ class PreguntasCasoWindow(ctk.CTkToplevel):
             command=lambda: FormularioPregunta(
                 self,
                 guardar_pregunta=lambda enunciado, opciones: self._controlador.actualizar_pregunta(
-                    pregunta.id_pregunta, enunciado, opciones
+                    pregunta.id_pregunta, enunciado, opciones, usuario_actor=self._usuario_sesion
                 ),
                 al_guardar=self._refrescar, pregunta_existente=pregunta,
             ),
@@ -257,19 +262,23 @@ class PreguntasCasoWindow(ctk.CTkToplevel):
         ).pack(side="left")
 
     def _eliminar_pregunta(self, pregunta: Pregunta):
-        self._controlador.eliminar_pregunta(pregunta.id_pregunta)
+        self._controlador.eliminar_pregunta(pregunta.id_pregunta, usuario_actor=self._usuario_sesion)
         self._refrescar()
 
 
 class FormularioCaso(ctk.CTkToplevel):
     """Formulario modal para crear o editar un caso clínico de simulación."""
 
-    def __init__(self, master, controlador: SimulacionController, id_curso: int, al_guardar, simulacion_existente: Simulacion = None):
+    def __init__(
+        self, master, controlador: SimulacionController, id_curso: int, al_guardar,
+        simulacion_existente: Simulacion = None, usuario_sesion=None,
+    ):
         super().__init__(master)
         self._controlador = controlador
         self._id_curso = id_curso
         self._al_guardar = al_guardar
         self._simulacion_existente = simulacion_existente
+        self._usuario_sesion = usuario_sesion
 
         self.title("Editar caso" if simulacion_existente else "Nuevo caso de simulación")
         self.configure(fg_color=COLOR_FONDO_TARJETA)
@@ -332,9 +341,11 @@ class FormularioCaso(ctk.CTkToplevel):
 
         try:
             if self._simulacion_existente:
-                self._controlador.actualizar_caso(self._simulacion_existente, titulo, escenario, diagnostico)
+                self._controlador.actualizar_caso(
+                    self._simulacion_existente, titulo, escenario, diagnostico, usuario_actor=self._usuario_sesion
+                )
             else:
-                self._controlador.crear_caso(self._id_curso, titulo, escenario, diagnostico)
+                self._controlador.crear_caso(self._id_curso, titulo, escenario, diagnostico, usuario_actor=self._usuario_sesion)
         except DatosSimulacionInvalidosError as error:
             self._etiqueta_error.configure(text=str(error))
             return

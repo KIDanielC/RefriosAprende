@@ -223,6 +223,7 @@ class UsuariosScreen(ctk.CTkFrame):
                 usuario.correo,
                 usuario.id_rol,
                 not usuario.activo,
+                usuario_actor=self._usuario_sesion,
             )
         except UltimoAdministradorError as error:
             self._etiqueta_mensaje.configure(text=str(error))
@@ -243,7 +244,7 @@ class UsuariosScreen(ctk.CTkFrame):
 
     def _confirmar_eliminacion(self, id_usuario: int):
         try:
-            self._controlador.eliminar_usuario(id_usuario)
+            self._controlador.eliminar_usuario(id_usuario, usuario_actor=self._usuario_sesion)
         except (UltimoAdministradorError, DatosInvalidosError) as error:
             self._etiqueta_mensaje.configure(text=str(error))
             return
@@ -251,15 +252,20 @@ class UsuariosScreen(ctk.CTkFrame):
 
     # ------------------------------------------------------------------
     def _abrir_formulario_creacion(self):
-        FormularioUsuario(self, controlador=self._controlador, al_guardar=self._cargar_galeria)
+        FormularioUsuario(
+            self, controlador=self._controlador, al_guardar=self._cargar_galeria, usuario_sesion=self._usuario_sesion,
+        )
 
     def _abrir_formulario_edicion(self, usuario: Usuario):
         FormularioUsuario(
             self, controlador=self._controlador, al_guardar=self._cargar_galeria, usuario_existente=usuario,
+            usuario_sesion=self._usuario_sesion,
         )
 
     def _abrir_formulario_contrasena(self, usuario: Usuario):
-        FormularioContrasena(self, controlador=self._controlador, usuario_existente=usuario)
+        FormularioContrasena(
+            self, controlador=self._controlador, usuario_existente=usuario, usuario_sesion=self._usuario_sesion,
+        )
 
 
 class DialogoConfirmacion(ctk.CTkToplevel):
@@ -306,11 +312,15 @@ class DialogoConfirmacion(ctk.CTkToplevel):
 class FormularioUsuario(ctk.CTkToplevel):
     """Formulario modal para crear o editar un usuario."""
 
-    def __init__(self, master, controlador: UsuarioController, al_guardar, usuario_existente: Usuario = None):
+    def __init__(
+        self, master, controlador: UsuarioController, al_guardar, usuario_existente: Usuario = None,
+        usuario_sesion: Usuario = None,
+    ):
         super().__init__(master)
         self._controlador = controlador
         self._al_guardar = al_guardar
         self._usuario_existente = usuario_existente
+        self._usuario_sesion = usuario_sesion
         self._roles = controlador.listar_roles()
 
         self.title("Editar usuario" if usuario_existente else "Nuevo usuario")
@@ -400,6 +410,7 @@ class FormularioUsuario(ctk.CTkToplevel):
                     self._campo_correo.get(),
                     rol_seleccionado.id_rol,
                     self._usuario_existente.activo,
+                    usuario_actor=self._usuario_sesion,
                 )
             else:
                 self._controlador.crear_usuario(
@@ -409,6 +420,7 @@ class FormularioUsuario(ctk.CTkToplevel):
                     self._campo_usuario.get(),
                     self._campo_contrasena.get(),
                     rol_seleccionado.id_rol,
+                    usuario_actor=self._usuario_sesion,
                 )
         except DatosInvalidosError as error:
             self._etiqueta_error.configure(text=str(error))
@@ -421,10 +433,11 @@ class FormularioUsuario(ctk.CTkToplevel):
 class FormularioContrasena(ctk.CTkToplevel):
     """Formulario modal para restablecer la contraseña de un usuario."""
 
-    def __init__(self, master, controlador: UsuarioController, usuario_existente: Usuario):
+    def __init__(self, master, controlador: UsuarioController, usuario_existente: Usuario, usuario_sesion: Usuario = None):
         super().__init__(master)
         self._controlador = controlador
         self._usuario = usuario_existente
+        self._usuario_sesion = usuario_sesion
 
         self.title("Restablecer contraseña")
         self.configure(fg_color=COLOR_FONDO_TARJETA)
@@ -461,7 +474,9 @@ class FormularioContrasena(ctk.CTkToplevel):
 
     def _guardar(self):
         try:
-            self._controlador.cambiar_contrasena(self._usuario.id_usuario, self._campo_contrasena.get())
+            self._controlador.cambiar_contrasena(
+                self._usuario.id_usuario, self._campo_contrasena.get(), usuario_actor=self._usuario_sesion
+            )
         except DatosInvalidosError as error:
             self._etiqueta_error.configure(text=str(error))
             return

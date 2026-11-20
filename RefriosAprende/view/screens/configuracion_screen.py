@@ -175,6 +175,7 @@ class ConfiguracionScreen(ctk.CTkFrame):
                 self._campo_correo.get(),
                 self._usuario_sesion.id_rol,
                 self._usuario_sesion.activo,
+                usuario_actor=self._usuario_sesion,
             )
         except DatosInvalidosError as error:
             self._etiqueta_estado_datos.configure(text=str(error), text_color=COLOR_ERROR)
@@ -194,7 +195,7 @@ class ConfiguracionScreen(ctk.CTkFrame):
             return
 
         try:
-            self._controlador.cambiar_contrasena(self._usuario_sesion.id_usuario, nueva)
+            self._controlador.cambiar_contrasena(self._usuario_sesion.id_usuario, nueva, usuario_actor=self._usuario_sesion)
         except DatosInvalidosError as error:
             self._etiqueta_estado_contrasena.configure(text=str(error), text_color=COLOR_ERROR)
             return

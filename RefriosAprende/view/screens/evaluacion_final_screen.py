@@ -29,9 +29,10 @@ class EvaluacionFinalWindow(ctk.CTkToplevel):
     """Muestra el formulario de configuración si no existe evaluación final,
     o la gestión de preguntas si ya fue creada."""
 
-    def __init__(self, master, curso: Curso):
+    def __init__(self, master, curso: Curso, usuario_sesion=None):
         super().__init__(master)
         self._curso = curso
+        self._usuario_sesion = usuario_sesion
         self._controlador = EvaluacionController()
 
         self.title(f"Evaluación final — {curso.nombre_curso}")
@@ -92,7 +93,9 @@ class EvaluacionFinalWindow(ctk.CTkToplevel):
                 return
 
             try:
-                self._controlador.crear_evaluacion_final(self._curso.id_curso, campo_titulo.get(), nota_minima, intentos)
+                self._controlador.crear_evaluacion_final(
+                    self._curso.id_curso, campo_titulo.get(), nota_minima, intentos, usuario_actor=self._usuario_sesion
+                )
             except DatosEvaluacionInvalidosError as error:
                 etiqueta_error.configure(text=str(error))
                 return
@@ -140,7 +143,7 @@ class EvaluacionFinalWindow(ctk.CTkToplevel):
             command=lambda: FormularioPregunta(
                 self,
                 guardar_pregunta=lambda enunciado, opciones: self._controlador.crear_pregunta(
-                    evaluacion.id_evaluacion, enunciado, opciones
+                    evaluacion.id_evaluacion, enunciado, opciones, usuario_actor=self._usuario_sesion
                 ),
                 al_guardar=self._refrescar,
             ),
@@ -203,7 +206,7 @@ class EvaluacionFinalWindow(ctk.CTkToplevel):
             command=lambda: FormularioPregunta(
                 self,
                 guardar_pregunta=lambda enunciado, opciones: self._controlador.actualizar_pregunta(
-                    pregunta.id_pregunta, enunciado, opciones
+                    pregunta.id_pregunta, enunciado, opciones, usuario_actor=self._usuario_sesion
                 ),
                 al_guardar=self._refrescar, pregunta_existente=pregunta,
             ),
@@ -222,9 +225,9 @@ class EvaluacionFinalWindow(ctk.CTkToplevel):
         )
 
     def _eliminar_pregunta(self, pregunta: Pregunta):
-        self._controlador.eliminar_pregunta(pregunta.id_pregunta)
+        self._controlador.eliminar_pregunta(pregunta.id_pregunta, usuario_actor=self._usuario_sesion)
         self._refrescar()
 
     def _eliminar_evaluacion(self, evaluacion: Evaluacion):
-        self._controlador.eliminar_evaluacion_final(evaluacion.id_evaluacion)
+        self._controlador.eliminar_evaluacion_final(evaluacion.id_evaluacion, usuario_actor=self._usuario_sesion)
         self._refrescar()

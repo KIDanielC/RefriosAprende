@@ -13,6 +13,7 @@ from model.dao.resultado_dao import ResultadoDAO
 from model.entities.evaluacion import Evaluacion
 from model.entities.pregunta import Pregunta
 from model.entities.resultado import Resultado
+from utils.autorizacion import exigir_administrador
 
 _NOTA_MAXIMA = 5.0
 
@@ -38,8 +39,9 @@ class EvaluacionController:
         return self._evaluacion_dao.obtener_evaluacion_final_por_curso(id_curso)
 
     def crear_evaluacion_final(
-        self, id_curso: int, titulo: str, nota_minima_aprobar: float, intentos_permitidos: int
+        self, id_curso: int, titulo: str, nota_minima_aprobar: float, intentos_permitidos: int, usuario_actor=None
     ) -> Evaluacion:
+        exigir_administrador(usuario_actor)
         self._validar_datos(titulo, nota_minima_aprobar, intentos_permitidos)
         if self._evaluacion_dao.obtener_evaluacion_final_por_curso(id_curso) is not None:
             raise DatosEvaluacionInvalidosError("Este curso ya tiene una evaluación final. Edítala en vez de crear otra.")
@@ -50,13 +52,15 @@ class EvaluacionController:
         return self._evaluacion_dao.obtener_por_id(id_evaluacion)
 
     def actualizar_evaluacion_final(
-        self, id_evaluacion: int, titulo: str, nota_minima_aprobar: float, intentos_permitidos: int
+        self, id_evaluacion: int, titulo: str, nota_minima_aprobar: float, intentos_permitidos: int, usuario_actor=None
     ) -> Evaluacion:
+        exigir_administrador(usuario_actor)
         self._validar_datos(titulo, nota_minima_aprobar, intentos_permitidos)
         self._evaluacion_dao.actualizar_evaluacion_curso(id_evaluacion, titulo.strip(), nota_minima_aprobar, intentos_permitidos)
         return self._evaluacion_dao.obtener_por_id(id_evaluacion)
 
-    def eliminar_evaluacion_final(self, id_evaluacion: int) -> None:
+    def eliminar_evaluacion_final(self, id_evaluacion: int, usuario_actor=None) -> None:
+        exigir_administrador(usuario_actor)
         self._evaluacion_dao.eliminar(id_evaluacion)
 
     def _validar_datos(self, titulo: str, nota_minima_aprobar: float, intentos_permitidos: int):
@@ -71,13 +75,16 @@ class EvaluacionController:
     def listar_preguntas(self, id_evaluacion: int) -> list[Pregunta]:
         return self._pregunta_dao.listar_por_evaluacion(id_evaluacion)
 
-    def crear_pregunta(self, id_evaluacion: int, enunciado: str, opciones: list[tuple[str, bool]]) -> Pregunta:
+    def crear_pregunta(self, id_evaluacion: int, enunciado: str, opciones: list[tuple[str, bool]], usuario_actor=None) -> Pregunta:
+        exigir_administrador(usuario_actor)
         return crear_pregunta_con_opciones(self._pregunta_dao, self._opcion_dao, id_evaluacion, enunciado, opciones)
 
-    def actualizar_pregunta(self, id_pregunta: int, enunciado: str, opciones: list[tuple[str, bool]]) -> Pregunta:
+    def actualizar_pregunta(self, id_pregunta: int, enunciado: str, opciones: list[tuple[str, bool]], usuario_actor=None) -> Pregunta:
+        exigir_administrador(usuario_actor)
         return actualizar_pregunta_con_opciones(self._pregunta_dao, self._opcion_dao, id_pregunta, enunciado, opciones)
 
-    def eliminar_pregunta(self, id_pregunta: int) -> None:
+    def eliminar_pregunta(self, id_pregunta: int, usuario_actor=None) -> None:
+        exigir_administrador(usuario_actor)
         self._pregunta_dao.eliminar(id_pregunta)
 
     # -- Resultados (Administrador) -----------------------------------------

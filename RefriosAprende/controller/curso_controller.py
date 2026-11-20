@@ -5,6 +5,7 @@ from model.dao.prerrequisito_dao import PrerrequisitoDAO
 from model.dao.usuario_dao import UsuarioDAO
 from model.entities.categoria import Categoria
 from model.entities.curso import Curso
+from utils.autorizacion import exigir_administrador
 
 _ESTADOS_VALIDOS = ("BORRADOR", "ACTIVO", "INACTIVO")
 
@@ -44,7 +45,8 @@ class CursoController:
     def listar_ids_prerrequisitos(self, id_curso: int) -> list[int]:
         return self._prerrequisito_dao.listar_ids_prerrequisitos(id_curso)
 
-    def guardar_prerrequisitos(self, id_curso: int, ids_prerrequisitos: list[int]) -> None:
+    def guardar_prerrequisitos(self, id_curso: int, ids_prerrequisitos: list[int], usuario_actor=None) -> None:
+        exigir_administrador(usuario_actor)
         self._prerrequisito_dao.guardar_prerrequisitos(id_curso, ids_prerrequisitos)
 
     def _validar_datos(self, nombre_curso: str, id_instructor: int):
@@ -61,11 +63,12 @@ class CursoController:
 
     def crear_curso(
         self, nombre_curso: str, descripcion: str, id_instructor: int,
-        nombre_categoria: str = None, aprendizaje_secuencial: bool = False,
+        nombre_categoria: str = None, aprendizaje_secuencial: bool = False, usuario_actor=None,
     ) -> Curso:
         """Los cursos nuevos siempre inician en estado BORRADOR: el instructor arma el
         contenido sin exponerlo todavía a los aprendices, y lo publica (ACTIVO) cuando
         esté listo, editando el curso."""
+        exigir_administrador(usuario_actor)
         self._validar_datos(nombre_curso, id_instructor)
         id_categoria = self._resolver_categoria(nombre_categoria)
         id_curso = self._curso_dao.crear(
@@ -75,8 +78,9 @@ class CursoController:
 
     def actualizar_curso(
         self, id_curso: int, nombre_curso: str, descripcion: str, id_instructor: int, estado: str,
-        nombre_categoria: str = None, aprendizaje_secuencial: bool = False,
+        nombre_categoria: str = None, aprendizaje_secuencial: bool = False, usuario_actor=None,
     ) -> Curso:
+        exigir_administrador(usuario_actor)
         self._validar_datos(nombre_curso, id_instructor)
         if estado not in _ESTADOS_VALIDOS:
             raise DatosCursoInvalidosError("El estado del curso no es válido.")
@@ -87,5 +91,6 @@ class CursoController:
         )
         return self._curso_dao.obtener_por_id(id_curso)
 
-    def eliminar_curso(self, id_curso: int) -> None:
+    def eliminar_curso(self, id_curso: int, usuario_actor=None) -> None:
+        exigir_administrador(usuario_actor)
         self._curso_dao.eliminar(id_curso)

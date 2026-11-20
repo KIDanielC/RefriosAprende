@@ -7,35 +7,38 @@ from controller.simulacion_controller import (
 )
 
 
-def test_crear_caso_simulacion(curso):
+def test_crear_caso_simulacion(curso, admin):
     sc = SimulacionController()
     evaluacion, simulacion = sc.crear_caso(
-        curso.id_curso, "Fuga en valvula", "Escenario clinico detallado de al menos 15 caracteres.", "Fuga de refrigerante"
+        curso.id_curso, "Fuga en valvula", "Escenario clinico detallado de al menos 15 caracteres.", "Fuga de refrigerante",
+        usuario_actor=admin,
     )
     assert evaluacion.tipo_evaluacion == "SIMULACION"
     assert simulacion.titulo_caso == "Fuga en valvula"
 
 
-def test_un_curso_puede_tener_varios_casos(curso):
+def test_un_curso_puede_tener_varios_casos(curso, admin):
     sc = SimulacionController()
-    sc.crear_caso(curso.id_curso, "Caso uno", "Escenario clinico detallado de al menos 15 caracteres.", "Diagnostico uno")
-    sc.crear_caso(curso.id_curso, "Caso dos", "Escenario clinico detallado de al menos 15 caracteres.", "Diagnostico dos")
+    sc.crear_caso(curso.id_curso, "Caso uno", "Escenario clinico detallado de al menos 15 caracteres.", "Diagnostico uno", usuario_actor=admin)
+    sc.crear_caso(curso.id_curso, "Caso dos", "Escenario clinico detallado de al menos 15 caracteres.", "Diagnostico dos", usuario_actor=admin)
     assert len(sc.listar_casos_por_curso(curso.id_curso)) == 2
 
 
-def test_crear_caso_escenario_muy_corto_falla(curso):
+def test_crear_caso_escenario_muy_corto_falla(curso, admin):
     sc = SimulacionController()
     with pytest.raises(DatosSimulacionInvalidosError):
-        sc.crear_caso(curso.id_curso, "Caso", "corto", "Diagnostico")
+        sc.crear_caso(curso.id_curso, "Caso", "corto", "Diagnostico", usuario_actor=admin)
 
 
-def test_presentar_caso_simulacion(curso, aprendiz):
+def test_presentar_caso_simulacion(curso, aprendiz, admin):
     sc = SimulacionController()
     evaluacion, _simulacion = sc.crear_caso(
-        curso.id_curso, "Caso", "Escenario clinico detallado de al menos 15 caracteres.", "Diagnostico correcto"
+        curso.id_curso, "Caso", "Escenario clinico detallado de al menos 15 caracteres.", "Diagnostico correcto",
+        usuario_actor=admin,
     )
     pregunta = sc.crear_pregunta(
-        evaluacion.id_evaluacion, "¿Cual es el diagnostico?", [("Correcto", True), ("Incorrecto", False)]
+        evaluacion.id_evaluacion, "¿Cual es el diagnostico?", [("Correcto", True), ("Incorrecto", False)],
+        usuario_actor=admin,
     )
     id_opcion_correcta = pregunta.opcion_correcta().id_opcion
 
@@ -43,22 +46,25 @@ def test_presentar_caso_simulacion(curso, aprendiz):
     assert resultado.aprobado is True
 
 
-def test_presentar_caso_sin_preguntas_falla(curso, aprendiz):
+def test_presentar_caso_sin_preguntas_falla(curso, aprendiz, admin):
     sc = SimulacionController()
     evaluacion, _simulacion = sc.crear_caso(
-        curso.id_curso, "Caso", "Escenario clinico detallado de al menos 15 caracteres.", "Diagnostico correcto"
+        curso.id_curso, "Caso", "Escenario clinico detallado de al menos 15 caracteres.", "Diagnostico correcto",
+        usuario_actor=admin,
     )
     with pytest.raises(DatosSimulacionInvalidosError):
         sc.presentar_caso(aprendiz.id_usuario, evaluacion, {})
 
 
-def test_presentar_caso_respeta_limite_de_intentos(curso, aprendiz):
+def test_presentar_caso_respeta_limite_de_intentos(curso, aprendiz, admin):
     sc = SimulacionController()
     evaluacion, _simulacion = sc.crear_caso(
-        curso.id_curso, "Caso", "Escenario clinico detallado de al menos 15 caracteres.", "Diagnostico correcto"
+        curso.id_curso, "Caso", "Escenario clinico detallado de al menos 15 caracteres.", "Diagnostico correcto",
+        usuario_actor=admin,
     )
     pregunta = sc.crear_pregunta(
-        evaluacion.id_evaluacion, "¿Cual es el diagnostico?", [("Correcto", True), ("Incorrecto", False)]
+        evaluacion.id_evaluacion, "¿Cual es el diagnostico?", [("Correcto", True), ("Incorrecto", False)],
+        usuario_actor=admin,
     )
     id_opcion_correcta = pregunta.opcion_correcta().id_opcion
     respuestas = {pregunta.id_pregunta: id_opcion_correcta}

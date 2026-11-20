@@ -200,28 +200,31 @@ class CursosScreen(ctk.CTkFrame):
     def _eliminar_curso(self):
         if self._curso_seleccionado is None:
             return
-        self._controlador.eliminar_curso(self._curso_seleccionado.id_curso)
+        self._controlador.eliminar_curso(self._curso_seleccionado.id_curso, usuario_actor=self._usuario_sesion)
         self._cargar_cursos()
 
     def _abrir_formulario_creacion(self):
-        FormularioCurso(self, controlador=self._controlador, al_guardar=self._cargar_cursos)
+        FormularioCurso(
+            self, controlador=self._controlador, al_guardar=self._cargar_cursos, usuario_sesion=self._usuario_sesion
+        )
 
     def _abrir_formulario_edicion(self):
         if self._curso_seleccionado is not None:
             FormularioCurso(
                 self, controlador=self._controlador, al_guardar=self._cargar_cursos,
-                curso_existente=self._curso_seleccionado,
+                curso_existente=self._curso_seleccionado, usuario_sesion=self._usuario_sesion,
             )
 
 
 class FormularioCurso(ctk.CTkToplevel):
     """Formulario modal para crear o editar un curso."""
 
-    def __init__(self, master, controlador: CursoController, al_guardar, curso_existente: Curso = None):
+    def __init__(self, master, controlador: CursoController, al_guardar, curso_existente: Curso = None, usuario_sesion=None):
         super().__init__(master)
         self._controlador = controlador
         self._al_guardar = al_guardar
         self._curso_existente = curso_existente
+        self._usuario_sesion = usuario_sesion
         self._instructores = controlador.listar_instructores()
         self._otros_cursos = [c for c in controlador.listar_cursos() if not curso_existente or c.id_curso != curso_existente.id_curso]
         self._casillas_prerrequisito = {}
@@ -394,16 +397,18 @@ class FormularioCurso(ctk.CTkToplevel):
                 curso_guardado = self._controlador.actualizar_curso(
                     self._curso_existente.id_curso, self._campo_nombre.get(), descripcion,
                     instructor_seleccionado.id_usuario, self._combo_estado.get(),
-                    nombre_categoria, aprendizaje_secuencial,
+                    nombre_categoria, aprendizaje_secuencial, usuario_actor=self._usuario_sesion,
                 )
                 ids_seleccionados = [
                     id_curso for id_curso, casilla in self._casillas_prerrequisito.items() if casilla.get()
                 ]
-                self._controlador.guardar_prerrequisitos(curso_guardado.id_curso, ids_seleccionados)
+                self._controlador.guardar_prerrequisitos(
+                    curso_guardado.id_curso, ids_seleccionados, usuario_actor=self._usuario_sesion
+                )
             else:
                 self._controlador.crear_curso(
                     self._campo_nombre.get(), descripcion, instructor_seleccionado.id_usuario,
-                    nombre_categoria, aprendizaje_secuencial,
+                    nombre_categoria, aprendizaje_secuencial, usuario_actor=self._usuario_sesion,
                 )
         except DatosCursoInvalidosError as error:
             self._etiqueta_error.configure(text=str(error))

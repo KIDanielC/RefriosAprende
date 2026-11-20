@@ -54,7 +54,7 @@ def restablecer_admin() -> None:
         return
 
     try:
-        UsuarioController().cambiar_contrasena(elegido.id_usuario, nueva_contrasena)
+        UsuarioController().cambiar_contrasena(elegido.id_usuario, nueva_contrasena, usuario_actor=elegido)
     except DatosInvalidosError as error:
         print(f"No se pudo cambiar la contraseña: {error}")
         return

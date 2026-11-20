@@ -6,6 +6,7 @@ from model.dao.usuario_dao import UsuarioDAO
 from model.entities.curso import Curso
 from model.entities.progreso import COMPLETADO
 from model.entities.usuario import Usuario
+from utils.autorizacion import exigir_administrador
 
 
 class PrerrequisitosIncompletosError(Exception):
@@ -45,7 +46,8 @@ class InscripcionController:
                 pendientes.append(prerrequisito)
         return pendientes
 
-    def matricular(self, id_usuario: int, id_curso: int) -> None:
+    def matricular(self, id_usuario: int, id_curso: int, usuario_actor=None) -> None:
+        exigir_administrador(usuario_actor)
         pendientes = self.prerrequisitos_pendientes(id_usuario, id_curso)
         if pendientes:
             nombres = ", ".join(curso.nombre_curso for curso in pendientes)

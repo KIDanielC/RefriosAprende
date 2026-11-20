@@ -23,9 +23,10 @@ from model.entities.curso import Curso
 class MatriculaWindow(ctk.CTkToplevel):
     """Dos columnas: aprendices matriculados en el curso y aprendices disponibles para agregar."""
 
-    def __init__(self, master, curso: Curso):
+    def __init__(self, master, curso: Curso, usuario_sesion=None):
         super().__init__(master)
         self._curso = curso
+        self._usuario_sesion = usuario_sesion
         self._controlador = InscripcionController()
 
         self.title(f"Estudiantes — {curso.nombre_curso}")
@@ -136,7 +137,7 @@ class MatriculaWindow(ctk.CTkToplevel):
     # ------------------------------------------------------------------
     def _matricular(self, aprendiz):
         try:
-            self._controlador.matricular(aprendiz.id_usuario, self._curso.id_curso)
+            self._controlador.matricular(aprendiz.id_usuario, self._curso.id_curso, usuario_actor=self._usuario_sesion)
         except PrerrequisitosIncompletosError as error:
             self._etiqueta_error.configure(text=str(error))
             return

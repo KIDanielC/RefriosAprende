@@ -21,9 +21,9 @@ def test_ninguna_vista_importa_un_dao():
     )
 
 
-def test_evaluacion_controller_expone_aprobo_evaluacion(curso, aprendiz):
+def test_evaluacion_controller_expone_aprobo_evaluacion(curso, aprendiz, admin):
     from controller.evaluacion_controller import EvaluacionController
 
     controlador = EvaluacionController()
-    evaluacion = controlador.crear_evaluacion_final(curso.id_curso, "Evaluación final", 3.0, 2)
+    evaluacion = controlador.crear_evaluacion_final(curso.id_curso, "Evaluación final", 3.0, 2, usuario_actor=admin)
     assert controlador.aprobo_evaluacion(aprendiz.id_usuario, evaluacion.id_evaluacion) is False

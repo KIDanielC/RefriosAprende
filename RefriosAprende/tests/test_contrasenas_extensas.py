@@ -41,12 +41,12 @@ def test_crear_usuario_rechaza_contrasena_de_73_caracteres(id_rol_aprendiz):
 
 def test_cambiar_contrasena_rechaza_73_caracteres(aprendiz):
     with pytest.raises(DatosInvalidosError):
-        UsuarioController().cambiar_contrasena(aprendiz.id_usuario, _73_ASCII)
+        UsuarioController().cambiar_contrasena(aprendiz.id_usuario, _73_ASCII, usuario_actor=aprendiz)
 
 
 def test_cambiar_contrasena_rechaza_37_tildes(aprendiz):
     with pytest.raises(DatosInvalidosError):
-        UsuarioController().cambiar_contrasena(aprendiz.id_usuario, _37_TILDES)
+        UsuarioController().cambiar_contrasena(aprendiz.id_usuario, _37_TILDES, usuario_actor=aprendiz)
 
 
 def test_login_con_73_caracteres_devuelve_error_generico_sin_excepcion(aprendiz):

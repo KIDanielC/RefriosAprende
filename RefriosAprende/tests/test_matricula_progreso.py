@@ -14,9 +14,9 @@ def test_aprendiz_disponible_antes_de_matricular(curso, aprendiz):
     assert any(u.id_usuario == aprendiz.id_usuario for u in disponibles)
 
 
-def test_matricular_aprendiz(curso, aprendiz):
+def test_matricular_aprendiz(curso, aprendiz, admin):
     ic = InscripcionController()
-    ic.matricular(aprendiz.id_usuario, curso.id_curso)
+    ic.matricular(aprendiz.id_usuario, curso.id_curso, usuario_actor=admin)
 
     matriculados = ic.listar_aprendices_matriculados(curso.id_curso)
     assert any(u.id_usuario == aprendiz.id_usuario for u in matriculados)
@@ -28,9 +28,9 @@ def test_matricular_aprendiz(curso, aprendiz):
     assert not any(u.id_usuario == aprendiz.id_usuario for u in disponibles)
 
 
-def test_desmatricular_aprendiz(curso, aprendiz):
+def test_desmatricular_aprendiz(curso, aprendiz, admin):
     ic = InscripcionController()
-    ic.matricular(aprendiz.id_usuario, curso.id_curso)
+    ic.matricular(aprendiz.id_usuario, curso.id_curso, usuario_actor=admin)
     ic.desmatricular(aprendiz.id_usuario, curso.id_curso)
 
     cursos_del_aprendiz = ic.listar_cursos_matriculados(aprendiz.id_usuario)
@@ -43,21 +43,21 @@ def test_aprendiz_no_matriculado_no_ve_el_curso(curso, aprendiz):
     assert curso.id_curso not in [c.id_curso for c in ic.listar_cursos_matriculados(aprendiz.id_usuario)]
 
 
-def test_progreso_inicia_en_cero_al_matricular(curso, aprendiz):
+def test_progreso_inicia_en_cero_al_matricular(curso, aprendiz, admin):
     ic = InscripcionController()
     pc = ProgresoController()
-    ic.matricular(aprendiz.id_usuario, curso.id_curso)
+    ic.matricular(aprendiz.id_usuario, curso.id_curso, usuario_actor=admin)
     assert pc.obtener_progreso(aprendiz.id_usuario, curso.id_curso) is None
 
 
-def test_marcar_contenido_visto_actualiza_progreso(curso, aprendiz):
+def test_marcar_contenido_visto_actualiza_progreso(curso, aprendiz, admin):
     ic = InscripcionController()
     ctrl = ContenidoController()
     pc = ProgresoController()
 
-    ic.matricular(aprendiz.id_usuario, curso.id_curso)
-    c1 = ctrl.crear_contenido_texto(curso.id_curso, "Uno", "Texto con longitud suficiente para pasar.")
-    c2 = ctrl.crear_contenido_texto(curso.id_curso, "Dos", "Texto con longitud suficiente para pasar.")
+    ic.matricular(aprendiz.id_usuario, curso.id_curso, usuario_actor=admin)
+    c1 = ctrl.crear_contenido_texto(curso.id_curso, "Uno", "Texto con longitud suficiente para pasar.", usuario_actor=admin)
+    c2 = ctrl.crear_contenido_texto(curso.id_curso, "Dos", "Texto con longitud suficiente para pasar.", usuario_actor=admin)
 
     assert pc.ya_visto(aprendiz.id_usuario, c1) is False
 
@@ -71,14 +71,14 @@ def test_marcar_contenido_visto_actualiza_progreso(curso, aprendiz):
     assert progreso.estado == "COMPLETADO"
 
 
-def test_desmarcar_contenido_visto_revierte_progreso(curso, aprendiz):
+def test_desmarcar_contenido_visto_revierte_progreso(curso, aprendiz, admin):
     ic = InscripcionController()
     ctrl = ContenidoController()
     pc = ProgresoController()
 
-    ic.matricular(aprendiz.id_usuario, curso.id_curso)
-    c1 = ctrl.crear_contenido_texto(curso.id_curso, "Uno", "Texto con longitud suficiente para pasar.")
-    c2 = ctrl.crear_contenido_texto(curso.id_curso, "Dos", "Texto con longitud suficiente para pasar.")
+    ic.matricular(aprendiz.id_usuario, curso.id_curso, usuario_actor=admin)
+    c1 = ctrl.crear_contenido_texto(curso.id_curso, "Uno", "Texto con longitud suficiente para pasar.", usuario_actor=admin)
+    c2 = ctrl.crear_contenido_texto(curso.id_curso, "Dos", "Texto con longitud suficiente para pasar.", usuario_actor=admin)
 
     pc.registrar_contenido_visto(aprendiz.id_usuario, c1)
     pc.registrar_contenido_visto(aprendiz.id_usuario, c2)
@@ -90,13 +90,13 @@ def test_desmarcar_contenido_visto_revierte_progreso(curso, aprendiz):
     assert pc.ya_visto(aprendiz.id_usuario, c2) is True
 
 
-def test_historial_progreso_es_acumulado_no_decreciente(curso, aprendiz):
+def test_historial_progreso_es_acumulado_no_decreciente(curso, aprendiz, admin):
     ic = InscripcionController()
     ctrl = ContenidoController()
     pc = ProgresoController()
 
-    ic.matricular(aprendiz.id_usuario, curso.id_curso)
-    contenido = ctrl.crear_contenido_texto(curso.id_curso, "Uno", "Texto con longitud suficiente para pasar.")
+    ic.matricular(aprendiz.id_usuario, curso.id_curso, usuario_actor=admin)
+    contenido = ctrl.crear_contenido_texto(curso.id_curso, "Uno", "Texto con longitud suficiente para pasar.", usuario_actor=admin)
     pc.registrar_contenido_visto(aprendiz.id_usuario, contenido)
 
     serie = pc.historial_progreso_aprendiz(aprendiz.id_usuario)

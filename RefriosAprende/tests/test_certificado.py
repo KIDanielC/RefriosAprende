@@ -14,21 +14,22 @@ from controller.taller_controller import TallerController
 
 
 def _curso_completado_con_evaluacion(admin, aprendiz, curso_controlador):
-    curso = curso_controlador.crear_curso("Refrigerantes R410A", "Curso de certificación", admin.id_usuario)
+    curso = curso_controlador.crear_curso("Refrigerantes R410A", "Curso de certificación", admin.id_usuario, usuario_actor=admin)
     contenido = ContenidoController().crear_contenido_texto(
-        curso.id_curso, "Propiedades", "Texto con longitud suficiente para pasar la validación.",
+        curso.id_curso, "Propiedades", "Texto con longitud suficiente para pasar la validación.", usuario_actor=admin,
     )
     GuiaAprendizajeController().guardar_guia(
         curso.id_curso,
         {"objetivo_general": "Diagnosticar fallas en sistemas HVAC.", "competencias": "Diagnóstico de fallas eléctricas y mecánicas en unidades condensadoras."},
-        duracion_horas="12",
+        duracion_horas="12", usuario_actor=admin,
     )
-    InscripcionController().matricular(aprendiz.id_usuario, curso.id_curso)
+    InscripcionController().matricular(aprendiz.id_usuario, curso.id_curso, usuario_actor=admin)
     ProgresoController().registrar_contenido_visto(aprendiz.id_usuario, contenido)
 
-    evaluacion = EvaluacionController().crear_evaluacion_final(curso.id_curso, "Evaluación final", 3.0, 2)
+    evaluacion = EvaluacionController().crear_evaluacion_final(curso.id_curso, "Evaluación final", 3.0, 2, usuario_actor=admin)
     pregunta = EvaluacionController().crear_pregunta(
         evaluacion.id_evaluacion, "¿Cuál opción es correcta?", [("Correcta", True), ("Incorrecta", False)],
+        usuario_actor=admin,
     )
     EvaluacionController().presentar_evaluacion(
         aprendiz.id_usuario, evaluacion, {pregunta.id_pregunta: pregunta.opcion_correcta().id_opcion},
@@ -66,11 +67,11 @@ def test_datos_del_certificado_traen_los_campos_que_pidio_el_jurado(admin, apren
 def test_curso_sin_evaluacion_ni_talleres_queda_como_participacion(admin, aprendiz):
     from controller.curso_controller import CursoController
     cc = CursoController()
-    curso = cc.crear_curso("Curso solo de contenidos", "Sin evaluación ni talleres", admin.id_usuario)
+    curso = cc.crear_curso("Curso solo de contenidos", "Sin evaluación ni talleres", admin.id_usuario, usuario_actor=admin)
     contenido = ContenidoController().crear_contenido_texto(
-        curso.id_curso, "Único contenido", "Texto con longitud suficiente para pasar la validación.",
+        curso.id_curso, "Único contenido", "Texto con longitud suficiente para pasar la validación.", usuario_actor=admin,
     )
-    InscripcionController().matricular(aprendiz.id_usuario, curso.id_curso)
+    InscripcionController().matricular(aprendiz.id_usuario, curso.id_curso, usuario_actor=admin)
     ProgresoController().registrar_contenido_visto(aprendiz.id_usuario, contenido)
 
     datos = CertificadoController().obtener_datos_certificado(aprendiz, curso)
@@ -80,14 +81,16 @@ def test_curso_sin_evaluacion_ni_talleres_queda_como_participacion(admin, aprend
 def test_curso_con_taller_aprobado_lo_menciona_en_tipo_de_participacion(admin, aprendiz):
     from controller.curso_controller import CursoController
     cc = CursoController()
-    curso = cc.crear_curso("Curso con taller", "Con taller práctico", admin.id_usuario)
+    curso = cc.crear_curso("Curso con taller", "Con taller práctico", admin.id_usuario, usuario_actor=admin)
     contenido = ContenidoController().crear_contenido_texto(
-        curso.id_curso, "Único contenido", "Texto con longitud suficiente para pasar la validación.",
+        curso.id_curso, "Único contenido", "Texto con longitud suficiente para pasar la validación.", usuario_actor=admin,
     )
     taller_controlador = TallerController()
-    taller = taller_controlador.crear_taller(curso.id_curso, "Taller práctico", "Actividad práctica de ejemplo.")
+    taller = taller_controlador.crear_taller(
+        curso.id_curso, "Taller práctico", "Actividad práctica de ejemplo.", usuario_actor=admin,
+    )
 
-    InscripcionController().matricular(aprendiz.id_usuario, curso.id_curso)
+    InscripcionController().matricular(aprendiz.id_usuario, curso.id_curso, usuario_actor=admin)
     ProgresoController().registrar_contenido_visto(aprendiz.id_usuario, contenido)
 
     import tempfile

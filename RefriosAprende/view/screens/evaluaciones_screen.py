@@ -66,6 +66,7 @@ class EvaluacionesAdminScreen(_ListaCursosBase):
 
     def __init__(self, master, usuario_sesion=None):
         super().__init__(master, "Todavía no hay cursos activos. Crea uno en Gestión de Cursos.")
+        self._usuario_sesion = usuario_sesion
         self._curso_controlador = CursoController()
         self._evaluacion_controlador = EvaluacionController()
         self._cargar()
@@ -98,7 +99,7 @@ class EvaluacionesAdminScreen(_ListaCursosBase):
             botones, text="Evaluación final", height=36, corner_radius=RADIO_BOTON,
             fg_color=COLOR_ACENTO_PRIMARIO, hover_color=COLOR_ACENTO_SECUNDARIO,
             text_color="#FFFFFF", font=(FONT_FAMILY, 13, "bold"),
-            command=lambda c=curso: EvaluacionFinalWindow(self, curso=c),
+            command=lambda c=curso: EvaluacionFinalWindow(self, curso=c, usuario_sesion=self._usuario_sesion),
         ).pack(side="left")
 
         ctk.CTkButton(
@@ -106,7 +107,7 @@ class EvaluacionesAdminScreen(_ListaCursosBase):
             fg_color="transparent", hover_color=COLOR_FONDO_TARJETA_HOVER,
             border_width=GROSOR_BORDE_SUTIL, border_color=COLOR_ACENTO_ALTERNO,
             text_color=COLOR_TEXTO_PRIMARIO, font=(FONT_FAMILY, 13, "bold"),
-            command=lambda c=curso: SimulacionesWindow(self, curso=c),
+            command=lambda c=curso: SimulacionesWindow(self, curso=c, usuario_sesion=self._usuario_sesion),
         ).pack(side="left", padx=(10, 0))
 
 

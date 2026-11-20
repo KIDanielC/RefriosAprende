@@ -37,10 +37,11 @@ from view.screens.preguntas_validacion_screen import PreguntasValidacionWindow
 class ContenidosScreen(ctk.CTkFrame):
     """Lista y administra los contenidos (texto) de un curso. Se muestra dentro del área de sección."""
 
-    def __init__(self, master, curso: Curso, al_volver):
+    def __init__(self, master, curso: Curso, al_volver, usuario_sesion=None):
         super().__init__(master, fg_color=COLOR_FONDO_APP, corner_radius=0)
         self._curso = curso
         self._al_volver = al_volver
+        self._usuario_sesion = usuario_sesion
         self._controlador = ContenidoController()
 
         self.grid_columnconfigure(0, weight=1)
@@ -175,25 +176,27 @@ class ContenidosScreen(ctk.CTkFrame):
 
     # ------------------------------------------------------------------
     def _eliminar_contenido(self, contenido: Contenido):
-        self._controlador.eliminar_contenido(contenido.id_contenido)
+        self._controlador.eliminar_contenido(contenido.id_contenido, usuario_actor=self._usuario_sesion)
         self._cargar_contenidos()
 
     def _mover_contenido(self, contenido: Contenido, direccion: str):
-        self._controlador.mover_contenido(contenido.id_contenido, direccion)
+        self._controlador.mover_contenido(contenido.id_contenido, direccion, usuario_actor=self._usuario_sesion)
         self._cargar_contenidos()
 
     def _abrir_preguntas_validacion(self, contenido: Contenido):
-        PreguntasValidacionWindow(self, contenido=contenido)
+        PreguntasValidacionWindow(self, contenido=contenido, usuario_sesion=self._usuario_sesion)
 
     def _abrir_formulario_creacion(self):
         FormularioContenido(
-            self, controlador=self._controlador, id_curso=self._curso.id_curso, al_guardar=self._cargar_contenidos
+            self, controlador=self._controlador, id_curso=self._curso.id_curso, al_guardar=self._cargar_contenidos,
+            usuario_sesion=self._usuario_sesion,
         )
 
     def _abrir_formulario_edicion(self, contenido: Contenido):
         FormularioContenido(
             self, controlador=self._controlador, id_curso=self._curso.id_curso,
             al_guardar=self._cargar_contenidos, contenido_existente=contenido,
+            usuario_sesion=self._usuario_sesion,
         )
 
 
@@ -202,12 +205,16 @@ class FormularioContenido(ctk.CTkToplevel):
 
     El tipo de contenido no se puede cambiar una vez creado (solo aplica al crear)."""
 
-    def __init__(self, master, controlador: ContenidoController, id_curso: int, al_guardar, contenido_existente: Contenido = None):
+    def __init__(
+        self, master, controlador: ContenidoController, id_curso: int, al_guardar,
+        contenido_existente: Contenido = None, usuario_sesion=None,
+    ):
         super().__init__(master)
         self._controlador = controlador
         self._id_curso = id_curso
         self._al_guardar = al_guardar
         self._contenido_existente = contenido_existente
+        self._usuario_sesion = usuario_sesion
         self._ruta_archivo_seleccionado = None
         self._tipo_seleccionado = contenido_existente.tipo_contenido if contenido_existente else TIPO_TEXTO
 
@@ -358,16 +365,23 @@ class FormularioContenido(ctk.CTkToplevel):
         try:
             if self._contenido_existente:
                 self._controlador.actualizar_contenido(
-                    self._contenido_existente.id_contenido, titulo, texto, self._contenido_existente.orden
+                    self._contenido_existente.id_contenido, titulo, texto, self._contenido_existente.orden,
+                    usuario_actor=self._usuario_sesion,
                 )
             elif self._tipo_seleccionado == TIPO_PDF:
-                self._controlador.crear_contenido_pdf(self._id_curso, titulo, texto, self._ruta_archivo_seleccionado)
+                self._controlador.crear_contenido_pdf(
+                    self._id_curso, titulo, texto, self._ruta_archivo_seleccionado, usuario_actor=self._usuario_sesion
+                )
             elif self._tipo_seleccionado == TIPO_IMAGEN:
-                self._controlador.crear_contenido_imagen(self._id_curso, titulo, texto, self._ruta_archivo_seleccionado)
+                self._controlador.crear_contenido_imagen(
+                    self._id_curso, titulo, texto, self._ruta_archivo_seleccionado, usuario_actor=self._usuario_sesion
+                )
             elif self._tipo_seleccionado == TIPO_VIDEO:
-                self._controlador.crear_contenido_video(self._id_curso, titulo, texto, self._ruta_archivo_seleccionado)
+                self._controlador.crear_contenido_video(
+                    self._id_curso, titulo, texto, self._ruta_archivo_seleccionado, usuario_actor=self._usuario_sesion
+                )
             else:
-                self._controlador.crear_contenido_texto(self._id_curso, titulo, texto)
+                self._controlador.crear_contenido_texto(self._id_curso, titulo, texto, usuario_actor=self._usuario_sesion)
         except DatosContenidoInvalidosError as error:
             self._etiqueta_error.configure(text=str(error))
             return

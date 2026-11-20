@@ -13,26 +13,26 @@ def _crear_archivo_de_prueba(tmp_path, nombre="entrega.png") -> str:
     return str(ruta)
 
 
-def test_calificar_entrega_sin_actor_falla(curso, aprendiz, tmp_path, monkeypatch):
+def test_calificar_entrega_sin_actor_falla(curso, aprendiz, admin, tmp_path, monkeypatch):
     import controller.taller_controller as taller_controller_module
     monkeypatch.setattr(taller_controller_module, "BASE_DIR", str(tmp_path))
     monkeypatch.setattr(taller_controller_module, "ENTREGAS_DIR", str(tmp_path / "resources" / "entregas"))
 
     tc = TallerController()
-    taller = tc.crear_taller(curso.id_curso, "Taller", "Descripción suficientemente larga del taller.")
+    taller = tc.crear_taller(curso.id_curso, "Taller", "Descripción suficientemente larga del taller.", usuario_actor=admin)
     entrega = tc.subir_entrega(taller.id_taller, aprendiz.id_usuario, _crear_archivo_de_prueba(tmp_path))
 
     with pytest.raises(AccesoNoAutorizadoError):
         tc.calificar_entrega(entrega.id_entrega, aprobado=True, comentario="")
 
 
-def test_calificar_entrega_con_un_aprendiz_como_actor_falla(curso, aprendiz, tmp_path, monkeypatch):
+def test_calificar_entrega_con_un_aprendiz_como_actor_falla(curso, aprendiz, admin, tmp_path, monkeypatch):
     import controller.taller_controller as taller_controller_module
     monkeypatch.setattr(taller_controller_module, "BASE_DIR", str(tmp_path))
     monkeypatch.setattr(taller_controller_module, "ENTREGAS_DIR", str(tmp_path / "resources" / "entregas"))
 
     tc = TallerController()
-    taller = tc.crear_taller(curso.id_curso, "Taller", "Descripción suficientemente larga del taller.")
+    taller = tc.crear_taller(curso.id_curso, "Taller", "Descripción suficientemente larga del taller.", usuario_actor=admin)
     entrega = tc.subir_entrega(taller.id_taller, aprendiz.id_usuario, _crear_archivo_de_prueba(tmp_path))
 
     with pytest.raises(AccesoNoAutorizadoError):
@@ -45,7 +45,7 @@ def test_calificar_entrega_con_un_administrador_como_actor_funciona(curso, apren
     monkeypatch.setattr(taller_controller_module, "ENTREGAS_DIR", str(tmp_path / "resources" / "entregas"))
 
     tc = TallerController()
-    taller = tc.crear_taller(curso.id_curso, "Taller", "Descripción suficientemente larga del taller.")
+    taller = tc.crear_taller(curso.id_curso, "Taller", "Descripción suficientemente larga del taller.", usuario_actor=admin)
     entrega = tc.subir_entrega(taller.id_taller, aprendiz.id_usuario, _crear_archivo_de_prueba(tmp_path))
 
     calificada = tc.calificar_entrega(entrega.id_entrega, aprobado=True, comentario="", usuario_actor=admin)
