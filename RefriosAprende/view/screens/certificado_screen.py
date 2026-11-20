@@ -31,8 +31,8 @@ class CertificadoWindow(ctk.CTkToplevel):
 
         self.title(f"Certificado — {curso.nombre_curso}")
         self.configure(fg_color=COLOR_FONDO_APP)
-        self.geometry("640x580")
-        self.minsize(560, 520)
+        self.geometry("640x700")
+        self.minsize(560, 640)
         self.transient(master)
         self.grab_set()
 
@@ -80,26 +80,39 @@ class CertificadoWindow(ctk.CTkToplevel):
         partes = [f"Instructor: {datos['nombre_instructor']}"]
         if datos["duracion_horas"]:
             partes.append(f"Duración: {datos['duracion_horas']} horas")
-        if datos["nota_obtenida"] is not None:
-            partes.append(f"Nota evaluación final: {datos['nota_obtenida']:.1f} / 5.0")
+        partes.append(datos["tipo_participacion"])
+        partes.append(f"Fecha de finalización: {datos['fecha_finalizacion']}")
+        if datos["competencias"]:
+            extracto = datos["competencias"][:70] + ("…" if len(datos["competencias"]) > 70 else "")
+            partes.append(f"Competencias desarrolladas: {extracto}")
         for parte in partes:
             ctk.CTkLabel(
                 detalle, text=parte, font=(FONT_FAMILY, 12), text_color=COLOR_TEXTO_SECUNDARIO,
+                wraplength=520, justify="center",
             ).pack(pady=1)
+
+        ctk.CTkLabel(
+            marco, text=f"Código de validación: {datos['codigo_validacion']}", font=(FONT_FAMILY, 11, "bold"),
+            text_color=COLOR_TEXTO_PRIMARIO,
+        ).grid(row=7, column=0, pady=(10, 0))
+        ctk.CTkLabel(
+            marco, text="(el PDF incluye además el código QR y la firma autorizada del instructor)",
+            font=(FONT_FAMILY, 10), text_color=COLOR_TEXTO_SECUNDARIO,
+        ).grid(row=8, column=0, pady=(2, 0))
 
         ctk.CTkLabel(
             marco, text=f"Emitido el {datos['fecha_emision']}  ·  {APP_NAME}", font=(FONT_FAMILY, 10.5),
             text_color=COLOR_TEXTO_SECUNDARIO,
-        ).grid(row=7, column=0, pady=(20, 16))
+        ).grid(row=9, column=0, pady=(14, 16))
 
         self._etiqueta_estado = ctk.CTkLabel(marco, text="", font=(FONT_FAMILY, 11), text_color=COLOR_EXITO)
-        self._etiqueta_estado.grid(row=8, column=0, pady=(0, 4))
+        self._etiqueta_estado.grid(row=10, column=0, pady=(0, 4))
 
         ctk.CTkButton(
             marco, text="Guardar como PDF", width=220, height=38, corner_radius=RADIO_BOTON,
             fg_color=COLOR_ACENTO_PRIMARIO, hover_color=COLOR_ACENTO_SECUNDARIO, text_color="#FFFFFF",
             font=(FONT_FAMILY, 12, "bold"), command=self._guardar_como_pdf,
-        ).grid(row=9, column=0, pady=(0, 28))
+        ).grid(row=11, column=0, pady=(0, 28))
 
     def _guardar_como_pdf(self):
         ruta_destino = filedialog.asksaveasfilename(

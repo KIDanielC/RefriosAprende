@@ -141,31 +141,41 @@ def test_exportar_certificado_crea_un_pdf_valido(curso, aprendiz, tmp_path):
         assert archivo.read(4) == b"%PDF"
 
 
-def test_dibujar_certificado_funciona_sin_duracion_ni_nota():
+def test_dibujar_certificado_funciona_sin_duracion_ni_nota_ni_competencias():
     certificado_controlador = CertificadoController()
     datos = {
         "nombre_aprendiz": "Aprendiz de Prueba",
         "documento": "1000000002",
         "nombre_curso": "Curso de Prueba",
         "nombre_instructor": "Admin de Prueba",
+        "nombre_emisor": "Refrios Aprende",
         "duracion_horas": None,
         "nota_obtenida": None,
+        "tipo_participacion": "Participación completa de los contenidos del curso (sin evaluación obligatoria).",
+        "competencias": None,
+        "fecha_finalizacion": "01/01/2026",
         "fecha_emision": "01/01/2026",
+        "codigo_validacion": "AAAA-BBBB-CCCC-DDDD",
     }
     imagen = certificado_controlador._dibujar_certificado(datos)
     assert imagen.size == (1754, 1240)
 
 
-def test_dibujar_certificado_funciona_con_duracion_y_nota():
+def test_dibujar_certificado_funciona_con_duracion_nota_y_competencias():
     certificado_controlador = CertificadoController()
     datos = {
         "nombre_aprendiz": "Aprendiz de Prueba",
         "documento": "1000000002",
         "nombre_curso": "Curso de Prueba",
         "nombre_instructor": "Admin de Prueba",
+        "nombre_emisor": "Refrios Aprende",
         "duracion_horas": 20,
         "nota_obtenida": 4.5,
-        "fecha_emision": "01/01/2026",
+        "tipo_participacion": "Finalización mediante evaluación final aprobada (nota 4.5 / 5.0).",
+        "competencias": "Diagnóstico de fallas eléctricas y mecánicas en unidades condensadoras.",
+        "fecha_finalizacion": "01/01/2026",
+        "fecha_emision": "02/01/2026",
+        "codigo_validacion": "AAAA-BBBB-CCCC-DDDD",
     }
     imagen = certificado_controlador._dibujar_certificado(datos)
     assert imagen.size == (1754, 1240)
