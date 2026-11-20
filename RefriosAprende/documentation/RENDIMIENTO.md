@@ -22,9 +22,7 @@ sobre el repositorio en el commit en que se agregó este archivo.
   resultados) — para revelar si el tiempo se degrada cuando crece el volumen de datos, no
   solo cuánto tarda con una base vacía.
 - **Equipo de prueba:** AMD Ryzen 5 5600 6-Core Processor (12 núcleos lógicos) ·
-  31.9 GB RAM · Windows 11 · Python 3.14.3. Es un computador real del taller, no una
-  máquina de desarrollo aparte: las mediciones reflejan el equipo donde de verdad se usa
-  el programa.
+  31.9 GB RAM · Windows 11 · Python 3.14.3.
 - Por cada operación y volumen se reportan: mínimo, media, mediana, P90, P95, P99, máximo
   y desviación estándar, en milisegundos. La mediana es el caso típico; el P95 y el máximo
   son el peor caso real que puede encontrar un usuario.
