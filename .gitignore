@@ -17,6 +17,7 @@ RefriosAprende/database/refrios.db.backup-*
 RefriosAprende/build/
 RefriosAprende/dist/
 RefriosAprende/packaging/salida/
+RefriosAprende/ENTREGA_FINAL/
 
 # La monografía y sus insumos van aparte del código fuente, no en este repositorio.
 documentacion_monografia/
