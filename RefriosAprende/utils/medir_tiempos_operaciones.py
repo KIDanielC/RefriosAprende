@@ -2,7 +2,7 @@
 crear usuario, matricular, presentar evaluación, calificar entrega, exportar certificado,
 generar reportes, etc.), usando los controladores reales -- nunca llamadas simuladas --
 sobre bases de datos con tres volúmenes de fondo (pequeño/mediano/grande, los mismos de
-utils/poblar_carga.py), para que el jurado pueda ver si el tiempo de cada operación se
+utils/poblar_carga.py), para poder ver si el tiempo de cada operación se
 degrada a medida que crece el volumen de datos ("prueba de saturación").
 
 Por cada operación y volumen se repite la llamada muchas veces y se reporta: mínimo,
@@ -377,8 +377,8 @@ def _escribir_informe(carpeta_salida: str, resultados_por_volumen: dict, resumen
         "# Tiempos de respuesta por operación — prueba de saturación",
         "",
         "Mide cada operación de negocio por separado (no toda la pantalla), usando los "
-        "controladores reales, sobre tres volúmenes de datos de fondo. El objetivo es que el "
-        "jurado pueda ver si una operación se vuelve más lenta a medida que la base de datos "
+        "controladores reales, sobre tres volúmenes de datos de fondo. El objetivo es poder "
+        "ver si una operación se vuelve más lenta a medida que la base de datos "
         "crece (\"saturación\"), y no solo un promedio global.",
         "",
         f"Equipo: {_info_equipo()}",

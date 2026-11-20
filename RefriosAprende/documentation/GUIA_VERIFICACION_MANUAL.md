@@ -1,21 +1,21 @@
-# Guía de verificación manual — correcciones del jurado (Evaluación 1 del CNTG)
+# Guía de verificación manual — correcciones del proyecto
 
-Este documento explica, corrección por corrección, qué encontró el jurado, qué se cambió
+Este documento explica, corrección por corrección, qué se encontró, qué se cambió
 en el código y **cómo comprobar con la aplicación abierta, sin programar, que el cambio
 de verdad funciona** — para que se pueda repetir en cualquier momento, incluyendo delante
-del jurado si lo vuelven a pedir.
+de quien lo pida.
 
 Cada sección cita el commit real donde quedó el cambio (`git log --oneline` lo muestra;
 también puedes pegar el hash en `git show <hash>` para ver el detalle línea por línea).
 
 ---
 
-## Parte A — Errores que el jurado encontró en el software
+## Parte A — Errores encontrados en el software
 
 ### 1. Actualizar una base de datos antigua perdía información
 **Commit:** `02e0cd7`
 
-El jurado encontró que al abrir con la versión nueva una base de datos creada con una
+Se encontró que al abrir con la versión nueva una base de datos creada con una
 versión vieja del programa, algunas evaluaciones y cursos antiguos perdían sus preguntas,
 resultados o contenidos asociados.
 
@@ -50,8 +50,8 @@ que el programa se cayera con un error técnico en vez de avisar con un mensaje 
 **Commit:** `f3e438b`
 
 Se mostraban "18 Cursos activos", "92% Aprobación" y "236 Aprendices" en la pantalla de
-login, escritos directamente en el código, sin relación con los datos reales — el jurado
-señaló que podían confundirse con resultados reales del taller.
+login, escritos directamente en el código, sin relación con los datos reales — podían
+confundirse con resultados reales del taller.
 
 **Cómo comprobarlo tú mismo:**
 1. Cierra sesión o abre el programa desde cero.
@@ -74,7 +74,7 @@ forma de comprobarlo sin leer código es confirmar que el comportamiento sigue c
 ### 5. El paquete instalable traía usuarios y cursos reales de fábrica
 **Commit:** `c3da0bd`
 
-El jurado encontró 13 usuarios, 8 cursos y 8 resultados ya cargados dentro del instalador
+Se encontraron 13 usuarios, 8 cursos y 8 resultados ya cargados dentro del instalador
 entregado — datos reales de desarrollo, no una base vacía de fábrica.
 
 **Cómo comprobarlo tú mismo:**
@@ -224,8 +224,8 @@ instalador):**
 
 ## Cómo correr TODAS las pruebas automatizadas de una sola vez
 
-Si en algún momento el jurado quiere ver que absolutamente nada de esto se rompió al
-tocar otra cosa, el comando que corre las 172 pruebas automatizadas del proyecto es:
+Si en algún momento se quiere comprobar que absolutamente nada de esto se rompió al
+tocar otra cosa, el comando que corre las 202 pruebas automatizadas del proyecto es:
 
 ```
 py -m pytest -v

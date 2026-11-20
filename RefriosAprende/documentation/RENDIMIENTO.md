@@ -1,6 +1,6 @@
 # Rendimiento y cobertura de pruebas — Refrios Aprende v1.0.1
 
-Este documento reúne, para que el jurado y la monografía tengan una sola fuente confiable:
+Este documento reúne, para tener una sola fuente confiable:
 
 1. Los tiempos de respuesta reales de cada operación del software, medidos con los
    controladores de verdad (no simulados) sobre tres volúmenes de datos de fondo.
@@ -125,7 +125,7 @@ decisión informada y no un descuido):**
 | `controller/progreso_controller.py` | 72% | Los historiales y gráficas de progreso general tienen menos pruebas que el cálculo de avance individual, que sí está bien cubierto. |
 | `view/*` en general | 14% – 49% | Cobertura de UI; mitigado porque las pantallas no tienen lógica de negocio propia (`tests/test_vistas_no_usan_dao.py` verifica justamente que las vistas no puedan saltarse la validación de los controladores). |
 
-## 5. Conclusión para el jurado
+## 5. Conclusión
 
 - El software responde en menos de 25 ms para cualquier operación individual, incluso
   con 5000 resultados de evaluación en la base de datos, salvo las dos operaciones que

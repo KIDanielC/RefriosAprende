@@ -1,7 +1,8 @@
 """Pruebas del certificado de finalización: el controlador y el PDF que genera deben traer
-los datos que pidió el jurado (documento, duración, tipo de participación, fecha de
-finalización real, competencias, firma del instructor y código de validación con su QR),
-y deben mantenerse al exportar a PDF, no solo en la vista previa en pantalla."""
+todos los datos exigidos por un certificado válido (documento, duración, tipo de
+participación, fecha de finalización real, competencias, firma del instructor y código de
+validación con su QR), y deben mantenerse al exportar a PDF, no solo en la vista previa en
+pantalla."""
 import os
 
 from controller.certificado_controller import CertificadoController, CursoNoCompletadoError
@@ -42,7 +43,7 @@ def test_certificado_de_curso_sin_completar_falla(curso, aprendiz):
         CertificadoController().obtener_datos_certificado(aprendiz, curso)
 
 
-def test_datos_del_certificado_traen_los_campos_que_pidio_el_jurado(admin, aprendiz):
+def test_datos_del_certificado_traen_todos_los_campos_requeridos(admin, aprendiz):
     from controller.curso_controller import CursoController
     curso = _curso_completado_con_evaluacion(admin, aprendiz, CursoController())
 

@@ -6,16 +6,19 @@ evaluaciones, simulaciones de diagnóstico y seguimiento del avance de cada apre
 Proyecto de grado — aplicación de escritorio en Python con arquitectura MVC y base de datos
 SQLite local.
 
-## Para el jurado: cómo ejecutar la aplicación
+## Instalación rápida (sin programar)
 
 No hace falta instalar Python ni ninguna dependencia. Todo el código fuente vive en la carpeta
 [`RefriosAprende/`](RefriosAprende/).
 
-1. Descarga el instalador desde la sección
+1. Descarga el instalador más reciente desde la sección
    **[Releases](https://github.com/KIDanielC/RefriosAprende/releases/latest)** de este
-   repositorio (`RefriosAprende-Setup-1.0.0.exe`).
+   repositorio.
 2. Ejecútalo. No pide permisos de administrador.
 3. Abre "Refrios Aprende" desde el menú inicio o el acceso directo del escritorio.
+4. En el primer arranque, como la base de datos todavía no tiene ningún administrador, se abre
+   una ventana para crear la primera cuenta (nombre, usuario y contraseña a elección de quien
+   instala). No hay ninguna cuenta ni contraseña de fábrica en el código.
 
 El instalador no se versiona junto al código fuente (es un binario generado); si necesitas
 recompilarlo tras algún cambio, sigue
@@ -51,26 +54,19 @@ recompilarlo tras algún cambio, sigue
 
 ## Ejecutar desde el código fuente (para desarrollo)
 
-Requiere Python 3.11+ instalado.
+Requiere Python 3.12 o superior.
 
 ```
 cd RefriosAprende
 py -m venv .venv
 .venv\Scripts\Activate.ps1    # o .venv\Scripts\activate.bat si usas cmd.exe
 py -m pip install -r requirements-dev.txt
-py -m utils.seed_admin
 py main.py
 ```
 
-`seed_admin.py` crea el usuario administrador inicial la primera vez que se ejecuta:
-
-- **Usuario:** `admin`
-- **Contraseña:** `admin123`
-
-(cámbiala desde la propia aplicación en Gestión de Usuarios una vez inicies sesión).
-
 La base de datos (`RefriosAprende/database/refrios.db`) se crea automáticamente al arrancar la
-aplicación por primera vez.
+aplicación por primera vez. Como todavía no tiene ningún administrador, el primer arranque abre
+la ventana para crear la primera cuenta (ver el paso 4 de la sección anterior).
 
 ## Pruebas automatizadas
 
@@ -79,8 +75,9 @@ cd RefriosAprende
 py -m pytest -q
 ```
 
-80 pruebas cubren usuarios, cursos y contenidos, evaluaciones, simulaciones, la guía de
-aprendizaje y un flujo de integración completo de principio a fin.
+202 pruebas cubren usuarios, cursos y contenidos, evaluaciones, simulaciones, talleres,
+certificados, respaldo/restauración, control de acceso por rol y un flujo de integración
+completo de principio a fin.
 
 ## Estructura del proyecto
 
