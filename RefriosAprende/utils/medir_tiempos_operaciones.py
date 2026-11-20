@@ -29,6 +29,22 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 REPETICIONES_POR_DEFECTO = 30
 
 
+def _nombre_procesador() -> str:
+    """En Windows, platform.processor() devuelve algo críptico como "AMD64 Family 25
+    Model 33 Stepping 2, AuthenticAMD". El nombre comercial real (el que trae la caja
+    o el administrador de tareas) está en el registro de Windows."""
+    try:
+        import winreg
+
+        clave = winreg.OpenKey(
+            winreg.HKEY_LOCAL_MACHINE, r"HARDWARE\DESCRIPTION\System\CentralProcessor\0"
+        )
+        nombre, _ = winreg.QueryValueEx(clave, "ProcessorNameString")
+        return " ".join(nombre.split())  # colapsa espacios dobles que trae el registro
+    except Exception:
+        return platform.processor() or platform.machine()
+
+
 def _info_equipo() -> str:
     memoria_gb = "?"
     try:
@@ -49,8 +65,9 @@ def _info_equipo() -> str:
     except Exception:
         pass
 
+    nucleos = os.cpu_count() or "?"
     return (
-        f"{platform.processor() or platform.machine()} · {memoria_gb} GB RAM · "
+        f"{_nombre_procesador()} ({nucleos} núcleos lógicos) · {memoria_gb} GB RAM · "
         f"{platform.system()} {platform.release()} · Python {platform.python_version()}"
     )
 
